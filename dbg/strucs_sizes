@@ -1,0 +1,17 @@
+binder_sz=12
+receptor_sz=16
+synapse_sz=44
+dendrite_sz=24
+sortee_sz=24
+sorset_sz=84
+
+axon_sz=28
+nudon_sz=284
+neuron_sz=96
+netix_sz=96
+circuit_sz=364
+row_long_t_sz=16
+long_sz=4
+void*_sz=4
+
+End of tests

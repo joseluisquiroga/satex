@@ -1,0 +1,11 @@
+
+YHOME=`cat ${HOME}/.yhome.txt`
+
+if [ ${#YHOME} = 0 ]
+then echo "YHOME=${YHOME} is not set";
+exit;
+fi
+
+echo "Using ${YHOME}/src/debug.conf"
+rm -f ./yosoy.conf
+ln -s ${YHOME}/src/debug.conf ./yosoy.conf

@@ -1,0 +1,4 @@
+
+echo "Using ../src/debug.conf"
+rm -f ./yosoy.conf
+ln -s ../src/debug.conf ./yosoy.conf

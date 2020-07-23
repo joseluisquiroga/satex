@@ -1,0 +1,15 @@
+c (C) 2010. QUIROGA BELTRAN, Jose Luis. Bogota - Colombia.
+c Date of birth: December 28 of 1970.
+c Place of birth: Bogota - Colombia - Southamerica.
+c Id (cedula): 79523732 de Bogota.
+c tot_lits=18
+p cnf 12 9 
+-6 -7 0
+-6 -8 0
+-7 -8 0
+-10 -11 0
+-10 -12 0
+-11 -12 0
+6 10 0
+7 11 0
+8 12 0

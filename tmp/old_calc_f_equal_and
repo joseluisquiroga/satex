@@ -1,0 +1,41 @@
+
+/*
+void
+brain::nions_opps(row<nion*>& r_nions){
+	for(long jj = 0; jj < r_nions.size(); jj++){
+		nion& nio = *(r_nions[jj]);
+		r_nions[jj] = &(nio.opposite());
+	}
+}
+
+void
+brain::remember_f_nion_equal_and(nion& d_nio, row<nion*>& and_nions,
+			row_row_nions& rr_nios)
+{
+	DBG_PRT2(29, os << "EQ_AND. d_nio=" << d_nio << " and_nions=" << and_nions);
+
+	BRAIN_CK(! and_nions.is_empty());
+	row<nion*>& f1 = rr_nios.inc_sz();
+
+	and_nions.copy_to(f1);
+	nions_opps(f1);
+	f1.push(&d_nio);
+
+	DBG_PRT2(29, os << "EQ_AND. neu=" << f1);
+	BRAIN_CK(ck_row_nions(f1));
+
+	long ii = 0;
+	for(ii = 0; ii < and_nions.size(); ii++){
+		row<nion*>& f2 = rr_nios.inc_sz();
+		nion& a_nio = *(and_nions[ii]);
+
+		f2.push(&a_nio);
+		f2.push(&(d_nio.opposite()));
+
+		DBG_PRT2(29, os << "EQ_AND. neu(" << ii << ")=" << f2);
+		BRAIN_CK(ck_row_nions(f2));
+	}
+}
+
+
+*/

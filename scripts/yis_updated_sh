@@ -1,0 +1,16 @@
+
+YHOME=`cat ${HOME}/.yhome.txt`
+
+if [ ${#YHOME} = 0 ]
+then echo "YHOME=${YHOME} is not set";
+exit;
+fi
+
+${YHOME}/scripts/yclean_sh
+
+BASE=`basename ${YHOME}`
+find ${YHOME} \! -name "*.pro.user" \! -type d -newer ${YHOME}/../../${BASE} | grep -v ${YHOME}/bin
+
+
+
+

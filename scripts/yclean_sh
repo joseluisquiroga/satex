@@ -1,0 +1,15 @@
+
+YHOME=`cat ${HOME}/.yhome.txt`
+
+if [ ${#YHOME} = 0 ]
+then echo "YHOME=${YHOME} is not set";
+exit;
+fi
+
+rm -f ${YHOME}/dbg/yosoy.conf
+
+cd ${YHOME}
+find . -mount -name "Makefile" -exec rm -f '{}' \;
+find . -mount -name "*.log" -exec rm -f '{}' \;
+find . -mount -name "*~" -exec rm -f '{}' \;
+

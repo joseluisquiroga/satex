@@ -1,0 +1,15 @@
+
+YHOME=`cat ${HOME}/.yhome.txt`
+
+if [ ${#YHOME} = 0 ]
+then echo "YHOME=${YHOME} is not set";
+exit;
+fi
+
+cd ${YHOME}
+rm -rf ${YHOME}/bin/SLV_ROOT
+rm -rf ${YHOME}/bin/BRN_ROOT
+
+echo "Erased solver state ${YHOME}/bin/SLV_ROOT"
+echo "Erased database ${YHOME}/bin/BRN_ROOT"
+

@@ -1,0 +1,65 @@
+TEST 0 1202716915
+[[-1]1.[-5]2.  e=b1a2b2b2b2b2b2b2a2b2a2a2b2b2{(0x90d7d38).wc=1.(0x90d7d30).{(0x90ddba8) sd=sd_before b=0{<1<2<2<2<2<2}}.}
+[-1]1.[-2]2.[-1]3.  e=b1b2b2a2b2b2b2a2a2a2b2b2a2b3{(0x90d76b8).wc=2.(0x90d76b0).{(0x90de580) sd=sd_before b=0{<1<2<2<3}}.}
+[-1]1.[0]2.[-2]3.  e=b1a2a2a2b2b2b2b2a2b3b3{(0x90d7638).wc=3.(0x90d7630).{(0x90de7d8) sd=sd_before b=0{<1|2<3<3}}.}
+[-9]2.[-1]3.  e=b2b2b2b2b2a2b2b2a2a2b2b2b2b2a2b2a2b2a2b2b2b3{(0x90d7938).wc=4.(0x90d7930).{(0x90de490) sd=sd_before b=0{<2<2<2<2<2<2<2<2<2<3}}.}
+[-6]2.  e=b2b2b2a2b2a2b2b2b2a2b2b2a2a2b2a2b2b2{(0x90d7fb8).wc=5.(0x90d7fb0).{(0x90d9790) sd=sd_before b=0{<2<2<2<2<2<2}}.}
+[-5]2.[-1]3.  e=b2b2b2b2b2a2a2a2b2b2b2a2b2b3{(0x90d7b78).wc=6.(0x90d7b70).{(0x90de3a0) sd=sd_before b=0{<2<2<2<2<2<3}}.}
+[-5]2.[-1]3.  e=a2b2b2b2b2b2b2b3{(0x90d7e38).wc=6.(0x90d7e30).{(0x90de3a0) sd=sd_before b=0{<2<2<2<2<2<3}}.}
+[-4]2.  e=b2b2a2b2b2b2b2b2a2b2a2a2{(0x90d7e78).wc=7.(0x90d7e70).{(0x90d94c0) sd=sd_before b=0{<2<2<2<2}}.}
+[-4]2.  e=a2b2b2a2a2b2b2b2b2b2a2a2b2b2{(0x90d7778).wc=7.(0x90d7770).{(0x90d94c0) sd=sd_before b=0{<2<2<2<2}}.}
+[-3]2.  e=a2a2b2b2a2b2b2b2b2{(0x90d7b38).wc=8.(0x90d7b30).{(0x90d9010) sd=sd_before b=0{<2<2<2}}.}
+[-3]2.  e=a2b2b2b2b2b2a2a2b2{(0x90d7df8).wc=8.(0x90d7df0).{(0x90d9010) sd=sd_before b=0{<2<2<2}}.}
+[-2]2.[-1]3.  e=a2a2b2b2b2b2b3{(0x90d7878).wc=9.(0x90d7870).{(0x90de760) sd=sd_before b=0{<2<2<3}}.}
+[-2]2.[-1]3.  e=b2b2a2b2b3{(0x90d7978).wc=9.(0x90d7970).{(0x90de760) sd=sd_before b=0{<2<2<3}}.}
+[-2]2.  e=a2b2b2b2b2a2{(0x90d7538).wc=10.(0x90d7530).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=a2b2b2b2a2a2a2b2b2a2b2b2{(0x90d7bf8).wc=10.(0x90d7bf0).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=b2b2b2a2a2b2{(0x90d7678).wc=10.(0x90d7670).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=a2b2a2b2b2b2a2b2{(0x90d7c78).wc=10.(0x90d7c70).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=a2b2a2a2b2b2b2b2b2a2a2b2a2b2{(0x90d7478).wc=10.(0x90d7470).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=b2a2b2b2b2a2a2a2a2b2b2b2{(0x90d77f8).wc=10.(0x90d77f0).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=b2b2a2a2b2a2a2b2b2b2{(0x90d78b8).wc=10.(0x90d78b0).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=b2b2a2b2a2b2a2b2b2a2b2a2b2a2{(0x90d7c38).wc=10.(0x90d7c30).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=b2b2b2a2a2b2a2b2a2b2{(0x90d7f38).wc=10.(0x90d7f30).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-2]2.  e=a2b2b2a2b2b2b2b2a2b2a2a2{(0x90d7db8).wc=10.(0x90d7db0).{(0x90d8cc8) sd=sd_before b=0{<2<2}}.}
+[-1]2.[-1]3.  e=b2a2b2a2a2a2b2b2b2b2a2a2a2b2b2b3{(0x90d7738).wc=11.(0x90d7730).{(0x90de508) sd=sd_before b=0{<2<3}}.}
+[-1]2.  e=a2a2b2b2b2a2a2b2b2{(0x90d75f8).wc=12.(0x90d75f0).{(0x90d8bd8) sd=sd_before b=0{<2}}.}
+[0]1.[-5]2.  e=a1b1b2b2b2a2b2b2b2b2a2{(0x90d7cb8).wc=13.(0x90d7cb0).{(0x90dde00) sd=sd_before b=0{|1<2<2<2<2<2}}.}
+[0]2.  e=a2a2b2b2a2b2a2a2b2b2{(0x90d77b8).wc=14.(0x90d77b0).{(0x90d8ea8) sd=sd_middle b=0{|2}}.}
+[0]2.  e=b2a2a2b2b2a2a2b2a2b2a2b2{(0x90d7bb8).wc=14.(0x90d7bb0).{(0x90d8ea8) sd=sd_middle b=0{|2}}.}
+[0]2.[1]3.  e=a2a2a2a2a2b2b2b2b2b2a2b2a3{(0x90d7cf8).wc=15.(0x90d7cf0).{(0x90de5f8) sd=sd_after b=0{|2>3}}.}
+[1]2.[-1]3.  e=b2b2b2a2a2a2a2b3{(0x90d7ff8).wc=16.(0x90d7ff0).{(0x90de2b0) sd=sd_before b=0{>2<3}}.}
+[1]2.  e=b2b2b2a2b2a2a2a2a2{(0x90d7a78).wc=17.(0x90d7a70).{(0x90d8b60) sd=sd_after b=0{>2}}.}
+[2]2.[-1]3.  e=b2b2b2a2a2a2b2a2b2a2a2a2b3{(0x90d7838).wc=18.(0x90d7830).{(0x90de148) sd=sd_before b=0{>2>2<3}}.}
+[2]2.  e=b2a2a2b2a2a2b2a2a2b2{(0x90d76f8).wc=19.(0x90d76f0).{(0x90d8f20) sd=sd_after b=0{>2>2}}.}
+[2]2.[1]3.  e=a2a2b2b2a2b2a2a2a2b2b2a2a3{(0x90d7ab8).wc=20.(0x90d7ab0).{(0x90de238) sd=sd_after b=0{>2>2>3}}.}
+[2]2.[1]3.  e=b2a2a2b2a2a2b2a2a3{(0x90d7af8).wc=20.(0x90d7af0).{(0x90de238) sd=sd_after b=0{>2>2>3}}.}
+[3]2.  e=b2b2b2a2a2a2a2a2a2{(0x90d74f8).wc=21.(0x90d74f0).{(0x90d95b0) sd=sd_after b=0{>2>2>2}}.}
+[3]2.  e=a2a2b2a2a2a2b2a2a2b2b2b2a2{(0x90d7eb8).wc=21.(0x90d7eb0).{(0x90d95b0) sd=sd_after b=0{>2>2>2}}.}
+[3]2.[1]3.  e=a2a2b2a2a2a2b2a2b2a3{(0x90d79f8).wc=22.(0x90d79f0).{(0x90de0d0) sd=sd_after b=0{>2>2>2>3}}.}
+[4]2.[-1]3.  e=a2b2b2b2a2a2a2a2a2b2b2a2a2a2b3{(0x90d8038).wc=23.(0x90d8030).{(0x90de670) sd=sd_before b=0{>2>2>2>2<3}}.}
+[4]2.  e=a2a2b2b2b2b2a2a2a2a2a2a2{(0x90d7ef8).wc=24.(0x90d7ef0).{(0x90d96a0) sd=sd_after b=0{>2>2>2>2}}.}
+[4]2.  e=b2a2a2a2a2a2a2b2{(0x90d7578).wc=24.(0x90d7570).{(0x90d96a0) sd=sd_after b=0{>2>2>2>2}}.}
+[5]2.[-1]3.  e=a2a2b2a2b2a2a2a2a2a2b2b3{(0x90d8078).wc=25.(0x90d8070).{(0x90de1c0) sd=sd_before b=0{>2>2>2>2>2<3}}.}
+[5]2.  e=a2a2b2b2a2a2a2a2b2a2a2{(0x90d79b8).wc=26.(0x90d79b0).{(0x90ddab8) sd=sd_after b=0{>2>2>2>2>2}}.}
+[5]2.  e=b2a2a2a2a2b2a2a2a2{(0x90d7d78).wc=26.(0x90d7d70).{(0x90ddab8) sd=sd_after b=0{>2>2>2>2>2}}.}
+[7]2.[-1]3.  e=a2a2a2a2a2a2a2b3{(0x90d74b8).wc=27.(0x90d74b0).{(0x90de058) sd=sd_before b=0{>2>2>2>2>2>2>2<3}}.}
+[1]1.[-2]2.  e=a1a2a2b2b2b2a2b2b2a2b2{(0x90d7f78).wc=28.(0x90d7f70).{(0x90d8c50) sd=sd_before b=0{>1<2<2}}.}
+[1]1.[-1]2.[-1]3.  e=a1b2b2b2b2b2a2a2a2a2b3{(0x90d78f8).wc=29.(0x90d78f0).{(0x90de418) sd=sd_before b=0{>1<2<3}}.}
+[1]1.[0]2.  e=a1b2b2a2b2a2b2b2b2a2a2a2a2{(0x90d75b8).wc=30.(0x90d75b0).{(0x90d91f0) sd=sd_middle b=0{>1|2}}.}
+[1]1.[4]2.[1]3.  e=a1a2a2b2b2a2b2a2a2a2a2a3{(0x90d7a38).wc=31.(0x90d7a30).{(0x90de6e8) sd=sd_after b=0{>1>2>2>2>2>3}}.}
+] START_RND=1202716915
+ck_sort FAILED with
+srs_1={(0x90de490) sd=sd_before b=0{<2<2<2<2<2<2<2<2<2<3}}
+srs_2={(0x90d9790) sd=sd_before b=0{<2<2<2<2<2<2}}
+ASSERT 'false' FAILED (UKNOWN FILE NAME) in ../src/test.cpp at 1188
+ASSERT 'dbg_print_cond_func((! (false)), true, "../src/test.cpp", 1188, "false")' FAILED
+Call Stack from ../src/test.cpp:1188
+   sat3(_Z11call_assertbRKSsiSs+0x79) [0x8076730]
+   sat3(_Z17test_nw_sort_fromlb+0x109c) [0x80715d5]
+   sat3(_Z19test_full_sort_fromv+0x316) [0x8071b2e]
+   sat3(_Z11tests_main_iPPc+0x2f) [0x8071be4]
+   sat3(main+0x1b) [0x808c3bd]
+   /lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe6) [0x5eabbd6]
+   sat3() [0x8066041]
+

@@ -1,0 +1,10 @@
+
+YHOME=`cat ${HOME}/.yhome.txt`
+
+if [ ${#YHOME} = 0 ]
+then echo "YHOME=${YHOME} is not set";
+exit;
+fi
+
+cd ${YHOME}/build
+make $1
