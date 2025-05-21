@@ -107,7 +107,8 @@ brain::dbg_ic_prt_dotty_label(std::ostream& os){
 	//os << "i#n " << stats.num_start_neu << " ";
 	//os << "#n " << stats.num_neurons << " ";
 	os << "\\n \\" << std::endl;
-	os << br_final_msg << " ";
+	//os << br_final_msg << " "; // JLQ_2025_05_13
+	os << br_final_msg.str() << " ";
 	os << "recoil " << recoil() << "  ";	
 	os << "excited_level " << br_excited_level << "  ";
 	os << "\\n \\" << std::endl;

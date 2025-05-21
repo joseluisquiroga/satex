@@ -1,4 +1,6 @@
 
+CRY_FILE=${1}
+
 YHOME=`cat ${HOME}/.yhome.txt`
 
 if [ ${#YHOME} = 0 ]
@@ -6,30 +8,15 @@ then echo "YHOME=${YHOME} is not set";
 exit;
 fi
 
-BASE=`basename ${YHOME}`
-TARGET=${YHOME}/../../${BASE}
 TMPFL=${YHOME}/../tmpfl
-MD5F=${YHOME}/../verif.md5
-SHA1F=${YHOME}/../verif.sha1
-MD5s=${YHOME}/../save.md5
-SHA1s=${YHOME}/../save.sha1
 
-cp ${TARGET} ${TMPFL}
+cp ${CRY_FILE} ${TMPFL}
 
 cd ${YHOME}/..
-cry3 ${TMPFL} -d -r
+cry3 ${TMPFL} -d
 
 file ${TMPFL}.decry
-md5sum ${TMPFL}.decry | awk '{print $1}' > ${MD5F}
-sha1sum ${TMPFL}.decry | awk '{print $1}'  > ${SHA1F}
-
-echo "Starting verif..."
-diff ${MD5F} ${MD5s}
-diff ${SHA1F} ${SHA1s}
-echo "Verif finished"
 
 rm ${TMPFL}
 rm ${TMPFL}.decry
-rm ${MD5F}
-rm ${SHA1F}
 

@@ -24,14 +24,23 @@ then echo "Not in a tmp dir !!!";
 exit;
 fi
 
-TGZF=${YHOME}/../sv.tgz
-TARGET=${YHOME}/../../${BASE}
+echo "CHECKING RAM LOCATION..."
+MNT=`sudo df -a | grep none | grep ${CURR}`
+
+if [ ${#MNT} == 0 ]
+then echo "NOT SAVING IN A RAMFS DIR";
+exit;
+fi
+
+PREFIX=`date +"%Y_%m_%d_%Hh_%Mm_"`
+TGZF=${CURR}/sv.tgz
+TARGET=${CURR}/../${PREFIX}${BASE}.txt
 
 tar cvzf ${TGZF} ./${BASE}
-md5sum ${TGZF} | awk '{print $1}' > ${YHOME}/../save.md5
-sha1sum ${TGZF} | awk '{print $1}' > ${YHOME}/../save.sha1
-cry3 ${TGZF} -e -r
-mv ${TGZF}.encry ${TARGET}
+
+echo "ENCRYPTING..."
+cry3 ${TGZF} -x
+mv ${TGZF}.encry.txt ${TARGET}
 rm ${TGZF}
 
 echo "Saved ${TARGET}"
