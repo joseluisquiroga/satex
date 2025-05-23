@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 mem.cpp  
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -20,9 +20,14 @@ mem trace funcs and other.
 
 glb_mem_data MEM_STATS;
 
+void abort_func(long val, const char* msg){
+	std::cerr << "\nABORTING! " << msg << "\n"; 
+	exit(val);
+}
+
 bool
 print_backtrace( const std::string & file, int line ){
-	std::cout << get_stack_trace(file, line) << std::endl;
+	std::cerr << get_stack_trace(file, line) << std::endl;
 	return true;
 }
 
@@ -76,5 +81,8 @@ get_stack_trace( const std::string & file, int line ){
 
 	return result.str();
 }
+
+
+
 
 

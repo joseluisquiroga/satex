@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 support.cpp  
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -164,7 +164,7 @@ global_data::init_global_data(){
 
 	version_str =
 		"v0.1\n"
-		"(c) 2009. QUIROGA BELTRAN, Jose Luis. c.c. 79523732. Bogota - Colombia.\n"
+		"(c) 2025. QUIROGA BELTRAN, Jose Luis. c.c. 79523732. Bogota - Colombia.\n"
 		;
 
 	just_read = false;
@@ -190,8 +190,6 @@ global_data::init_global_data(){
 	op_dbg_no_learning = false;
 
 	dbg_file_name = "";
-	dbg_os = &(std::cout);
-	dbg_os_bak = NULL_PT;
 
 	long num_dbg_levs = DBG_NUM_LEVS;
 	dbg_lev.set_cap(num_dbg_levs);
@@ -650,7 +648,7 @@ bool	dbg_print_cond_func(bool prm, bool is_ck, const std::string fnam, int lnum,
 
 	bool resp = true;
 	if(prm){
-		std::ostream& os = *(GLB.dbg_os);
+		std::ostream& os = t_dbg_os;
 		if(dbg_lv != INVALID_DBG_LV){
 			if(dbg_lv == DBG_ALL_LVS){
 				os << "ckALL.";
@@ -872,9 +870,9 @@ void	get_enter(std::ostream& os, char* msg){
 	getchar();
 }
 
-void	init_dbg_conf(){
+void	init_dbg_conf(debug_info& dbg_inf){
 	config_reader conf_rdr;
-	conf_rdr.read_config("yosoy.conf");
+	conf_rdr.read_config(dbg_inf, "yosoy.conf");
 
 	GLB.dbg_current_start_entry = 0;
 	GLB.dbg_current_stop_entry = 0;
@@ -1100,6 +1098,9 @@ int	sat3_main(int argc, char** argv){
 
 	int resp = 0;
 
+	debug_info dbg_inf;
+	MARK_USED(dbg_inf);
+	
 	SUPPORT_CK(GLB.dbg_start_dbg_entries.get_cap() == 0);
 	SUPPORT_CK(GLB.dbg_stop_dbg_entries.get_cap() == 0);
 
@@ -1114,7 +1115,7 @@ int	sat3_main(int argc, char** argv){
 	MARK_USED(start_tm);
 	start_tm = run_time();
 
-	DBG(init_dbg_conf());
+	DBG(init_dbg_conf(dbg_inf));
 
 	if(args_ok){
 		PRT_OUT(1, os << ".STARTING AT " << run_time() << std::endl);

@@ -39,38 +39,26 @@ std::string	k_dimacs_header_str =
 		"c Id (cedula): 79523732 de Bogota.\n";
 
 
-std::ostringstream& dimacs_err_msg(long num_line, char ch_err, const char* msg){
-	return parse_err_msg("DIMACS ERROR. ", num_line, ch_err, msg);
+t_string dimacs_err_msg(long num_line, char ch_err, const char* msg){
+	return get_parse_err_msg("DIMACS ERROR. ", num_line, ch_err, msg);
 }
 
-void skip_cnf_decl(const char*& pt_in, long line){
+void 
+dimacs_loader::skip_cnf_decl(const char*& pt_in, long line){
 	if(*pt_in == 0){
-		std::ostringstream& msg =
-			dimacs_err_msg(line, -1, "Expecting 'cnf' declaration line.");
-		MARK_USED(msg);
-
-		GLB.error_cod = k_dimacs_01_exception;
-		DBG_THROW_CK(k_dimacs_01_exception != k_dimacs_01_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw dimacs_exception(dix_no_cnf_decl_1, 0, line, get_cursor_pos());
 	}
 
 	const char* cnf_str = "cnf";
 	const int cnf_str_sz = 3;
 	if(memcmp(pt_in, cnf_str, cnf_str_sz) != 0){
-		std::ostringstream& msg =
-			dimacs_err_msg(line, -1, "Expecting 'cnf' declaration line.");
-		MARK_USED(msg);
-
-		GLB.error_cod = k_dimacs_02_exception;
-		DBG_THROW_CK(k_dimacs_02_exception != k_dimacs_02_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw dimacs_exception(dix_no_cnf_decl_2, *pt_in, line, get_cursor_pos());
 	}
 	pt_in += cnf_str_sz;
 }
 
-void read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line){
+void 
+dimacs_loader::read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line){
 	num_var = 0;
 	num_ccl = 0;
 
@@ -335,34 +323,21 @@ dimacs_loader::init_dimacs_loader(){
 void
 dimacs_loader::verif_num_ccls(std::string& f_nam, long num_decl_ccls, long num_read_ccls){
 	if(num_read_ccls != num_decl_ccls){
-		std::ostringstream& msg_err = dimacs_err_msg(-1, -1,
-			"Wrong number of clauses. ");
-		msg_err << "Declared " << num_decl_ccls << " clauses and found ";
-		msg_err << num_read_ccls << " in file " << f_nam;
-
-		GLB.error_cod = k_dimacs_10_exception;
-		DBG_THROW_CK(k_dimacs_10_exception != k_dimacs_10_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		dimacs_exception ex1(dix_bad_num_cls, 0, -1, get_cursor_pos());
+		ex1.num_decl_cls = num_decl_ccls;
+		ex1.num_read_cls = num_read_ccls;
+		throw ex1;
 	}
 }
+
 
 void
 dimacs_loader::verif_tot_lits(std::string& f_nam, long tot_decl_lits, long tot_read_lits){
 	if((tot_decl_lits != INVALID_NATURAL) && (tot_read_lits != tot_decl_lits)){
-		std::ostringstream& msg_err = dimacs_err_msg(-1, -1,
-			"Wrong number of literals. ");
-		msg_err << "Declared " << tot_decl_lits << " literals and found ";
-		msg_err << tot_read_lits << " in file " << f_nam;
-
-		GLB.error_cod = k_dimacs_13_exception;
-		DBG_THROW(
-			std::ostream& os = *(GLB.dbg_os);
-			os << msg_err.str() << std::endl;
-		);
-		DBG_THROW_CK(k_dimacs_13_exception != k_dimacs_13_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		dimacs_exception ex1(dix_bad_num_cls, 0, -1, get_cursor_pos());
+		ex1.num_decl_lits = tot_decl_lits;
+		ex1.num_read_lits = tot_read_lits;
+		throw ex1;
 	}
 }
 
@@ -375,16 +350,7 @@ dimacs_loader::load_file(){
 	std::ifstream istm;
 	istm.open(ff_nn, std::ios::binary);
 	if(! istm.good() || ! istm.is_open()){
-		std::ostringstream& msg = dimacs_err_msg(0, -1, "Could not open file ");
-		msg << "'" << f_nam << "'.";
-
-		DBG_THROW(std::cout << msg.str() << std::endl);
-
-
-		GLB.error_cod = k_dimacs_05_exception;
-		DBG_THROW_CK(k_dimacs_05_exception != k_dimacs_05_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw file_exception(flx_cannot_open, f_nam);
 	}
 
 	// get size of file:
@@ -393,14 +359,7 @@ dimacs_loader::load_file(){
 	istm.seekg (0, std::ios::beg);
 
 	if(file_sz < 0){
-		std::ostringstream& msg = dimacs_err_msg(0, -1,
-			"Could not compute file size. ");
-		msg << "'" << f_nam << "'.";
-
-		GLB.error_cod = k_dimacs_11_exception;
-		DBG_THROW_CK(k_dimacs_11_exception != k_dimacs_11_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw file_exception(flx_cannot_calc_size, f_nam);
 	}
 
 	BRAIN_CK(sizeof(char) == 1);
@@ -411,14 +370,7 @@ dimacs_loader::load_file(){
 	if(num_read != file_sz){
 		tpl_free<char>(file_content, file_sz + 1);
 
-		std::ostringstream& msg = dimacs_err_msg(0, -1,
-			"Could not read full file into memory. ");
-		msg << "'" << f_nam << "'.";
-
-		GLB.error_cod = k_dimacs_12_exception;
-		DBG_THROW_CK(k_dimacs_12_exception != k_dimacs_12_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw file_exception(flx_cannot_fit_in_mem, f_nam);
 	}
 	file_content[file_sz] = END_OF_SEC;
 
@@ -429,8 +381,7 @@ dimacs_loader::load_file(){
 	tmp_rr.move_to(ld_content);
 
 	BRAIN_CK(ld_content.last() == END_OF_SEC);
-	DBG_PRT(11, os << " ld_content="
-		<< ld_content.print_row_data(os, true, ""));
+	DBG_PRT(11, os << " ld_content="; ld_content.print_row_data(os, true, ""));
 
 	/*
 	uchar_t* arr_to_sha = (uchar_t*)ld_content.get_c_array();
@@ -449,7 +400,7 @@ dimacs_loader::parse_header(){
 	long& num_var = ld_decl_vars;
 	long& tot_lits = ld_decl_lits;
 
-	std::string& f_nam = ld_file_name;
+	//std::string& f_nam = ld_file_name;
 	std::string lits_decl = TOT_LITS_DECL; // "c tot_lits="
 
 	ld_num_line = 1;
@@ -462,16 +413,7 @@ dimacs_loader::parse_header(){
 	for(;;){
 		skip_whitespace(pt_in, ld_num_line);
 		if(*pt_in == 0){
-			std::ostringstream& msg = dimacs_err_msg(ld_num_line, -1,
-				"File without 'cnf' declaration. ");
-			msg << "'" << f_nam << "'.";
-
-			DBG_THROW(std::cout << msg);
-
-			GLB.error_cod = k_dimacs_06_exception;
-			DBG_THROW_CK(k_dimacs_06_exception != k_dimacs_06_exception);
-			throw GLB.error_cod;
-			abort_func(1);
+			throw dimacs_exception(dix_no_cnf_decl_3, 0, ld_num_line, get_cursor_pos());
 			break;
 		} else if(*pt_in == 'c'){
 			const char* pt_before = pt_in;
@@ -492,38 +434,17 @@ dimacs_loader::parse_header(){
 			read_problem_decl(pt_in, num_var, num_ccl, ld_num_line);
 			break;
 		} else {
-			std::ostringstream& msg = dimacs_err_msg(ld_num_line, -1,
-				"Invalid file format. It not a DIMACS file. ");
-			msg << "'" << f_nam << "'.";
-
-			GLB.error_cod = k_dimacs_07_exception;
-			DBG_THROW_CK(k_dimacs_07_exception != k_dimacs_07_exception);
-			throw GLB.error_cod;
-			abort_func(1);
+			throw dimacs_exception(dix_bad_format, *pt_in, ld_num_line, get_cursor_pos());
 			break;
 		}
 	}
 
 	if(num_var == 0){
-		std::ostringstream& msg = dimacs_err_msg(ld_num_line, -1,
-			"Invalid 'cnf' declaration. Declared 0 variables. ");
-		msg << "'" << f_nam << "'.";
-
-		GLB.error_cod = k_dimacs_08_exception;
-		DBG_THROW_CK(k_dimacs_08_exception != k_dimacs_08_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw dimacs_exception(dix_zero_vars, 0, ld_num_line, get_cursor_pos());
 	}
 
 	if(num_ccl == 0){
-		std::ostringstream& msg = dimacs_err_msg(ld_num_line, -1,
-			"Invalid 'cnf' declaration. Declared 0 clauses. ");
-		msg << "'" << f_nam << "'.";
-
-		GLB.error_cod = k_dimacs_09_exception;
-		DBG_THROW_CK(k_dimacs_09_exception != k_dimacs_09_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw dimacs_exception(dix_zero_cls, 0, ld_num_line, get_cursor_pos());
 	}
 }
 
@@ -551,28 +472,16 @@ dimacs_loader::parse_clause(row<integer>& lits){
 		parsed_lit = parse_int(pt_in, ld_num_line);
 		if(parsed_lit == 0){ break; }
 		if(get_var(parsed_lit) > ld_decl_vars){
-			std::ostringstream& msg =
-				dimacs_err_msg(ld_num_line, -1, "Invalid literal ");
-			msg << "'" << parsed_lit << "'.";
-			msg << "Declared " << ld_decl_vars << " literals.";
-
-			GLB.error_cod = k_dimacs_04_exception;
-			DBG_THROW_CK(k_dimacs_04_exception != k_dimacs_04_exception);
-			throw GLB.error_cod;
-			abort_func(1);
+			dimacs_exception ex1(dix_bad_lit, *pt_in, ld_num_line, get_cursor_pos());
+			ex1.num_decl_vars = ld_decl_vars;
+			ex1.bad_lit = parsed_lit;
+			throw ex1;
 		}
 
 		lits.push(parsed_lit);
 		/*
 		if(lits.size() > MAX_CLAUSE_SZ){
-			std::ostringstream& msg =
-				dimacs_err_msg(ld_num_line, -1, "Clause too long. ");
-			msg << "Max allowed size is " << MAX_CLAUSE_SZ << " literals.";
-
-			GLB.error_cod = k_dimacs_03_exception;
-			DBG_THROW_CK(k_dimacs_03_exception != k_dimacs_03_exception);
-			throw GLB.error_cod;
-			abort_func(1);
+			throw dimacs_exception(dix_cls_too_long, *pt_in, ld_num_line, get_cursor_pos());
 		}
 		*/
 	}
@@ -918,7 +827,7 @@ void
 dimacs_loader::finish_parse(row<long>& inst_ccls)
 {
 	verif_num_ccls(ld_file_name, ld_decl_ccls, ld_parsed_ccls);
-	verif_tot_lits(ld_file_name, ld_decl_lits, ld_parsed_lits);
+	//verif_tot_lits(ld_file_name, ld_decl_lits, ld_parsed_lits);
 
 	BRAIN_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
 	BRAIN_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
@@ -927,6 +836,13 @@ dimacs_loader::finish_parse(row<long>& inst_ccls)
 	ld_num_ccls = ld_decl_ccls + ld_nud_added_ccls;
 	ld_num_vars = ld_decl_vars + ld_nud_added_vars;
 	ld_tot_lits = ld_decl_lits + ld_nud_added_lits;
+}
+
+long
+dimacs_loader::get_cursor_pos(){
+	const char* pt_base = ld_content.get_c_array();
+	const char* pt_in = ld_cursor;
+	return (pt_in - pt_base);
 }
 
 

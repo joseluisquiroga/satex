@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 support.h
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -67,8 +67,6 @@ extern bool	dbg_bad_cycle1;
 #define DO_PRINTS(prm)		prm
 #define CARRIAGE_RETURN		((char)13)
 
-#define STACK_STR get_stack_trace(__FILE__, __LINE__)
-
 #define	DBG_COND(lv_arr, lev, cond)	\
 	(	(	(lev < 0) || \
 			((lev >= 0) && lv_arr[lev]) \
@@ -126,7 +124,7 @@ bool	dbg_print_cond_func(bool prm,
 		dbg_print_cond_func(DBG_COND(GLB.dbg_lev, lev, cond), \
 			false, "NO_NAME", 0, #cond, lev); \
 		if(DBG_COND(GLB.dbg_lev, lev, cond)){ \
-			std::ostream& os = *(GLB.dbg_os); \
+			std::ostream& os = t_dbg_os; \
 			comm; \
 			os << std::endl; \
 			os.flush(); \
@@ -139,7 +137,7 @@ bool	dbg_print_cond_func(bool prm,
 
 #define	DBG_COMMAND(lev, comm) \
 		if(DBG_COND(GLB.dbg_lev, lev, true)){ \
-			std::ostream& os = *(GLB.dbg_os); \
+			std::ostream& os = t_dbg_os; \
 			DBG(comm); \
 			os.flush(); \
 		} \
@@ -214,10 +212,6 @@ typedef	int	location;
 #define INVALID_QUANTON_ID	0
 #define INVALID_POLARITY	0
 #define INVALID_LAYER		-1
-
-#define OUT_NUM_LEVS 10
-
-#define DBG_NUM_LEVS 200
 
 //=================================================================
 // consecutive
@@ -433,31 +427,6 @@ std::ostream& operator << (std::ostream& os, instance_info& obj){
 }
 
 //=================================================================
-// debug_entry
-
-class debug_entry {
-	public:
-	long		dbg_round;
-	long		dbg_id;
-
-	debug_entry(){
-		dbg_round = -1;
-		dbg_id = -1;
-	}
-
-	~debug_entry(){
-	}
-
-	std::ostream& 	print_debug_entry(std::ostream& os);
-
-};
-
-inline
-comparison	cmp_dbg_entries(debug_entry const & e1, debug_entry const & e2){
-	return cmp_long(e1.dbg_round, e2.dbg_round);
-}
-
-//=================================================================
 // global_data
 
 enum cnf_oper_t {
@@ -499,7 +468,7 @@ public:
 
 	brain*			pt_brain;
 
-	std::ostream*		out_os;
+	std::ostream*	out_os;
 	row<bool>		out_lev;
 
 	cnf_oper_t		op_cnf_id;
@@ -510,8 +479,6 @@ public:
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
-	std::ostream*		dbg_os;
-	std::ostream*		dbg_os_bak;
 	row<bool>		dbg_lev;
 
 	bool			dbg_skip_print_info;
@@ -650,7 +617,7 @@ public:
 	void 	dbg_update_config_entries();
 
 	void	dbg_default_info(){
-		std::ostream& os = *(dbg_os);
+		std::ostream& os = t_dbg_os;
 	
 		os << "NO DBG INFO AVAILABLE " << 
 		"(define a func for this error code)" << std::endl; 

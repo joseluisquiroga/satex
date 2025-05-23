@@ -2,7 +2,7 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 brain.cpp  
 (C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
@@ -70,7 +70,7 @@ brain::ck_current_ticket(){
 	MARK_USED(tk);
 	BRAIN_CK_0((br_current_ticket.tk_level == 0) || (tk.tk_recoil == br_current_ticket.tk_recoil));
 	BRAIN_CK_0(tk.tk_level == br_current_ticket.tk_level);
-	BRAIN_CK_0(tk.tk_trail_sz == br_trail.size());
+	//BRAIN_CK_0(tk.tk_trail_sz == br_trail.size());
 	return true;
 }
 
@@ -85,6 +85,7 @@ brain::ck_motives(row<quanton*>& mots){
 	return true;
 }
 
+/*
 bool
 brain::ck_choices(bool after){
 	BRAIN_CK_0(br_choices_lim <= br_choices.size());
@@ -115,12 +116,12 @@ brain::ck_choices(bool after){
 		BRAIN_CK_0(qua->get_charge() != cg_neutral);
 	}
 	return true;
-}
+}*/
 
 bool	
 quanton::ck_charge(brain* brn){
 	if((qlevel() == ROOT_LEVEL) && (get_source() != NULL)){
-		abort_func(-1, brn->br_file_name);
+		abort_func(-1, brn->br_file_name.c_str());
 	}
 	BRAIN_CK_0(	(get_charge() == cg_positive) || 
 			(get_charge() == cg_neutral) || 
@@ -135,7 +136,7 @@ quanton::ck_charge(brain* brn){
 
 bool
 brain::ck_trail(){
-	std::ostream& os = *(GLB.dbg_os);
+	std::ostream& os = t_dbg_os;
 
 	ticket last;
 	long num_null_src = 0;
@@ -150,7 +151,7 @@ brain::ck_trail(){
 		if((qua->qlevel() == ROOT_LEVEL) && (qua->get_source() != NULL)){
 			os << "ck_trail CASE 1" << std::endl;
 			print_trail();
-			abort_func(-1, br_file_name);
+			abort_func(-1, br_file_name.c_str());
 		}
 
 		if((qua->qu_source == NULL) && (qua->qlevel() != 0)){
@@ -159,22 +160,23 @@ brain::ck_trail(){
 		if(qua->get_charge() == cg_neutral){
 			os << "ck_trail CASE 2" << std::endl;
 			print_trail();
-			abort_func(-1, br_file_name);
+			abort_func(-1, br_file_name.c_str());
 		}
 		if(qua->has_dot()){
 			os << "ck_trail CASE 3" << std::endl;
 			print_trail();
-			abort_func(-1, br_file_name);
+			abort_func(-1, br_file_name.c_str());
 		}
 		qua->ck_charge(this);
 		// TK_LE
 		
 		//if(! (last < qua->qu_charge_tk)){
+		/*
 		if(! cmp_ticket_lt(last, qua->qu_charge_tk)){
 			os << "ck_trail CASE 4" << std::endl;
 			print_trail();
-			abort_func(-1, br_file_name);
-		}
+			abort_func(-1, br_file_name.c_str());
+		}*/
 		
 		bool cho = is_choice(ii);
 		if(cho){
@@ -205,7 +207,7 @@ brain::ck_trail(){
 			if((cls != last_choice) && (cls->qlevel() != 0)){
 				os << "ck_trail CASE 5" << std::endl;
 				print_trail();
-				abort_func(-1, br_file_name);
+				abort_func(-1, br_file_name.c_str());
 			}
 		}
 		last = qua->qu_charge_tk;
@@ -213,7 +215,7 @@ brain::ck_trail(){
 	if(num_null_src != level()){
 		os << "ck_trail CASE 6" << std::endl;
 		print_trail();
-		abort_func(-1, br_file_name);
+		abort_func(-1, br_file_name.c_str());
 	}
 	return true;
 }
@@ -224,7 +226,7 @@ brain::ck_trail(){
 
 void
 brain::print_trail(){
-	std::ostream& os = *(GLB.dbg_os);
+	std::ostream& os = t_dbg_os;
 	/*
 	for(long kk = 0; kk < br_trail.size(); kk++){
 		br_trail[kk]->print_quanton(os);
@@ -499,12 +501,13 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 			}
 			std::cout << this << std::endl;;
 			std::cout << ne_fibres[0] << std::endl;;
+			abort_func(0, "ABORT !. ne_fibres[0]->is_neg !!!");
 		}
 		BRAIN_CK_0(ne_fibres[0]->get_charge() != cg_negative);
 		forced_qua = forced_quanton();
 	}
 
-	ne_edge_tk.reset();
+	ne_edge_tk.init_ticket();
 
 	return forced_qua;
 }
@@ -559,11 +562,12 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 	}
 
 	long old_max = ne_fibres_sz - 1;
+	/*
 	if(ne_edge_tk.is_active(brn)){
 		BRAIN_CK(ne_edge <= old_max);
-		BRAIN_CK(ck_all_charges(brn, ne_edge, true));
+		BRAIN_CK(ck_all_neg(brn, ne_edge));
 		old_max = ne_edge;
-	}
+	}*/
 	DBG(
 		long new_max = old_max;
 		long max_lev = ne_fibres[new_max]->qlevel();
@@ -580,7 +584,7 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 			ne_edge_tk.update_ticket(brn);
 
 			BRAIN_CK(cmp_ticket_eq(ne_edge_tk, brn->br_current_ticket));
-			BRAIN_CK(ne_edge_tk.is_active(brn));
+			//BRAIN_CK(ne_edge_tk.is_active(brn));
 			BRAIN_CK(ne_fibres[ii]->get_charge() == cg_negative);
 
 			BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
@@ -596,7 +600,7 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 		);
 	}
 
-	DBG(ck_all_charges(brn, 1));
+	DBG(ck_all_neg(brn, 1));
 
 	quanton* forced_qua = forced_quanton();	
 	action_t sgl_nxt = brn->send_signal(forced_qua, this);
@@ -606,6 +610,16 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 	return sgl_nxt;
 }
 
+bool
+neuron::ck_all_neg(brain* brn, long from){
+	bool all_ok = true;
+#ifdef FULL_DEBUG
+	for(long ii = from; ii < ne_fibres_sz; ii++){
+		all_ok = (all_ok && (ne_fibres[ii]->get_charge() == cg_negative) );
+	}
+#endif
+	return all_ok;
+}
 
 std::ostream&
 neuron::print_neuron(std::ostream& os, bool from_pt){
@@ -766,7 +780,7 @@ brain::choose_quanton(){
 	quanton* qua = NULL;
 
 	BRAIN_CK(ck_trail());
-	BRAIN_CK(ck_choices());
+	//BRAIN_CK(ck_choices());
 
 	for(long ii = br_choices_lim; ii < br_choices.size(); ii++){
 		quanton* qua_ii = br_choices[ii];
@@ -782,7 +796,7 @@ brain::choose_quanton(){
 			(qua->qu_spin == cg_positive) || 
 			(qua->qu_spin == cg_negative));
 
-	BRAIN_CK(ck_choices(true));
+	//BRAIN_CK(ck_choices(true));
 
 	if((qua != NULL) && (br_choice_spin == cg_negative)){
 		qua = qua->qu_inverse;
@@ -1586,5 +1600,4 @@ brain::simplify_it(long& num_ccls, long& num_vars, long& num_lits, row_long_t& a
 		set_result(k_yes_satisf);
 	}
 }
-
 

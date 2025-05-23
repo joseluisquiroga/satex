@@ -8,7 +8,7 @@ SRC_DIR = $(BASE_DIR)/src
 
 BIN_DIR = $(BASE_DIR)/bin
 OBJ_DIR = $(BASE_DIR)/bin/obj
-INCLUDE_DIR = $(BASE_DIR)/include
+INCLUDE_DIR = $(SRC_DIR)
 
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
 #DBG_FLAGS = -DFULL_DEBUG -rdynamic  

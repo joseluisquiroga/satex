@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 mem.h
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -30,6 +30,8 @@ Declaration of mem trace funcs and other.
 #include <cxxabi.h>
 
 #include "platform.h"
+
+#define STACK_STR get_stack_trace(__FILE__, __LINE__)
 
 bool
 print_backtrace( const std::string & file, int line );
@@ -84,10 +86,16 @@ call_assert(bool vv_ck, const std::string & file, int line, std::string ck_str){
 #define MEM_CK(prm)		DBG_CK(prm)
 
 typedef long			error_code_t;
-typedef unsigned long		mem_size;
+typedef unsigned long	mem_size;
 typedef char			t_1byte;
-typedef unsigned int		t_4byte;
+typedef unsigned int	t_4byte;
 typedef t_4byte			t_dword;
+typedef std::string		t_string;
+typedef std::ostream 	t_ostream;
+typedef std::ostringstream 	t_ostr_stream;
+typedef std::ofstream 	t_ofstream;
+
+#define t_dbg_os std::cerr
 
 #define MAX_UTYPE(type)		((type)(-1))
 
@@ -99,13 +107,43 @@ enum mem_exception_code {
 	k_last_mem_exception
 };
 
+#define as_pt_char(the_str) (const_cast<char *>(the_str))
+
+void abort_func(long val, const char* msg = as_pt_char("Aborting."));
+
+/*
 inline
 void abort_func(long val, std::string msg = "<msg>"){
 	std::cerr << std::endl << "ABORTING! " << msg << std::endl; 
 	std::cerr << "Type ENTER.\n";
 	getchar();
 	exit(val);
-}
+}*/
+
+//=================================================================
+// top_exception
+
+class top_exception {
+private:
+	top_exception&  operator = (top_exception& other){
+		abort_func(0);
+		return (*this);
+	}
+	
+public:
+	long		ex_id;
+	t_string 	ex_stk;
+	t_string 	ex_assrt;
+	
+	top_exception(long the_id = 0, t_string assrt_str = ""){
+		ex_id = the_id;
+		ex_stk = STACK_STR;
+		ex_assrt = assrt_str;
+	}
+	
+	~top_exception(){
+	}
+};
 
 //======================================================================
 // glb_mem_data

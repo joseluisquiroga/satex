@@ -121,6 +121,43 @@ template <> struct ILLEGAL_USE_OF_OBJECT<true>{};
 #define OBJECT_COPY_ERROR ILLEGAL_USE_OF_OBJECT<false>()
 
 //======================================================================
+// parse_exception
+
+typedef enum {
+	pax_bad_int
+} pa_ex_cod_t;
+
+class parse_exception : public top_exception {
+public:
+	char	val;
+	long 	line;
+	parse_exception(long the_id = 0, char vv = 0, long ll = 0) : top_exception(the_id)
+	{
+		val = vv;
+		line = ll;
+	}
+};
+
+//======================================================================
+// file_exception
+
+typedef enum {
+	flx_cannot_open,
+	flx_cannot_calc_size,
+	flx_cannot_fit_in_mem,
+	flx_path_too_long
+} fl_ex_cod_t;
+
+class file_exception : public top_exception {
+public:
+	t_string f_nm;
+	file_exception(long the_id = 0, t_string ff = "unknow_file") : top_exception(the_id)
+	{
+		f_nm = ff;
+	}
+};
+
+//======================================================================
 // number funcs
 
 inline 

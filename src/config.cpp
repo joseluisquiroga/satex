@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 config.cpp  
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -24,11 +24,8 @@ Functions to read and parse config files.
 #include "support.h"
 
 
-std::ostringstream& parse_err_msg(const char* hd_msg, long num_line, char ch_err, 
-		const char* msg)
-{
-	GLB.reset_err_msg();
-	std::ostringstream& err_msg = GLB.error_stm;
+t_string get_parse_err_msg(const char* hd_msg, long num_line, char ch_err, const char* msg){
+	t_ostr_stream err_msg;
 
 	err_msg << hd_msg;
 	if(num_line >= 0){
@@ -40,7 +37,7 @@ std::ostringstream& parse_err_msg(const char* hd_msg, long num_line, char ch_err
 	if(msg != NULL_PT){
 		err_msg << msg;
 	}
-	return err_msg;
+	return err_msg.str();
 }
 
 void skip_whitespace(const char*& pt_in, long& line){
@@ -73,14 +70,7 @@ integer parse_int(const char*& pt_in, long line) {
 	else if(*pt_in == '+'){ pt_in++; }
 
 	if( ! isdigit(*pt_in)){
-		std::ostringstream& msg = 
-			parse_err_msg("PARSE ERROR. ", line, (char)(*pt_in), NULL_PT);
-		MARK_USED(msg);
-
-		GLB.error_cod = k_config_02_exception;
-		DBG_THROW_CK(k_config_02_exception != k_config_02_exception);
-		throw GLB.error_cod;
-		abort_func(1);
+		throw parse_exception(pax_bad_int, (char)(*pt_in), line);
 	}
 	while(isdigit(*pt_in)){
 		val = val*10 + (*pt_in - '0');
@@ -111,16 +101,16 @@ config_reader::parse_debug_line(row<long>& dbg_line, std::string& str_ln){
 }
 
 void	
-config_reader::add_config_line(std::string& str_ln){
+config_reader::add_config_line(debug_info& dbg_info, std::string& str_ln){
 	std::ostream& os = std::cout;
 	MARK_USED(os);
-	row<long>& dbg_ln = GLB.dbg_config_line;
+	row<long>& dbg_ln = dbg_config_line;
 	parse_debug_line(dbg_ln, str_ln);
 
 	//os << "Entendi:<<" << dbg_ln << ">>" << std::endl;
 
 	if(! dbg_ln.is_empty()){
-		debug_entry& start_dbg = GLB.dbg_start_dbg_entries.inc_sz();
+		debug_entry& start_dbg = dbg_info.dbg_start_dbg_entries.inc_sz();
 
 		long debug_id = dbg_ln[0];
 		start_dbg.dbg_id = debug_id;
@@ -130,7 +120,7 @@ config_reader::add_config_line(std::string& str_ln){
 		}
 
 		if(dbg_ln.size() > 2){
-			debug_entry& stop_dbg = GLB.dbg_stop_dbg_entries.inc_sz();
+			debug_entry& stop_dbg = dbg_info.dbg_stop_dbg_entries.inc_sz();
 			stop_dbg.dbg_id = debug_id;
 			stop_dbg.dbg_round = dbg_ln[2];
 		}
@@ -144,13 +134,13 @@ mini_test(){
 }*/
 
 void
-config_reader::read_config(const char* file_nm){
+config_reader::read_config(debug_info& dbg_info, const char* file_nm){
 	std::ostream& os = std::cout;
 	CONFIG_CK(file_nm != NULL_PT);
 
-	SUPPORT_CK(GLB.dbg_start_dbg_entries.is_empty());
-	SUPPORT_CK(GLB.dbg_stop_dbg_entries.is_empty());
-	SUPPORT_CK(GLB.dbg_config_line.is_empty());
+	dbg_info.dbg_start_dbg_entries.clear();
+	dbg_info.dbg_stop_dbg_entries.clear();
+	dbg_config_line.clear();
 
 	//mini_test();
 
@@ -168,17 +158,17 @@ config_reader::read_config(const char* file_nm){
 		std::getline(in_stm, str_ln);
 		
 		//os << "Lei:<<" << str_ln << ">>" << std::endl;
-		add_config_line(str_ln);
+		add_config_line(dbg_info, str_ln);
 	}
 	in_stm.close();
 
-	GLB.dbg_config_line.clear(false, true);
+	dbg_config_line.clear(false, true);
 
-	GLB.dbg_start_dbg_entries.mix_sort(cmp_dbg_entries);
-	GLB.dbg_stop_dbg_entries.mix_sort(cmp_dbg_entries);
+	dbg_info.dbg_start_dbg_entries.mix_sort(cmp_dbg_entries);
+	dbg_info.dbg_stop_dbg_entries.mix_sort(cmp_dbg_entries);
 
-	//os << "start_dbgs=" << GLB.dbg_start_dbg_entries << std::endl;
-	//os << "stop_dbgs=" << GLB.dbg_stop_dbg_entries << std::endl;
+	//os << "start_dbgs=" << dbg_info.dbg_start_dbg_entries << std::endl;
+	//os << "stop_dbgs=" << dbg_info.dbg_stop_dbg_entries << std::endl;
 }
 
 

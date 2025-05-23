@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 brain.h
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -136,7 +136,7 @@ charge_t 	negate_trinary(charge_t val);
 
 void	set_dots_of(row<quanton*>& quans);
 void	reset_dots_of(row<quanton*>& quans);
-void	negate_quantons(row<quanton*>& qua_row);
+//void	negate_quantons(row<quanton*>& qua_row);
 bool	compute_reasons(row<reason>& rsns);
 void	append_reasons(row<reason>& dest, row<reason>& src);
 void	get_ids_of(row<quanton*>& quans, row_long_t& the_ids);
@@ -149,38 +149,44 @@ class ticket {
 	public:
 	long		tk_recoil;	// recoil at update_tk time
 	long		tk_level;	// level at update_tk time
-	long		tk_trail_sz;	// trail_sz at update_tk time
+	//long		tk_trail_sz;	// trail_sz at update_tk time
 
 	// methods
 
 	ticket(){
-		reset();
+		init_ticket();
 	}
 
-	void	reset(){
+	void	init_ticket(){
 		tk_recoil = INVALID_RECOIL;
 		tk_level = INVALID_LEVEL;
-		tk_trail_sz = INVALID_IDX;
+		//tk_trail_sz = INVALID_IDX;
 	}
 
+	/*
 	bool	is_valid(){
 		return ((tk_recoil != INVALID_RECOIL) && 
 				(tk_level != INVALID_LEVEL) &&
 				(tk_trail_sz != INVALID_IDX) 
 				);
+	}*/
+
+	bool	is_valid(){
+		return ((tk_recoil != INVALID_RECOIL) && (tk_level != INVALID_LEVEL));
 	}
 
-	bool	is_active(brain* brn);
+	//bool	is_active(brain* brn);
 	void	update_ticket(brain* brn);
 
+	/*
 	long		trail_idx(){
 		return (tk_trail_sz - 1);
-	}
+	}*/
 
 	std::ostream&	print_ticket(std::ostream& os, bool from_pt = false){
 		os << "rc:" << tk_recoil;
 		os << " lv:" << tk_level;
-		os << " tz:" << tk_trail_sz << " ";
+		//os << " tz:" << tk_trail_sz << " ";
 		os.flush();
 		return os;
 
@@ -196,6 +202,7 @@ cmp_ticket_eq(ticket& x, ticket& y){
 	return true;
 }
 
+/*
 inline
 bool
 cmp_ticket_lt(ticket& x, ticket& y){
@@ -205,7 +212,7 @@ cmp_ticket_lt(ticket& x, ticket& y){
 	BRAIN_CK_0(!resp || (x.tk_level <= y.tk_level));
 	return resp;
 }
-
+*/
 
 //=================================================================================================
 // quanton
@@ -280,7 +287,7 @@ class quanton {
 		qu_dot = cg_neutral;
 
 		qu_charge = cg_neutral;
-		qu_charge_tk.reset();
+		qu_charge_tk.init_ticket();
 		qu_source = NULL;
 	}
 
@@ -407,7 +414,7 @@ class neuron {
 		ne_fibre_1_idx = INVALID_IDX;
 
 		ne_edge = INVALID_IDX;
-		ne_edge_tk.reset();
+		ne_edge_tk.init_ticket();
 
 		ne_is_conflict = false;
 
@@ -460,13 +467,7 @@ class neuron {
 	quanton*	update_fibres(row<quanton*>& synps, bool orig);
 	quanton*	get_prt_fibres(row<quanton*>& tmp_fibres, bool sort_them = true);	// sorted by id 
 
-	bool		ck_all_charges(brain* brn, long from, bool ck_tks = false){
-		for(long ii = from; ii < ne_fibres_sz; ii++){
-			BRAIN_CK_0(ne_fibres[ii]->get_charge() == cg_negative);
-			BRAIN_CK_0(!ck_tks || ne_fibres[ii]->qu_charge_tk.is_active(brn));
-		}
-		return true;
-	}
+	bool		ck_all_neg(brain* brn, long from);
 
 	bool		ck_no_source_of_any(){
 		for(long ii = 0; ii < ne_fibres_sz; ii++){
@@ -772,7 +773,7 @@ class brain {
 
 		if(br_current_ticket.tk_recoil == MAX_RECOIL){
 			std::cout << "FATAL ERROR. Too many 'recoils'\n";
-			abort_func(-1, br_file_name);
+			abort_func(-1, br_file_name.c_str());
 		}
 	}
 
@@ -803,7 +804,9 @@ class brain {
 
 		quanton* qua = NULL;
 		long qua_lev = INVALID_LEVEL;
+		MARK_USED(qua_lev);
 		charge_t qua_chg = cg_neutral;
+		MARK_USED(qua_chg);
 
 		bool end_of_recoil = (lev <= target_lev);
 		while(br_trail.size() > 0){
@@ -853,7 +856,7 @@ class brain {
 
 	bool	ck_current_ticket();
 	bool	ck_motives(row<quanton*>& mots);
-	bool	ck_choices(bool after = false);
+	//bool	ck_choices(bool after = false);
 	bool	ck_trail();
 	void	print_trail();
 	//void	print_satifying(const char* log_assig_nm);
@@ -909,6 +912,7 @@ void	due_periodic_prt(void* pm, double curr_secs){
 	}
 }
 
+/*
 inline 
 bool
 ticket::is_active(brain* brn){
@@ -919,14 +923,14 @@ ticket::is_active(brain* brn){
 	bool acve = (qua->qrecoil() == tk_recoil);
 	BRAIN_CK(!acve || (qua->qlevel() == tk_level));
 	return acve;
-}
+}*/
 
 inline 
 void
 ticket::update_ticket(brain* brn){
 	tk_recoil = brn->recoil();
 	tk_level = brn->level();
-	tk_trail_sz = brn->br_trail.size();
+	//tk_trail_sz = brn->br_trail.size();
 }
 
 inline 
@@ -966,7 +970,7 @@ quanton::set_source(brain* brn, neuron* neu){
 	}
 	BRAIN_CK_0(qu_source != NULL);
 	DBG(
-		qu_source->ck_all_charges(brn, 1);
+		qu_source->ck_all_neg(brn, 1);
 	);
 }
 
@@ -1013,8 +1017,8 @@ quanton::set_charge(brain* brn, neuron* neu, charge_t cha){
 		qu_dbg_ic_trail_idx = INVALID_IDX;
 		qu_inverse->qu_dbg_ic_trail_idx = INVALID_IDX;
 
-		qu_charge_tk.reset();
-		qu_inverse->qu_charge_tk.reset();
+		qu_charge_tk.init_ticket();
+		qu_inverse->qu_charge_tk.init_ticket();
 		qu_charge_tk.tk_recoil = brn->recoil();
 	} else {
 		qu_dbg_ic_trail_idx = brn->br_trail.size();
@@ -1084,12 +1088,14 @@ charge_t negate_trinary(charge_t val){
 	return cg_neutral;
 }
 
+/*
 inline
 void	negate_quantons(row<quanton*>& qua_row){
 	for(long kk = 0; kk < qua_row.size(); kk++){
 		qua_row[kk] = qua_row[kk]->qu_inverse;
 	}
 }
+*/
 
 inline
 bool	compute_reasons(row<reason>& rsns){
