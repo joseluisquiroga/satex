@@ -1,3 +1,11 @@
+#!/bin/bash
+
+CURR_DIR=$(pwd)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "ysave ${1} using "${BASH_SOURCE[0]}
+
+#cd $SCRIPT_DIR
 
 YHOME=`cat ${HOME}/.yhome.txt`
 
@@ -7,7 +15,7 @@ exit;
 fi
 
 cd ${YHOME}
-make clean
+# make clean
 
 ${YHOME}/scripts/yclean_sh
 rm -rf ${YHOME}/bin
@@ -16,8 +24,8 @@ mkdir ${YHOME}/bin/obj
 
 BASE=`basename ${YHOME}`
 cd ${YHOME}/..
-CURR=`pwd`
-BASCURR=`basename ${CURR}`
+PNT_YHOME=`pwd`
+BASCURR=`basename ${PNT_YHOME}`
 
 if [ ${BASCURR} != "tmp" ]
 then echo "Not in a tmp dir !!!";
@@ -25,7 +33,7 @@ exit;
 fi
 
 echo "CHECKING RAM LOCATION..."
-MNT=`sudo df -a | grep none | grep ${CURR}`
+MNT=`sudo df -a | grep none | grep ${PNT_YHOME}`
 
 if [ ${#MNT} == 0 ]
 then echo "NOT SAVING IN A RAMFS DIR";
@@ -33,12 +41,16 @@ exit;
 fi
 
 PREFIX=`date +"%Y_%m_%d_%Hh_%Mm_"`
-TGZF=${CURR}/sv.tgz
-TARGET=${CURR}/../${PREFIX}${BASE}.txt
+TGZF=${PNT_YHOME}/sv.tgz
+TARGET=${PNT_YHOME}/../${PREFIX}${BASE}.txt
 
 tar cvzf ${TGZF} ./${BASE}
 
+# ENcrypt from directory with file vision
+cd ${YHOME}/..
+
 echo "ENCRYPTING..."
+echo "CURRENT DIRECTORY="`pwd`
 cry3 ${TGZF} -x
 mv ${TGZF}.encry.txt ${TARGET}
 rm ${TGZF}

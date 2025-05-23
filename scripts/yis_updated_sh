@@ -16,11 +16,13 @@ BASE=`basename ${YHOME}`
 # find ${YHOME} \! -type d -newer ${CRY_FILE} | grep -v ${YHOME}
 UPTOD=`find ${YHOME} \! -type d -newer ${CRY_FILE}`
 
+echo " "
 echo ${UPTOD}
+echo " "
 
 if [ ${#UPTOD} != 0 -a ${#1} = 0 ]
 then 
-	echo "Not up to date. ysave_sh first.";
+	echo "NOT UP TO DATE. ysave_sh first.";
 exit;
 fi
 

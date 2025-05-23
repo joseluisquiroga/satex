@@ -64,6 +64,7 @@ rm -rf ${TMP_DIR}/*
 cp ${CRY_FILE} ${TMP_DIR}
 
 cd ${TMP_DIR}
+echo "CURRENT DIRECTORY="`pwd`
 cry3 ${CRY_FILE} -d
 rm -f ${CRY_FILE}
 
