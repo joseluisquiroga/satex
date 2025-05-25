@@ -173,7 +173,7 @@ class ticket {
 		//tk_trail_sz = INVALID_IDX;
 	}
 
-	brain*	get_dbg_brn(){
+	debug_info*	get_dbg_info(){
 		return NULL;
 	}
 	
@@ -235,9 +235,7 @@ cmp_ticket_lt(ticket& x, ticket& y){
 class quanton {
 	public:
 		
-	BRAIN_DBG(
-		brain*		qu_pt_brn;
-	)
+	BRAIN_DBG(debug_info*		qu_dbg_info;)
 
 	static 
 	quanton			ROOT_QUANTON;
@@ -291,14 +289,14 @@ class quanton {
 
 	void	qua_tunnel_signals(brain* brn, row<neuron*>& cnflicts);
 
-	brain*	get_dbg_brn(){
-		brain* the_brn = NULL;
-		BRAIN_DBG(the_brn = qu_pt_brn);
-		return the_brn;
+	debug_info*	get_dbg_info(){
+		debug_info* dbg_info = NULL;
+		BRAIN_DBG(dbg_info = qu_dbg_info);
+		return dbg_info;
 	}
 
-	void	init_quanton(brain* brn, charge_t spn, long ii, quanton* inv){
-		BRAIN_DBG(qu_pt_brn = brn);
+	void	init_quanton(debug_info* dbg_inf, charge_t spn, long ii, quanton* inv){
+		BRAIN_DBG(qu_dbg_info = dbg_inf);
 
 		qu_dbg_ic_trail_idx = INVALID_IDX;
 
@@ -391,9 +389,7 @@ class quanton {
 class neuron {
 	public:
 
-	BRAIN_DBG(
-		brain*		ne_pt_brn;
-	)
+	BRAIN_DBG(debug_info*		ne_dbg_info;)
 
 	static
 	row<quanton*>		ne_dbg_fibres;		// tmp row for quas (usually) sorted by id
@@ -435,7 +431,7 @@ class neuron {
 	}
 
 	void	init_neuron(){
-		BRAIN_DBG(ne_pt_brn = NULL);
+		BRAIN_DBG(ne_dbg_info = NULL);
 		
 		ne_original = false;
 
@@ -452,10 +448,10 @@ class neuron {
 		ne_dbg_num_fires = 0;
 	}
 
-	brain*	get_dbg_brn(){
-		brain* the_brn = NULL;
-		BRAIN_DBG(the_brn = ne_pt_brn);
-		return the_brn;
+	debug_info*	get_dbg_info(){
+		debug_info* dbg_info = NULL;
+		BRAIN_DBG(dbg_info = ne_dbg_info);
+		return dbg_info;
 	}
 
 	long	size(){ return ne_fibres_sz; }
@@ -583,10 +579,10 @@ class reason {
 		ra_forced = NULL_PT;
 	}
 
-	brain*	get_dbg_brn(){
-		brain* the_brn = NULL;
-		BRAIN_DBG(if(! ra_motives.is_empty()){ the_brn = ra_motives[0]->get_dbg_brn(); });
-		return the_brn;
+	debug_info*	get_dbg_info(){
+		debug_info* dbg_info = NULL;
+		BRAIN_DBG(if(! ra_motives.is_empty()){ dbg_info = ra_motives[0]->get_dbg_info(); });
+		return dbg_info;
 	}
 	
 	void	fill_reason(row<quanton*>& tmp_mots, 
@@ -696,23 +692,20 @@ class brain {
 
 	// methods
 
-	brain(debug_info& dbg_info){
+	brain(){
 		DBG_CK(GLB.pt_brain == NULL_PT);
 		GLB.pt_brain = this;
-		br_dbg_info = &dbg_info;
 
 		init_brain();
 	}
 
-	brain*	get_dbg_brn(){
-		return this;
+	debug_info*	get_dbg_info(){
+		return br_dbg_info;
 	}	
 
-	debug_info&	 get_dbg_info(){
-		return *br_dbg_info;
-	}
-	
 	void	init_brain(){
+		br_dbg_info = NULL;
+		
 		br_pt_inst = NULL_PT;
 		br_prt_timer.init_timer(PRINT_PERIOD, SOLVING_TIMEOUT);
 
@@ -1211,8 +1204,6 @@ void		test_simplify_cnf();
 void		call_solve_instance(debug_info& dbg_inf);
 void		do_instance(debug_info& dbg_inf);
 void		print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_var);
-
-bool 		dbg_lev_ok(brain* brn, long lev);
 
 
 #endif		// BRAIN_H

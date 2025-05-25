@@ -88,8 +88,13 @@ comparison	cmp_dbg_entries(debug_entry const & e1, debug_entry const & e2){
 //=================================================================
 // debug_info
 
+class brain;
+
 class debug_info {
 	public:
+		
+	brain*			dbg_brn;
+		
 	row<debug_entry>	dbg_start_dbg_entries;
 	row<debug_entry>	dbg_stop_dbg_entries;
 	long			dbg_current_start_entry;
@@ -105,6 +110,8 @@ class debug_info {
 	}
 	
 	void init_debug_info(){
+		dbg_brn = NULL;
+		
 		dbg_start_dbg_entries.clear();
 		dbg_stop_dbg_entries.clear();
 		dbg_current_start_entry = 0;
@@ -113,6 +120,12 @@ class debug_info {
 		dbg_bad_cycle1 = false;
 	}
 
+	debug_info*	get_dbg_info(){
+		return this;
+	}	
+
+	void	init_dbg_conf();
+		
 	void	dbg_lv_on(long lv_idx){
 		CONFIG_CK(dbg_lev.is_valid_idx(lv_idx));
 		dbg_lev[lv_idx] = true;
@@ -153,6 +166,7 @@ class config_reader {
 	void	read_config(debug_info& dbg_inf, const char* f_name);
 };
 
+bool dbg_lev_ok(debug_info* dbg_info, long lev);
 
 
 #endif		// CONFIG_H

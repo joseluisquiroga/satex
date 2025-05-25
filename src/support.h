@@ -67,11 +67,8 @@ extern bool	dbg_bad_cycle1;
 #define DO_PRINTS(prm)		prm
 #define CARRIAGE_RETURN		((char)13)
 
-class brain;
-bool dbg_lev_ok(brain* brn, long lev);
-
 #define	DBG_LV_COND(lev, cond)	\
-	( dbg_lev_ok(get_dbg_brn(), lev) && (cond) ) \
+	( dbg_lev_ok(get_dbg_info(), lev) && (cond) ) \
 
 //--end_of_def
 
@@ -556,7 +553,7 @@ public:
 	~global_data(){
 	}
 
-	brain*	get_dbg_brn(){
+	debug_info*	get_dbg_info(){
 		return NULL;
 	}	
 
@@ -740,7 +737,6 @@ std::ostream& operator << (std::ostream& os, debug_entry& dbg_ety){
 
 typedef void (*core_func_t)(void);
 
-void	init_dbg_conf();
 void	err_header(std::ostringstream& msg_err);
 void	log_message(const std::ostringstream& msg_log);
 void	log_batch_info();

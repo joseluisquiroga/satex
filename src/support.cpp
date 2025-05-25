@@ -830,38 +830,6 @@ void	get_enter(std::ostream& os, char* msg){
 	getchar();
 }
 
-void	init_dbg_conf(debug_info& dbg_inf){
-	config_reader conf_rdr;
-	conf_rdr.read_config(dbg_inf, "yosoy.conf");
-
-	dbg_inf.dbg_current_start_entry = 0;
-	dbg_inf.dbg_current_stop_entry = 0;
-	dbg_inf.dbg_update_config_entries();
-
-	//DBG_PRT(-1, os << "start_dbgs=" << GLB.dbg_start_dbg_entries << std::endl); 
-	//DBG_PRT(-1, os << "stop_dbgs=" << GLB.dbg_stop_dbg_entries << std::endl); 
-	//DBG_PRT(-1, os << "dbg_lev=" << GLB.dbg_lev << std::endl); 
-
-	/*
-	DBG_COMMAND(37, os << "PRINT_FULL_INFO" << std::endl; 
-		GLB.dbg_skip_print_info = true);
-
-	DBG_COMMAND(38, os << "SET IC ACTIVE" << std::endl; 
-		GLB.dbg_ic_active = true);
-
-	DBG_COMMAND(39, os << "SET IC AFTER" << std::endl; 
-		GLB.dbg_ic_after = true);
-
-	DBG_COMMAND(40, os << "SET IC GEN JPG" << std::endl; 
-		GLB.dbg_ic_gen_jpg = true);
-	*/
-
-	/*
-	dbg_ic_max_seq = -1;
-	dbg_ic_seq = 0;
-	*/
-}
-
 void
 global_data::init_log_name(const char* sufix, std::string& log_nm){
 	bool is_batch = false;
@@ -1077,7 +1045,7 @@ int	sat3_main(int argc, char** argv){
 	MARK_USED(start_tm);
 	start_tm = run_time();
 
-	DBG(init_dbg_conf(dbg_inf));
+	DBG(dbg_inf.init_dbg_conf());
 
 	if(args_ok){
 		PRT_OUT(1, os << ".STARTING AT " << run_time() << std::endl);

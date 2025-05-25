@@ -313,7 +313,7 @@ dimacs_loader::init_parse(){
 void
 dimacs_loader::init_dimacs_loader(){
 	
-	ld_dbg_brn = NULL;
+	ld_dbg_info = NULL;
 
 	ld_file_name = "";
 

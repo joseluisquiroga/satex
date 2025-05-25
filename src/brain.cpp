@@ -975,8 +975,8 @@ brain::init_loading(long num_qua, long num_neu){
 		quanton* qua_neg = &(br_negatons.last());
 
 
-		qua_pos->init_quanton(this, cg_positive, ii, qua_neg);
-		qua_neg->init_quanton(this, cg_negative, ii, qua_pos);
+		qua_pos->init_quanton(br_dbg_info, cg_positive, ii, qua_neg);
+		qua_neg->init_quanton(br_dbg_info, cg_negative, ii, qua_pos);
 
 		long idx = ii;
 		if(br_choice_order == k_left_order){
@@ -1106,7 +1106,7 @@ brain::pulsate(row<neuron*>& cnflcts){
 		instance_info& inst_info = get_my_inst();
 		inst_info.ist_num_laps++;
 		DBG(
-			get_dbg_info().dbg_update_config_entries();
+			if(br_dbg_info != NULL){ br_dbg_info->dbg_update_config_entries(); }
 			check_timeout();
 		);
 
@@ -1263,7 +1263,7 @@ brain::load_it(){
 	// dimacs loading
 
 	dimacs_loader	the_loader;
-	the_loader.ld_dbg_brn = this;
+	the_loader.ld_dbg_info = br_dbg_info;
 	
 	row<long> inst_ccls;
 	the_loader.parse_file(f_nam, inst_ccls);
@@ -1603,12 +1603,3 @@ brain::simplify_it(long& num_ccls, long& num_vars, long& num_lits, row_long_t& a
 	}
 }
 
-bool dbg_lev_ok(brain* brn, long lev){
-	if(lev < 0){ return true; }
-	if(brn == NULL){ return false; }
-	if(brn->br_dbg_info == NULL){ return false; }
-	row<bool>& lv_arr = brn->br_dbg_info->dbg_lev;
-	
-	bool lv_ok = lv_arr[lev];
-	return lv_ok;
-}

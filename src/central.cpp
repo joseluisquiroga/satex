@@ -256,11 +256,13 @@ test_cnf_shuffle(){
 
 void
 test_simplify_cnf(){
-
-	instance_info& inst_info = GLB.get_curr_inst();
-
+	
 	debug_info dbg_info;
-	brain the_brn(dbg_info);
+	brain the_brn;
+	the_brn.br_dbg_info = &dbg_info;
+	dbg_info.dbg_brn = &the_brn;
+	
+	instance_info& inst_info = GLB.get_curr_inst();
 	the_brn.br_pt_inst = &inst_info;
 
 	long num_ccls = 0;
@@ -288,13 +290,15 @@ test_simplify_cnf(){
 void
 call_solve_instance(debug_info& dbg_inf){
 
-	brain the_brain(dbg_inf);
+	brain the_brn;
+	the_brn.br_dbg_info = &dbg_inf;
+	dbg_inf.dbg_brn = &the_brn;
 
 	instance_info& inst_info = GLB.get_curr_inst();
-	the_brain.br_pt_inst = &inst_info;
+	the_brn.br_pt_inst = &inst_info;
 
-	the_brain.load_it();
-	the_brain.solve_it();
+	the_brn.load_it();
+	the_brn.solve_it();
 
 	GLB.count_instance(inst_info);
 }
