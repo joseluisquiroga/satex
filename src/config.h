@@ -2,10 +2,10 @@
 
 /*************************************************************
 
-yoshu
+bible_sat
 
 config.h
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -92,9 +92,9 @@ class debug_info {
 	public:
 	row<debug_entry>	dbg_start_dbg_entries;
 	row<debug_entry>	dbg_stop_dbg_entries;
-	long			dbg_current_start_idx;
-	long			dbg_current_stop_idx;
-	row<bool>	dbg_levs_arr;
+	long			dbg_current_start_entry;
+	long			dbg_current_stop_entry;
+	row<bool>		dbg_lev;
 	bool 		dbg_bad_cycle1;
 
 	debug_info(){
@@ -107,20 +107,20 @@ class debug_info {
 	void init_debug_info(){
 		dbg_start_dbg_entries.clear();
 		dbg_stop_dbg_entries.clear();
-		dbg_current_start_idx = 0;
-		dbg_current_stop_idx = 0;
-		dbg_levs_arr.fill(false, DBG_NUM_LEVS);
+		dbg_current_start_entry = 0;
+		dbg_current_stop_entry = 0;
+		dbg_lev.fill(false, DBG_NUM_LEVS);
 		dbg_bad_cycle1 = false;
 	}
 
 	void	dbg_lv_on(long lv_idx){
-		CONFIG_CK(dbg_levs_arr.is_valid_idx(lv_idx));
-		dbg_levs_arr[lv_idx] = true;
+		CONFIG_CK(dbg_lev.is_valid_idx(lv_idx));
+		dbg_lev[lv_idx] = true;
 	}
 
 	void	dbg_lv_off(long lv_idx){
-		CONFIG_CK(dbg_levs_arr.is_valid_idx(lv_idx));
-		dbg_levs_arr[lv_idx] = false;
+		CONFIG_CK(dbg_lev.is_valid_idx(lv_idx));
+		dbg_lev[lv_idx] = false;
 	}
 	
 	t_ostream&	print_debug_info(t_ostream& os, bool from_pt = false){
@@ -128,10 +128,11 @@ class debug_info {
 		dbg_start_dbg_entries.print_row_data(os, true, "\n");
 		os << " dbg_stop_dbg_entries=\n";
 		dbg_stop_dbg_entries.print_row_data(os, true, "\n");
-		os << " num_lvs=" << dbg_levs_arr.size();
+		os << " num_lvs=" << dbg_lev.size();
 		return os;
 	}
 
+	void dbg_update_config_entries();
 };
 
 //=================================================================

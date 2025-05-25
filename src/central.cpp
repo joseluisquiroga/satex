@@ -28,6 +28,11 @@ funcs that implement top level funcs.
 //============================================================
 // code for support
 
+void 
+print_ex(top_exception& ex1){
+	std::cerr << "got top_exception.\n" << ex1.ex_stk << "\n";
+	abort_func(0);
+}
 
 void
 print_op_cnf(){
@@ -54,27 +59,36 @@ print_op_cnf(){
 }
 
 void
-do_cnf_file(){
+do_cnf_file(debug_info& dbg_inf){
 	//std::ostream& os = std::cout;
-	switch(GLB.op_cnf_id){
-		case fo_join:
-			test_cnf_join();
-			break;
-		case fo_as_3cnf:
-			test_cnf_as_ttnf(false);
-			break;
-		case fo_as_ttnf:
-			test_cnf_as_ttnf(true);
-			break;
-		case fo_shuffle:
-			test_cnf_shuffle();
-			break;
-		case fo_simplify:
-			test_simplify_cnf();
-			break;
-		default:
-			do_instance();
-			break;
+	try{
+		switch(GLB.op_cnf_id){
+			case fo_join:
+				test_cnf_join();
+				break;
+			case fo_as_3cnf:
+				test_cnf_as_ttnf(false);
+				break;
+			case fo_as_ttnf:
+				test_cnf_as_ttnf(true);
+				break;
+			case fo_shuffle:
+				test_cnf_shuffle();
+				break;
+			case fo_simplify:
+				test_simplify_cnf();
+				break;
+			default:
+				do_instance(dbg_inf);
+				break;
+		}
+	} catch (top_exception& ex1){
+		ex1.prt_ex(std::cout);
+	}
+	catch (...) {
+		std::cerr << "INTERNAL ERROR !!! (do_cnf_file)" << "\n";
+		std::cerr << STACK_STR << "\n";
+		abort_func(0);
 	}
 }
 
@@ -111,7 +125,7 @@ test_cnf_join(){
 	instance_info& inst_info = GLB.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	DBG(GLB.dbg_update_config_entries());
+	//DBG(GLB.dbg_update_config_entries());
 
 	row<long> inst_neus1;
 	row<long> inst_neus2;
@@ -156,7 +170,7 @@ test_cnf_as_ttnf(bool smpfy_it){
 	instance_info& inst_info = GLB.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	DBG(GLB.dbg_update_config_entries());
+	//DBG(GLB.dbg_update_config_entries());
 
 	row<long> inst_neus;
 
@@ -210,7 +224,7 @@ test_cnf_shuffle(){
 	instance_info& inst_info = GLB.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	DBG(GLB.dbg_update_config_entries());
+	//DBG(GLB.dbg_update_config_entries());
 
 	row<long> inst_neus;
 
@@ -245,7 +259,8 @@ test_simplify_cnf(){
 
 	instance_info& inst_info = GLB.get_curr_inst();
 
-	brain the_brn;
+	debug_info dbg_info;
+	brain the_brn(dbg_info);
 	the_brn.br_pt_inst = &inst_info;
 
 	long num_ccls = 0;
@@ -271,9 +286,9 @@ test_simplify_cnf(){
 }
 
 void
-call_solve_instance(){
+call_solve_instance(debug_info& dbg_inf){
 
-	brain the_brain;
+	brain the_brain(dbg_inf);
 
 	instance_info& inst_info = GLB.get_curr_inst();
 	the_brain.br_pt_inst = &inst_info;
@@ -285,27 +300,27 @@ call_solve_instance(){
 }
 
 void
-do_instance()
+do_instance(debug_info& dbg_inf)
 {
 	instance_info& the_ans = GLB.get_curr_inst();
 	MARK_USED(the_ans);
 
-	DBG_PRT(0, os << "STARTING. batch_count=" 
+	/*DBG_PRT(0, os << "STARTING. batch_count=" 
 		<< GLB.batch_consec << " of " 
-		<< GLB.batch_num_files);
+		<< GLB.batch_num_files);*/
 
 	std::string f_nam = the_ans.get_f_nam();
 	SUPPORT_CK(f_nam.size() > 0);
-	DBG_PRT(0, os << "FILE=" << f_nam << std::endl);
+	//DBG_PRT(0, os << "FILE=" << f_nam << std::endl);
 
-	call_and_handle_exceptions(call_solve_instance);
+	call_solve_instance(dbg_inf);
 
-	DBG_PRT(0, os << "FINISHING. batch_count="
+	/*DBG_PRT(0, os << "FINISHING. batch_count="
 		<< GLB.batch_consec << " of " 
 		<< GLB.batch_num_files << std::endl;
 		the_ans.print_headers(os);
 		os << std::endl << the_ans;
-	);
+	);*/
 }
 
 

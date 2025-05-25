@@ -103,46 +103,6 @@ get_free_mem_kb(){
 global_data		GLB;
 
 void
-global_data::dbg_update_config_entries(){
-	std::ostream& os = std::cout;
-	MARK_USED(os);
-
-	if(get_curr_lap() >= (LONG_MAX - 1)){
-		return;
-	}
-
-	long curr_round = (long)get_curr_lap();
-	/*
-	if(curr_round <= 0){
-		return;
-	}*/
-
-	long& start_idx = dbg_current_start_entry;
-	long& stop_idx = dbg_current_stop_entry;
-
-	row<debug_entry>& start_lst = dbg_start_dbg_entries;
-	row<debug_entry>& stop_lst = dbg_stop_dbg_entries;
-
-	while(	(start_idx < start_lst.size()) && 
-		(start_lst[start_idx].dbg_round <= curr_round))
-	{
-		long start_dbg_id = start_lst[start_idx].dbg_id;
-		SUPPORT_CK(GLB.dbg_lev.is_valid_idx(start_dbg_id));
-		GLB.dbg_lev[start_dbg_id] = true;
-		start_idx++;
-	} 
-
-	while(	(stop_idx < stop_lst.size()) && 
-		(stop_lst[stop_idx].dbg_round < curr_round))
-	{
-		long stop_dbg_id = stop_lst[stop_idx].dbg_id;
-		SUPPORT_CK(GLB.dbg_lev.is_valid_idx(stop_dbg_id));
-		GLB.dbg_lev[stop_dbg_id] = false;
-		stop_idx++;
-	} 
-}
-
-void
 global_data::init_global_data(){
 	silent = false;
 
@@ -191,11 +151,11 @@ global_data::init_global_data(){
 
 	dbg_file_name = "";
 
-	long num_dbg_levs = DBG_NUM_LEVS;
+	/*long num_dbg_levs = DBG_NUM_LEVS;
 	dbg_lev.set_cap(num_dbg_levs);
 	for(ii = 0; ii < num_dbg_levs; ii++){
 		dbg_lev.inc_sz() = false;
-	}
+	}*/
 
 	dbg_skip_print_info = false;
 
@@ -874,14 +834,15 @@ void	init_dbg_conf(debug_info& dbg_inf){
 	config_reader conf_rdr;
 	conf_rdr.read_config(dbg_inf, "yosoy.conf");
 
-	GLB.dbg_current_start_entry = 0;
-	GLB.dbg_current_stop_entry = 0;
-	GLB.dbg_update_config_entries();
+	dbg_inf.dbg_current_start_entry = 0;
+	dbg_inf.dbg_current_stop_entry = 0;
+	dbg_inf.dbg_update_config_entries();
 
 	//DBG_PRT(-1, os << "start_dbgs=" << GLB.dbg_start_dbg_entries << std::endl); 
 	//DBG_PRT(-1, os << "stop_dbgs=" << GLB.dbg_stop_dbg_entries << std::endl); 
 	//DBG_PRT(-1, os << "dbg_lev=" << GLB.dbg_lev << std::endl); 
 
+	/*
 	DBG_COMMAND(37, os << "PRINT_FULL_INFO" << std::endl; 
 		GLB.dbg_skip_print_info = true);
 
@@ -893,6 +854,7 @@ void	init_dbg_conf(debug_info& dbg_inf){
 
 	DBG_COMMAND(40, os << "SET IC GEN JPG" << std::endl; 
 		GLB.dbg_ic_gen_jpg = true);
+	*/
 
 	/*
 	dbg_ic_max_seq = -1;
@@ -912,7 +874,7 @@ global_data::init_log_name(const char* sufix, std::string& log_nm){
 	remove(log_nm.c_str());
 }
 
-void	do_all_instances(){
+void	do_all_instances(debug_info& dbg_inf){
 	GLB.batch_start_time = run_time();
 	GLB.batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
 
@@ -952,7 +914,7 @@ void	do_all_instances(){
 			MEM_CTRL(mem_size mem_in_u = MEM_STATS.num_bytes_in_use;)
 			MEM_CTRL(MARK_USED(mem_in_u));
 
-			do_cnf_file();
+			do_cnf_file(dbg_inf);
 
 			SUPPORT_CK(mem_in_u == MEM_STATS.num_bytes_in_use);
 		}
@@ -1101,8 +1063,8 @@ int	sat3_main(int argc, char** argv){
 	debug_info dbg_inf;
 	MARK_USED(dbg_inf);
 	
-	SUPPORT_CK(GLB.dbg_start_dbg_entries.get_cap() == 0);
-	SUPPORT_CK(GLB.dbg_stop_dbg_entries.get_cap() == 0);
+	SUPPORT_CK(dbg_inf.dbg_start_dbg_entries.get_cap() == 0);
+	SUPPORT_CK(dbg_inf.dbg_stop_dbg_entries.get_cap() == 0);
 
 	MEM_CTRL(mem_size mem_in_u = MEM_STATS.num_bytes_in_use;)
 	MEM_CTRL(MARK_USED(mem_in_u));
@@ -1128,13 +1090,13 @@ int	sat3_main(int argc, char** argv){
 			<< std::endl); 
 		DBG(PRT_OUT(1, os << "DEBUG_BRAIN activated" 
 			<< std::endl));
-		call_and_handle_exceptions(do_all_instances);
+		do_all_instances(dbg_inf);
 
 		PRT_OUT(1, os << ".ENDING AT " << run_time() << std::endl);
 	}
 
-	GLB.dbg_start_dbg_entries.clear(true, true);
-	GLB.dbg_stop_dbg_entries.clear(true, true);
+	dbg_inf.dbg_start_dbg_entries.clear(true, true);
+	dbg_inf.dbg_stop_dbg_entries.clear(true, true);
 
 	SUPPORT_CK(mem_in_u == MEM_STATS.num_bytes_in_use);
 
@@ -1161,7 +1123,14 @@ int	sat3_main(int argc, char** argv){
 
 int	main(int argc, char** argv){
 	//int rr = tests_main_(argc, argv);
-	int rr = sat3_main(argc, argv);
+	int rr = 0;
+	try{
+		rr = sat3_main(argc, argv);
+	} catch (...) {
+		std::cerr << "INTERNAL ERROR !!! (sat3_main)" << "\n";
+		std::cerr << STACK_STR << "\n";
+		abort_func(0);
+	}
 	return rr;
 }
 

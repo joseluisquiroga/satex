@@ -171,5 +171,45 @@ config_reader::read_config(debug_info& dbg_info, const char* file_nm){
 	//os << "stop_dbgs=" << dbg_info.dbg_stop_dbg_entries << std::endl;
 }
 
+void
+debug_info::dbg_update_config_entries(){
+	std::ostream& os = std::cout;
+	MARK_USED(os);
+
+	if(GLB.get_curr_lap() >= (LONG_MAX - 1)){
+		return;
+	}
+
+	long curr_round = (long)GLB.get_curr_lap();
+	/*
+	if(curr_round <= 0){
+		return;
+	}*/
+
+	long& start_idx = dbg_current_start_entry;
+	long& stop_idx = dbg_current_stop_entry;
+
+	row<debug_entry>& start_lst = dbg_start_dbg_entries;
+	row<debug_entry>& stop_lst = dbg_stop_dbg_entries;
+
+	while(	(start_idx < start_lst.size()) && 
+		(start_lst[start_idx].dbg_round <= curr_round))
+	{
+		long start_dbg_id = start_lst[start_idx].dbg_id;
+		SUPPORT_CK(dbg_lev.is_valid_idx(start_dbg_id));
+		dbg_lev[start_dbg_id] = true;
+		start_idx++;
+	} 
+
+	while(	(stop_idx < stop_lst.size()) && 
+		(stop_lst[stop_idx].dbg_round < curr_round))
+	{
+		long stop_dbg_id = stop_lst[stop_idx].dbg_id;
+		SUPPORT_CK(dbg_lev.is_valid_idx(stop_dbg_id));
+		dbg_lev[stop_dbg_id] = false;
+		stop_idx++;
+	} 
+}
+
 
 

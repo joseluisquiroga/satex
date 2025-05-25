@@ -19,9 +19,11 @@ Declarations of classes and that implement the neural network.
 #ifndef BRAIN_H
 #define BRAIN_H
 
+
 //=================================================================================================
 // defines
 
+#define BRAIN_DBG(prm) 		DBG(prm)
 #define DBG_SOURCES(cod)	DBG(cod)
 
 //=================================================================================================
@@ -122,6 +124,14 @@ DECLARE_PRINT_FUNCS(reason)
 //=================================================================
 // comparison declarations
 
+class ticket;
+class quanton;
+class neuron;
+class brain;
+
+//=================================================================
+// comparison declarations
+
 bool 		cmp_ticket_eq(ticket& x, ticket& y);
 bool 		cmp_ticket_lt(ticket& x, ticket& y);
 comparison	cmp_long_id(quanton* const & qua1, quanton* const & qua2);
@@ -163,6 +173,10 @@ class ticket {
 		//tk_trail_sz = INVALID_IDX;
 	}
 
+	brain*	get_dbg_brn(){
+		return NULL;
+	}
+	
 	/*
 	bool	is_valid(){
 		return ((tk_recoil != INVALID_RECOIL) && 
@@ -220,6 +234,10 @@ cmp_ticket_lt(ticket& x, ticket& y){
 
 class quanton {
 	public:
+		
+	BRAIN_DBG(
+		brain*		qu_pt_brn;
+	)
 
 	static 
 	quanton			ROOT_QUANTON;
@@ -255,7 +273,7 @@ class quanton {
 	// methods
 
 	quanton(){
-		init_quanton(cg_neutral, INVALID_IDX, NULL);
+		init_quanton(NULL, cg_neutral, INVALID_IDX, NULL);
 	}
 
 	~quanton(){
@@ -268,12 +286,19 @@ class quanton {
 
 		DBG_SOURCES(qu_dbg_ic_all_sources.clear(false, true);)
 
-		init_quanton(cg_neutral, 0, NULL);
+		init_quanton(NULL, cg_neutral, 0, NULL);
 	}
 
 	void	qua_tunnel_signals(brain* brn, row<neuron*>& cnflicts);
 
-	void	init_quanton(charge_t spn, long ii, quanton* inv){
+	brain*	get_dbg_brn(){
+		brain* the_brn = NULL;
+		BRAIN_DBG(the_brn = qu_pt_brn);
+		return the_brn;
+	}
+
+	void	init_quanton(brain* brn, charge_t spn, long ii, quanton* inv){
+		BRAIN_DBG(qu_pt_brn = brn);
 
 		qu_dbg_ic_trail_idx = INVALID_IDX;
 
@@ -366,6 +391,10 @@ class quanton {
 class neuron {
 	public:
 
+	BRAIN_DBG(
+		brain*		ne_pt_brn;
+	)
+
 	static
 	row<quanton*>		ne_dbg_fibres;		// tmp row for quas (usually) sorted by id
 
@@ -406,6 +435,8 @@ class neuron {
 	}
 
 	void	init_neuron(){
+		BRAIN_DBG(ne_pt_brn = NULL);
+		
 		ne_original = false;
 
 		ne_fibres = NULL;
@@ -419,6 +450,12 @@ class neuron {
 		ne_is_conflict = false;
 
 		ne_dbg_num_fires = 0;
+	}
+
+	brain*	get_dbg_brn(){
+		brain* the_brn = NULL;
+		BRAIN_DBG(the_brn = ne_pt_brn);
+		return the_brn;
 	}
 
 	long	size(){ return ne_fibres_sz; }
@@ -546,6 +583,12 @@ class reason {
 		ra_forced = NULL_PT;
 	}
 
+	brain*	get_dbg_brn(){
+		brain* the_brn = NULL;
+		BRAIN_DBG(if(! ra_motives.is_empty()){ the_brn = ra_motives[0]->get_dbg_brn(); });
+		return the_brn;
+	}
+	
 	void	fill_reason(row<quanton*>& tmp_mots, 
 			neuron* cfl = NULL, long target_lev = INVALID_LEVEL)
 	{
@@ -610,7 +653,8 @@ void		due_periodic_prt(void* pm, double curr_secs);
 class brain {
 	public:
 
-	instance_info*		br_pt_inst;
+	debug_info*		br_dbg_info;
+	instance_info*	br_pt_inst;
 	timer			br_prt_timer;
 
 	double 			br_start_load_tm;
@@ -652,13 +696,22 @@ class brain {
 
 	// methods
 
-	brain(){
+	brain(debug_info& dbg_info){
 		DBG_CK(GLB.pt_brain == NULL_PT);
 		GLB.pt_brain = this;
+		br_dbg_info = &dbg_info;
 
 		init_brain();
 	}
 
+	brain*	get_dbg_brn(){
+		return this;
+	}	
+
+	debug_info&	 get_dbg_info(){
+		return *br_dbg_info;
+	}
+	
 	void	init_brain(){
 		br_pt_inst = NULL_PT;
 		br_prt_timer.init_timer(PRINT_PERIOD, SOLVING_TIMEOUT);
@@ -714,7 +767,6 @@ class brain {
 		br_neurons.clear(false, true);	// already reseted
 		br_signals.clear(false, true);
 	}
-
 
 	// core methods
 
@@ -1156,9 +1208,11 @@ void		test_cnf_as_ttnf(bool smpfy_it);
 void		test_cnf_shuffle();
 void		test_simplify_cnf();
 
-void		call_solve_instance();
-void		do_instance();
+void		call_solve_instance(debug_info& dbg_inf);
+void		do_instance(debug_info& dbg_inf);
 void		print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_var);
+
+bool 		dbg_lev_ok(brain* brn, long lev);
 
 
 #endif		// BRAIN_H

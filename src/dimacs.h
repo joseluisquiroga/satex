@@ -19,6 +19,9 @@ Declaration of functions to read and parse dimacs files.
 #ifndef DIMACS_H
 #define DIMACS_H
 
+
+class brain;
+
 /*
 #ifdef _XOPEN_SOURCE
 #undef _XOPEN_SOURCE
@@ -100,6 +103,8 @@ public:
 		num_read_lits = 0;
 		bad_lit = 0;
 	}
+
+	virtual t_string name(){ t_string nm = "dimacs_exception"; return nm; }
 };
 
 //=================================================================
@@ -261,6 +266,8 @@ class dimacs_loader {
 public:
 	typedef std::istream::char_type ld_char_t;
 	typedef std::istream::pos_type ld_pos_t;
+	
+	brain*			ld_dbg_brn;
 
 	std::string		ld_file_name;
 
@@ -309,6 +316,10 @@ public:
 		init_dimacs_loader();
 	}
 
+	brain*	get_dbg_brn(){
+		return ld_dbg_brn;
+	}	
+	
 	void	init_parse();
 	void	init_dimacs_loader();
 

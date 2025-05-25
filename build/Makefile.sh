@@ -11,8 +11,8 @@ OBJ_DIR = $(BASE_DIR)/bin/obj
 INCLUDE_DIR = $(SRC_DIR)
 
 INCLUDE_FLAGS = -I$(INCLUDE_DIR)
-#DBG_FLAGS = -DFULL_DEBUG -rdynamic  
-DBG_FLAGS = -rdynamic  
+DBG_FLAGS = -DFULL_DEBUG -rdynamic  
+#DBG_FLAGS = -rdynamic  
 # no dbg times: first 0.15 second 1.5
 
 # CMPL_FLAGS = $(INCLUDE_FLAGS) 

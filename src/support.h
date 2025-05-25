@@ -67,6 +67,15 @@ extern bool	dbg_bad_cycle1;
 #define DO_PRINTS(prm)		prm
 #define CARRIAGE_RETURN		((char)13)
 
+class brain;
+bool dbg_lev_ok(brain* brn, long lev);
+
+#define	DBG_LV_COND(lev, cond)	\
+	( dbg_lev_ok(get_dbg_brn(), lev) && (cond) ) \
+
+//--end_of_def
+
+
 #define	DBG_COND(lv_arr, lev, cond)	\
 	(	(	(lev < 0) || \
 			((lev >= 0) && lv_arr[lev]) \
@@ -93,7 +102,7 @@ extern bool	dbg_bad_cycle1;
 
 #define SET_LV(lev, nm_var, tmp_lev) \
 	bool nm_var = GLB.dbg_lev[tmp_lev]; \
-	if(DBG_COND(GLB.dbg_lev, lev, true)){ \
+	if(DBG_LV_COND(lev, true)){ \
 		GLB.dbg_lev[tmp_lev] = true; \
 	} \
 
@@ -101,7 +110,7 @@ extern bool	dbg_bad_cycle1;
 
 #define RESET_LV(lev, nm_var, tmp_lev) \
 	bool nm_var = GLB.dbg_lev[tmp_lev]; \
-	if(DBG_COND(GLB.dbg_lev, lev, true)){ \
+	if(DBG_LV_COND(lev, true)){ \
 		GLB.dbg_lev[tmp_lev] = false; \
 	} \
 
@@ -121,9 +130,9 @@ bool	dbg_print_cond_func(bool prm,
 
 #define	DBG_PRT_COND(lev, cond, comm)	\
 	DBG( \
-		dbg_print_cond_func(DBG_COND(GLB.dbg_lev, lev, cond), \
+		dbg_print_cond_func(DBG_LV_COND(lev, cond), \
 			false, "NO_NAME", 0, #cond, lev); \
-		if(DBG_COND(GLB.dbg_lev, lev, cond)){ \
+		if(DBG_LV_COND(lev, cond)){ \
 			std::ostream& os = t_dbg_os; \
 			comm; \
 			os << std::endl; \
@@ -136,7 +145,7 @@ bool	dbg_print_cond_func(bool prm,
 #define	DBG_PRT(lev, comm)	DBG_PRT_COND(lev, true, comm)
 
 #define	DBG_COMMAND(lev, comm) \
-		if(DBG_COND(GLB.dbg_lev, lev, true)){ \
+		if(DBG_LV_COND(lev, true)){ \
 			std::ostream& os = t_dbg_os; \
 			DBG(comm); \
 			os.flush(); \
@@ -479,16 +488,16 @@ public:
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
-	row<bool>		dbg_lev;
+	//row<bool>		dbg_lev;
 
 	bool			dbg_skip_print_info;
 
 	row<long>		dbg_config_line;
-	row<debug_entry>	dbg_start_dbg_entries;
-	row<debug_entry>	dbg_stop_dbg_entries;
+	//row<debug_entry>	dbg_start_dbg_entries;
+	//row<debug_entry>	dbg_stop_dbg_entries;
 
-	long			dbg_current_start_entry;
-	long			dbg_current_stop_entry;
+	//long			dbg_current_start_entry;
+	//long			dbg_current_stop_entry;
 
 	row<dbg_info_fn_t>	dbg_exception_info_funcs;
 
@@ -546,6 +555,10 @@ public:
 
 	~global_data(){
 	}
+
+	brain*	get_dbg_brn(){
+		return NULL;
+	}	
 
 	void		reset_global(){
 		reset_err_msg();
@@ -614,7 +627,7 @@ public:
 
 	void	init_dbg_exception_info_funcs();
 
-	void 	dbg_update_config_entries();
+	//void 	dbg_update_config_entries();
 
 	void	dbg_default_info(){
 		std::ostream& os = t_dbg_os;
@@ -742,7 +755,7 @@ int	tests_main_(int argc, char** argv);
 // implemented in brain.cpp
 
 void	print_op_cnf();
-void	do_cnf_file();
+void	do_cnf_file(debug_info& dbg_inf);
 void	init_brn_nams();
 
 

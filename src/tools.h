@@ -131,11 +131,14 @@ class parse_exception : public top_exception {
 public:
 	char	val;
 	long 	line;
+	
 	parse_exception(long the_id = 0, char vv = 0, long ll = 0) : top_exception(the_id)
 	{
 		val = vv;
 		line = ll;
 	}
+
+	virtual t_string name(){ t_string nm = "parse_exception"; return nm; }
 };
 
 //======================================================================
@@ -151,10 +154,13 @@ typedef enum {
 class file_exception : public top_exception {
 public:
 	t_string f_nm;
+	
 	file_exception(long the_id = 0, t_string ff = "unknow_file") : top_exception(the_id)
 	{
 		f_nm = ff;
 	}
+
+	virtual t_string name(){ t_string nm = "file_exception"; return nm; }
 };
 
 //======================================================================

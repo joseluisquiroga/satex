@@ -312,6 +312,8 @@ dimacs_loader::init_parse(){
 
 void
 dimacs_loader::init_dimacs_loader(){
+	
+	ld_dbg_brn = NULL;
 
 	ld_file_name = "";
 
@@ -574,7 +576,7 @@ init_lit_mapping(tak_mak& rnd_gen, row<integer>& the_map, long num_var){
 
 	shuffle_lit_mapping(rnd_gen, the_map);
 
-	DBG_PRT(12, os << "num_var=" << num_var << " VAR_MAPPING=" << the_map);
+	//DBG_PRT(12, os << "num_var=" << num_var << " VAR_MAPPING=" << the_map);
 }
 
 integer
@@ -683,7 +685,7 @@ init_ccl_mapping(tak_mak& rnd_gen, row<integer>& the_map, long num_ccl){
 
 	shuffle_ccl_mapping(rnd_gen, the_map);
 
-	DBG_PRT(13, os << "num_ccl=" << num_ccl << " VAR_MAPPING=" << the_map);
+	//DBG_PRT(13, os << "num_ccl=" << num_ccl << " VAR_MAPPING=" << the_map);
 }
 
 void

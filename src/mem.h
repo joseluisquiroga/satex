@@ -143,6 +143,16 @@ public:
 	
 	~top_exception(){
 	}
+	
+	virtual t_string name(){ t_string nm = "top_exception"; return nm; }
+	
+	virtual void prt_ex(std::ostream& os){
+		os << name() << "\n";
+		os << "id:" << ex_id << "\n";
+		os << "stack:\n" << ex_stk << "\n";
+		os << "assert:\n" << ex_assrt << "\n";
+		DBG(abort_func(0);)
+	}
 };
 
 //======================================================================
