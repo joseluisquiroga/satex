@@ -102,6 +102,12 @@ class debug_info {
 	row<bool>		dbg_lev;
 	bool 		dbg_bad_cycle1;
 
+	bool			dbg_ic_active;
+	long			dbg_ic_max_seq;
+	long			dbg_ic_seq;
+	bool			dbg_ic_after;
+	bool			dbg_ic_gen_jpg;
+	
 	debug_info(){
 		init_debug_info();
 	}
@@ -118,6 +124,12 @@ class debug_info {
 		dbg_current_stop_entry = 0;
 		dbg_lev.fill(false, DBG_NUM_LEVS);
 		dbg_bad_cycle1 = false;
+
+		dbg_ic_active = false;
+		dbg_ic_max_seq = -1;
+		dbg_ic_seq = 0;
+		dbg_ic_after = false;
+		dbg_ic_gen_jpg = false;
 	}
 
 	debug_info*	get_dbg_info(){

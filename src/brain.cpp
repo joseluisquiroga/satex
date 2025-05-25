@@ -496,8 +496,9 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 	if(num_neg_chgs == (ne_fibres_sz - 1)){
 		// ABORT CASE
 		if(ne_fibres[0]->get_charge() == cg_negative){
-			if(GLB.pt_brain != NULL){
-				GLB.pt_brain->print_trail();
+			debug_info* dbg_inf = get_dbg_info();
+			if((dbg_inf != NULL) && (dbg_inf->dbg_brn != NULL)){
+				dbg_inf->dbg_brn->print_trail();
 			}
 			std::cout << this << std::endl;;
 			std::cout << ne_fibres[0] << std::endl;;
@@ -1060,7 +1061,7 @@ brain::learn_reasons(row<reason>& resns){
 		}
 	}
 
-	if(GLB.dbg_ic_active && GLB.dbg_ic_after){
+	if(dbginf().dbg_ic_active && dbginf().dbg_ic_after){
 		dbg_ic_print();
 	}
 
@@ -1093,7 +1094,7 @@ brain::pulsate(row<neuron*>& cnflcts){
 		find_reasons(cnflcts, br_reasons);
 		BRAIN_CK_0(br_reasons.size() > 0);
 
-		if(GLB.dbg_ic_active){
+		if(dbginf().dbg_ic_active){
 			dbg_ic_print();
 		}
 
@@ -1214,12 +1215,12 @@ brain::config_brain(std::string f_nam){
 	}
 	set_file_name_in_ic(f_nam);
 
-	if(GLB.dbg_ic_active){
+	if(dbginf().dbg_ic_active){
 		std::ostringstream o_str;
 		o_str << "rm " << DBG_DIR << "*.dot";
 		system_exec(o_str);
 	}
-	if(GLB.dbg_ic_gen_jpg){
+	if(dbginf().dbg_ic_gen_jpg){
 		std::ostringstream o_str;
 		o_str << "rm " << DBG_DIR << "all_dot_to_jpg.bat";
 		system_exec(o_str);
@@ -1494,7 +1495,7 @@ brain::solve_it(){
 		//std::cout << std::endl;
 		//std::cout << ".";
 
-		if(GLB.dbg_ic_active){
+		if(dbginf().dbg_ic_active){
 			dbg_ic_print();
 		}
 	);

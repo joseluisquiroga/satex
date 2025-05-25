@@ -24,7 +24,7 @@ Global classes and functions that support and assist the system.
 
 //DEFINE_MEM_STATS;
 
-bool	dbg_bad_cycle1 = false;		// dbg_print_cond_func
+//bool	dbg_bad_cycle1 = false;		// dbg_print_cond_func
 
 std::string	satisf_val_nams[k_last_satisf_val];
 
@@ -39,9 +39,7 @@ void	init_glb_nams(){
 }
 
 void	glb_set_memout(){
-	if(GLB.has_brain()){
-		GLB.result() = k_memout;
-	}
+	throw top_exception(mex_memout, "A memory out exeption occurred");
 }
 
 long
@@ -133,8 +131,6 @@ global_data::init_global_data(){
 
 	MEM_STATS.set_memout_func = glb_set_memout;		
 
-	pt_brain = NULL_PT;
-
 	out_os = &(std::cout);
 	long ii = 0;
 	long num_out_levs = OUT_NUM_LEVS;
@@ -151,21 +147,9 @@ global_data::init_global_data(){
 
 	dbg_file_name = "";
 
-	/*long num_dbg_levs = DBG_NUM_LEVS;
-	dbg_lev.set_cap(num_dbg_levs);
-	for(ii = 0; ii < num_dbg_levs; ii++){
-		dbg_lev.inc_sz() = false;
-	}*/
-
 	dbg_skip_print_info = false;
 
 	dbg_num_laps = 0;
-
-	dbg_ic_active = false;
-	dbg_ic_max_seq = -1;
-	dbg_ic_seq = 0;
-	dbg_ic_after = false;
-	dbg_ic_gen_jpg = false;
 
 	reset_err_msg();
 
@@ -474,7 +458,6 @@ global_data::count_instance(instance_info& inst_info){
 	if(inst_res == k_unknown_satisf){
 		batch_num_unknown_satisf++;
 	} else if(inst_res == k_yes_satisf){
-		//BRAIN_CK(! final_assig.is_empty());
 		PRT_OUT(1, print_final_assig());
 		final_assig.clear(true, true);	// So global memcheck says its OK.
 		batch_num_yes_satisf++;
@@ -515,11 +498,11 @@ timer::check_period(tmr_func_t tmr_fn, void* pm_fn){
 		double tmr_current_secs = run_time();
 		if(tmr_first_cycle){
 			tmr_first_cycle = false;
-			SUPPORT_CK(tmr_start_secs == 0.0);
+			SUPPORT_CK_0(tmr_start_secs == 0.0);
 			tmr_start_secs = tmr_current_secs;
 			tmr_last_secs = tmr_current_secs;
 		}
-		SUPPORT_CK(tmr_current_secs >= tmr_start_secs);
+		SUPPORT_CK_0(tmr_current_secs >= tmr_start_secs);
 
 		tmr_current_cycle = 0;
 		double real_period = (tmr_current_secs - tmr_last_secs);
@@ -530,7 +513,7 @@ timer::check_period(tmr_func_t tmr_fn, void* pm_fn){
 		} else if(tmr_cycles > 2.0){
 			tmr_cycles /= 2;
 		}
-		SUPPORT_CK(tmr_cycles >= 1.0);
+		SUPPORT_CK_0(tmr_cycles >= 1.0);
 
 		double elpsd_tm = elapsed_time(tmr_current_secs);
 		if(! tmr_reporting && 
@@ -565,7 +548,7 @@ global_data::print_mini_stats(std::ostream& os){
 
 	os << CARRIAGE_RETURN;
 	os << "'" << f_nam << "'";
-	dbg_print_cond_func(true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
+	dbg_print_cond_func(NULL, true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
 	return os; 
 }
 
@@ -588,7 +571,7 @@ global_data::print_stats(std::ostream& os, double current_secs){
 	os << std::endl;
 	os << "file_name: '" << f_nam << "'" << std::endl;
 	
-	dbg_print_cond_func(true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
+	dbg_print_cond_func(NULL, true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
 	print_totals(os, current_secs);
 	os << std::endl << std::endl;
 
@@ -600,11 +583,15 @@ global_data::print_stats(std::ostream& os, double current_secs){
 //============================================================
 // global functions
 
-bool	dbg_print_cond_func(bool prm, bool is_ck, const std::string fnam, int lnum,
+bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::string fnam, int lnum,
 		const std::string prm_str, long dbg_lv)
 {
-	DBG_CK(! dbg_bad_cycle1);
-	dbg_bad_cycle1 = true;
+	bool aux_cy = false;
+	bool& bad_cy = (dbg_info != NULL)?(dbg_info->dbg_bad_cycle1):(aux_cy);
+	if(bad_cy){
+		throw top_exception(prx_bad_cicle_1, "Recursive call to dbg_print_cond_func !!!!");
+	}
+	bad_cy = true;
 
 	bool resp = true;
 	if(prm){
@@ -637,7 +624,7 @@ bool	dbg_print_cond_func(bool prm, bool is_ck, const std::string fnam, int lnum,
 		resp = (! is_ck);
 	}
 
-	dbg_bad_cycle1 = false;
+	bad_cy = false;
 	return resp;
 }
 
@@ -645,14 +632,6 @@ void	err_header(std::ostringstream& msg_err){
 	msg_err.clear();
 	//msg_err = "";
 	msg_err.flush();
-
-
-
-
-
-
-
-
 
 	msg_err << "file(" << GLB.batch_consec << "/"
 		<< GLB.batch_num_files << ")='"
@@ -849,7 +828,7 @@ void	do_all_instances(debug_info& dbg_inf){
 	bool is_batch = false;
 	const char* f_nam = GLB.get_file_name(is_batch);
 
-	SUPPORT_CK(f_nam != NULL_PT);
+	SUPPORT_CK_0(f_nam != NULL_PT);
 
 	GLB.init_log_name("error.log", GLB.batch_log_name);
 	GLB.init_log_name("results.log", GLB.batch_end_log_name);
@@ -857,7 +836,7 @@ void	do_all_instances(debug_info& dbg_inf){
 	GLB.init_log_name("assigs.log", GLB.batch_answer_name);
 
 	row<instance_info>& all_insts = GLB.batch_instances;
-	SUPPORT_CK(all_insts.is_empty());
+	SUPPORT_CK_0(all_insts.is_empty());
 	if(is_batch){
 		read_batch_file(all_insts);
 	} else {
@@ -884,7 +863,7 @@ void	do_all_instances(debug_info& dbg_inf){
 
 			do_cnf_file(dbg_inf);
 
-			SUPPORT_CK(mem_in_u == MEM_STATS.num_bytes_in_use);
+			SUPPORT_CK_0(mem_in_u == MEM_STATS.num_bytes_in_use);
 		}
 	}
 
@@ -1019,20 +998,22 @@ global_data::get_args(int argc, char** argv)
 int	sat3_main(int argc, char** argv){
 
 	DBG(std::cout << "FULL_DEBUG is defined" << std::endl);
-	BRAIN_CK((std::cout << "doing CKs" << std::endl) && true);
-	BRAIN_CK_1((std::cout << "doing CK_1s" << std::endl) && true);
-	BRAIN_CK_2((std::cout << "doing CK_2s" << std::endl) && true);
-
-	SUPPORT_CK(sizeof(t_1byte) == 1);
-	SUPPORT_CK(sizeof(long) == sizeof(void*));
-
-	int resp = 0;
 
 	debug_info dbg_inf;
 	MARK_USED(dbg_inf);
+	debug_info* pt_dbg_inf = &dbg_inf;
+
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CKs" << std::endl) && true));
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CK_1s" << std::endl) && true));
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CK_2s" << std::endl) && true));
 	
-	SUPPORT_CK(dbg_inf.dbg_start_dbg_entries.get_cap() == 0);
-	SUPPORT_CK(dbg_inf.dbg_stop_dbg_entries.get_cap() == 0);
+	SUPPORT_CK_1(pt_dbg_inf, (sizeof(t_1byte) == 1));
+	SUPPORT_CK_1(pt_dbg_inf, (sizeof(long) == sizeof(void*)));
+
+	int resp = 0;
+
+	SUPPORT_CK_1(pt_dbg_inf, (dbg_inf.dbg_start_dbg_entries.get_cap() == 0));
+	SUPPORT_CK_1(pt_dbg_inf, (dbg_inf.dbg_stop_dbg_entries.get_cap() == 0));
 
 	MEM_CTRL(mem_size mem_in_u = MEM_STATS.num_bytes_in_use;)
 	MEM_CTRL(MARK_USED(mem_in_u));
@@ -1066,7 +1047,7 @@ int	sat3_main(int argc, char** argv){
 	dbg_inf.dbg_start_dbg_entries.clear(true, true);
 	dbg_inf.dbg_stop_dbg_entries.clear(true, true);
 
-	SUPPORT_CK(mem_in_u == MEM_STATS.num_bytes_in_use);
+	SUPPORT_CK_1(pt_dbg_inf, (mem_in_u == MEM_STATS.num_bytes_in_use));
 
 	double end_tm = 0.0;
 	MARK_USED(end_tm);
@@ -1080,9 +1061,9 @@ int	sat3_main(int argc, char** argv){
 		DO_FINAL_GETCHAR;
 	}
 
-	BRAIN_CK((std::cout << "doing CKs" << std::endl) && true);
-	BRAIN_CK_1((std::cout << "doing CK_1s" << std::endl) && true);
-	BRAIN_CK_2((std::cout << "doing CK_2s" << std::endl) && true);
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CKs" << std::endl) && true));
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CK_1s" << std::endl) && true));
+	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CK_2s" << std::endl) && true));
 	DBG(std::cout << "FULL_DEBUG is defined" << std::endl);
 
 	return resp;

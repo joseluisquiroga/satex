@@ -26,6 +26,7 @@ Functions to read and parse dimacs files.
 
 #include "support.h"
 
+#define DIMACS_CK_0(prm) 	SUPPORT_CK_0(prm)
 #define DIMACS_CK(prm) 	SUPPORT_CK(prm)
 
 // '\0'
@@ -549,10 +550,10 @@ shuffle_lit_mapping(tak_mak& rnd_gen, row<integer>& to_shuff){
 	while(tmp_bag.size() > 0){
 		long idx_pop = rnd_gen.gen_rand_int32_ie(0, tmp_bag.size());
 
-		DIMACS_CK(idx_pop >= 0);
-		DIMACS_CK(idx_pop < tmp_bag.size());
+		DIMACS_CK_0(idx_pop >= 0);
+		DIMACS_CK_0(idx_pop < tmp_bag.size());
 		integer var1 = tmp_bag.swap_pop(idx_pop);
-		DIMACS_CK(var1 > 0);
+		DIMACS_CK_0(var1 > 0);
 
 		long pol = rnd_gen.gen_rand_int32_ie(0, 2);
 		if(pol == 0){ var1 = -var1; }
@@ -560,7 +561,7 @@ shuffle_lit_mapping(tak_mak& rnd_gen, row<integer>& to_shuff){
 		to_shuff.push(var1);
 	}
 
-	DIMACS_CK(to_shuff.size() == sz_0);
+	DIMACS_CK_0(to_shuff.size() == sz_0);
 }
 
 void
@@ -619,8 +620,8 @@ shuffle_cnf_lits(tak_mak& rnd_gen, long num_var, row<integer>& the_map,
 long
 shift_literal(long in_lit, long the_shift){
 	integer var = get_var(in_lit);
-	DIMACS_CK(var > 0);
-	DIMACS_CK(the_shift > 0);
+	DIMACS_CK_0(var > 0);
+	DIMACS_CK_0(the_shift > 0);
 	var += the_shift;
 	if(in_lit < 0){
 		return -var;
@@ -664,15 +665,15 @@ shuffle_ccl_mapping(tak_mak& rnd_gen, row<integer>& to_shuff){
 	while(tmp_bag.size() > 0){
 		long idx_pop = rnd_gen.gen_rand_int32_ie(0, tmp_bag.size());
 
-		DIMACS_CK(idx_pop >= 0);
-		DIMACS_CK(idx_pop < tmp_bag.size());
+		DIMACS_CK_0(idx_pop >= 0);
+		DIMACS_CK_0(idx_pop < tmp_bag.size());
 		integer idx1 = tmp_bag.swap_pop(idx_pop);
-		DIMACS_CK(idx1 >= 0);
+		DIMACS_CK_0(idx1 >= 0);
 
 		to_shuff.push(idx1);
 	}
 
-	DIMACS_CK(to_shuff.size() == sz_0);
+	DIMACS_CK_0(to_shuff.size() == sz_0);
 }
 
 void
@@ -701,7 +702,7 @@ rl_to_rrl(row<long>& in_lits, row_row_long_t& out_ccls)
 		} else {
 			row_long_t& rr = out_ccls.inc_sz();
 			tmp_rr.move_to(rr);
-			DIMACS_CK(tmp_rr.is_empty());
+			DIMACS_CK_0(tmp_rr.is_empty());
 		}
 	}
 }
@@ -730,7 +731,7 @@ shuffle_cnf_ccls(tak_mak& rnd_gen, row<integer>& the_map,
 	long num_ccls = in_ccls.size();
 	init_ccl_mapping(rnd_gen, the_map, num_ccls);
 
-	DIMACS_CK(the_map.size() == num_ccls);
+	DIMACS_CK_0(the_map.size() == num_ccls);
 
 	row_row_long_t out_ccls;
 	out_ccls.fill_new(num_ccls);
@@ -739,11 +740,11 @@ shuffle_cnf_ccls(tak_mak& rnd_gen, row<integer>& the_map,
 		row_long_t& rr1 = in_ccls[ii];
 		long n_idx = the_map[ii];
 
-		DIMACS_CK(out_ccls.is_valid_idx(n_idx));
+		DIMACS_CK_0(out_ccls.is_valid_idx(n_idx));
 		row_long_t& rr2 = out_ccls[n_idx];
 
-		DIMACS_CK(! rr1.is_empty());
-		DIMACS_CK(rr2.is_empty());
+		DIMACS_CK_0(! rr1.is_empty());
+		DIMACS_CK_0(rr2.is_empty());
 
 		rr1.move_to(rr2);
 	}
@@ -814,7 +815,7 @@ print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_va
 
 			neus_cou++;
 			long num_dens = ii - first;
-			BRAIN_CK(num_dens > 0);
+			DIMACS_CK_0(num_dens > 0);
 			dens_cou += num_dens;
 
 			first = ii + 1;

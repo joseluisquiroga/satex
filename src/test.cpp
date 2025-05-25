@@ -73,7 +73,7 @@ int	tests_main_(int argc, char** argv){
 	os << "ENDING TESTS___________" << std::endl;
 	os.flush();
 
-	SUPPORT_CK(tt_mem_in_u == MEM_STATS.num_bytes_in_use);
+	SUPPORT_CK_0(tt_mem_in_u == MEM_STATS.num_bytes_in_use);
 
 	//MEM_CTRL(mem_size mem_u = MEM_STATS.num_bytes_in_use;)  // not nedded. tested during
 	//SUPPORT_CK(mem_u == MEM_STATS.num_bytes_in_use); // mem.cpp MEM_STATS destruction

@@ -274,9 +274,9 @@ test_simplify_cnf(){
 	the_brn.simplify_it(num_ccls, num_vars, num_lits, after_ccls);
 
 	if(inst_info.ist_result == k_unknown_satisf){
-		BRAIN_CK(! after_ccls.is_empty());
-		BRAIN_CK(num_ccls > 0);
-		BRAIN_CK(num_vars > 0);
+		SUPPORT_CK_0(! after_ccls.is_empty());
+		SUPPORT_CK_0(num_ccls > 0);
+		SUPPORT_CK_0(num_vars > 0);
 
 		std::ofstream out_stm;
 		std::ostream& os = test_open_out(out_stm);
@@ -314,7 +314,7 @@ do_instance(debug_info& dbg_inf)
 		<< GLB.batch_num_files);*/
 
 	std::string f_nam = the_ans.get_f_nam();
-	SUPPORT_CK(f_nam.size() > 0);
+	SUPPORT_CK_0(f_nam.size() > 0);
 	//DBG_PRT(0, os << "FILE=" << f_nam << std::endl);
 
 	call_solve_instance(dbg_inf);

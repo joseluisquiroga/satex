@@ -649,6 +649,7 @@ void		due_periodic_prt(void* pm, double curr_secs);
 class brain {
 	public:
 
+	debug_info 		br_aux;
 	debug_info*		br_dbg_info;
 	instance_info*	br_pt_inst;
 	timer			br_prt_timer;
@@ -693,14 +694,26 @@ class brain {
 	// methods
 
 	brain(){
-		DBG_CK(GLB.pt_brain == NULL_PT);
-		GLB.pt_brain = this;
+		//DBG_CK(GLB.pt_brain == NULL_PT);
+		//GLB.pt_brain = this;
 
 		init_brain();
 	}
 
+	~brain(){
+		//DBG_CK(GLB.pt_brain == this);
+		//GLB.pt_brain = NULL_PT;
+
+		clear_brain();
+	}
+
 	debug_info*	get_dbg_info(){
 		return br_dbg_info;
+	}	
+
+	debug_info&	dbginf(){
+		if(br_dbg_info != NULL){ return *br_dbg_info; }
+		return br_aux;
 	}	
 
 	void	init_brain(){
@@ -724,13 +737,6 @@ class brain {
 		br_choice_spin = cg_neutral;
 		br_choice_order = k_invalid_order;
 		br_choices_lim = INVALID_IDX;
-	}
-
-	~brain(){
-		DBG_CK(GLB.pt_brain == this);
-		GLB.pt_brain = NULL_PT;
-
-		clear_brain();
 	}
 
 	void	clear_brain(){

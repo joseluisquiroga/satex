@@ -123,6 +123,12 @@ void abort_func(long val, std::string msg = "<msg>"){
 //=================================================================
 // top_exception
 
+typedef enum {
+	prx_bad_cicle_1,
+	mex_memout,
+} me_ex_cod_t;
+
+
 class top_exception {
 private:
 	top_exception&  operator = (top_exception& other){

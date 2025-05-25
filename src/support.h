@@ -118,7 +118,7 @@ extern bool	dbg_bad_cycle1;
 
 //--end_of_def
 
-bool	dbg_print_cond_func(bool prm,
+bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 		bool is_ck = false,
 		const std::string fnam = "NO_NAME",
 		int lnum = 0,
@@ -127,7 +127,7 @@ bool	dbg_print_cond_func(bool prm,
 
 #define	DBG_PRT_COND(lev, cond, comm)	\
 	DBG( \
-		dbg_print_cond_func(DBG_LV_COND(lev, cond), \
+		dbg_print_cond_func(get_dbg_info(), DBG_LV_COND(lev, cond), \
 			false, "NO_NAME", 0, #cond, lev); \
 		if(DBG_LV_COND(lev, cond)){ \
 			std::ostream& os = t_dbg_os; \
@@ -160,16 +160,25 @@ bool	dbg_print_cond_func(bool prm,
 
 // end_of_def
 
-#define SUPPORT_CK(prm) \
-	DBG_CK(dbg_print_cond_func((! (prm)), true, __FILE__, __LINE__, #prm)); \
+#define SUPPORT_CK_0(prm) DBG_CK(prm)
 
 // end_of_def
 
-//define BRAIN_CK_0(prm)	;
-#define BRAIN_CK_0(prm)	SUPPORT_CK(prm)
+#define SUPPORT_CK_1(dbinf, prm) \
+	DBG_CK(dbg_print_cond_func(dbinf, (! (prm)), true, __FILE__, __LINE__, #prm)); \
+
+// end_of_def
+
+#define SUPPORT_CK(prm) \
+	DBG_CK(dbg_print_cond_func(get_dbg_info(), (! (prm)), true, __FILE__, __LINE__, #prm)); \
+
+// end_of_def
+
+#define BRAIN_CK_0(prm) DBG_CK(prm)
+//define BRAIN_CK_0(prm)	SUPPORT_CK(prm)
 
 #define BRAIN_CK(prm) \
-	DBG_CK(dbg_print_cond_func((! (prm)), true, __FILE__, __LINE__, #prm)); \
+	DBG_CK(dbg_print_cond_func(get_dbg_info(), (! (prm)), true, __FILE__, __LINE__, #prm)); \
 
 // end_of_def
 
@@ -472,8 +481,6 @@ public:
 	row<long>		final_trail_ids;
 	row<long>		final_chosen_ids;
 
-	brain*			pt_brain;
-
 	std::ostream*	out_os;
 	row<bool>		out_lev;
 
@@ -485,26 +492,14 @@ public:
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
-	//row<bool>		dbg_lev;
 
 	bool			dbg_skip_print_info;
 
 	row<long>		dbg_config_line;
-	//row<debug_entry>	dbg_start_dbg_entries;
-	//row<debug_entry>	dbg_stop_dbg_entries;
-
-	//long			dbg_current_start_entry;
-	//long			dbg_current_stop_entry;
 
 	row<dbg_info_fn_t>	dbg_exception_info_funcs;
 
 	long			dbg_num_laps;
-
-	bool			dbg_ic_active;
-	long			dbg_ic_max_seq;
-	long			dbg_ic_seq;
-	bool			dbg_ic_after;
-	bool			dbg_ic_gen_jpg;
 
 	std::ostringstream	error_stm;
 	long			error_cod;
@@ -601,10 +596,6 @@ public:
 
 	bool		is_finishing(){
 		return (result() != k_unknown_satisf);
-	}
-
-	bool		has_brain(){
-		return (pt_brain != NULL_PT);
 	}
 
 	bool	is_here(location rk){

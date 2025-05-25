@@ -41,7 +41,7 @@ funcs for inference graph printing
 
 void
 brain::dbg_ic_print(){
-	if((GLB.dbg_ic_seq >= GLB.dbg_ic_max_seq) && (GLB.dbg_ic_max_seq >= 0)){
+	if((dbginf().dbg_ic_seq >= dbginf().dbg_ic_max_seq) && (dbginf().dbg_ic_max_seq >= 0)){
 		return;
 	}
 	DBG_PRT(30, os << "**IC_PRT**");
@@ -52,16 +52,16 @@ brain::dbg_ic_print(){
 	);
 
 	std::ofstream ff;
-	GLB.dbg_ic_seq++;
+	dbginf().dbg_ic_seq++;
 
 	std::string f_suf = DBG_SUFI_DOT;
-	std::string f_nam = dbg_name(DBG_PREF_IC, GLB.dbg_ic_seq, f_suf);
+	std::string f_nam = dbg_name(DBG_PREF_IC, dbginf().dbg_ic_seq, f_suf);
 
 	ff.open(f_nam.c_str());
 	dbg_ic_prt_dotty_file(ff, DBG_IC_SUBGRAPHS);
 	ff.close();
 
-	if(GLB.dbg_ic_gen_jpg){
+	if(dbginf().dbg_ic_gen_jpg){
 		//long ancho = 3;
 		//char ch_cero = '0';
 
@@ -69,7 +69,7 @@ brain::dbg_ic_print(){
 		o_str << "echo dot -Tjpg -o ";
 
 		std::string jpg_suf = ".jpg";
-		std::string nm_jpg = dbg_name(DBG_PREF_IC, GLB.dbg_ic_seq, jpg_suf);
+		std::string nm_jpg = dbg_name(DBG_PREF_IC, dbginf().dbg_ic_seq, jpg_suf);
 
 		o_str << nm_jpg << " " << f_nam;
 
@@ -77,12 +77,12 @@ brain::dbg_ic_print(){
 		o_str << DBG_DIR << DBG_PREF_IC;
 		o_str.width(ancho);
 		o_str.fill(ch_cero);
-		o_str << GLB.dbg_ic_seq << ".jpg ";
+		o_str << dbginf().dbg_ic_seq << ".jpg ";
 
 		o_str << DBG_DIR << DBG_PREF_IC;
 		o_str.width(ancho);
 		o_str.fill(ch_cero);
-		o_str << GLB.dbg_ic_seq << f_suf;
+		o_str << dbginf().dbg_ic_seq << f_suf;
 		*/
 
 		o_str << " >> " << DBG_DIR << "all_dot_to_jpg.bat";
