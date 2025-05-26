@@ -340,7 +340,7 @@ brain::brn_compute_dots(bool only_orig){
 	for(long ii = 0; ii < num_neu_ck; ii++){
 		neuron& neu = br_neurons[ii];
 		if(! neu.ne_original){
-			GLB.batch_stat_added_fires.add_val(neu.ne_dbg_num_fires);
+			slv().batch_stat_added_fires.add_val(neu.ne_dbg_num_fires);
 		}
 		if(! neu.neu_compute_dots()){
 			return false;
@@ -423,6 +423,16 @@ quanton::print_quanton(std::ostream& os, bool from_pt){
 // neuron methods
 
 row<quanton*>	neuron::ne_dbg_fibres;
+
+global_data& 
+neuron::slv(){
+	debug_info* dbg_info = NULL;
+	BRAIN_DBG(dbg_info = ne_dbg_info);
+	if((dbg_info != NULL) && (dbg_info->dbg_brn != NULL)){
+		return dbg_info->dbg_brn->slv();
+	}
+	throw brain_exception(brx_no_solver_info, "NEURON without not debugging calling slv()");
+}
 
 quanton*
 neuron::update_fibres(row<quanton*>& synps, bool orig){
@@ -543,9 +553,9 @@ quanton::ck_all_tunnels(){
 
 action_t
 neuron::neu_tunnel_signals(brain* brn, quanton* qua){
-	if(GLB.op_dbg_no_learning && ! ne_original){
+	DBG(if(slv().op_dbg_no_learning && ! ne_original){
 		return ac_go_on;
-	} 
+	});
 
 	DBG_PRT(17, os << "tunneling " << qua << " in " << this);
 	BRAIN_CK(ne_fibres != NULL);
@@ -1157,6 +1167,7 @@ brain::alloc_neuron(bool orig){
 neuron*
 brain::add_neuron(row<quanton*>& quans, quanton*& forced_qua, bool orig){
 	neuron*	neu = alloc_neuron(orig);
+	BRAIN_DBG(neu->ne_dbg_info = br_dbg_info);
 
 	forced_qua = neu->update_fibres(quans, orig);
 
@@ -1338,6 +1349,8 @@ brain::add_neuron_from_lits(row_long_t& all_lits, long first, long last){
 
 void
 brain::load_instance(long num_neu, long num_var, row_long_t& load_ccls){
+	//global_data& the_slv = slv();
+	
 	instance_info& inst_info = get_my_inst();
 	inst_info.ist_num_vars = num_var;
 
@@ -1383,22 +1396,22 @@ brain::load_instance(long num_neu, long num_var, row_long_t& load_ccls){
 
 	double end_load_tm = run_time();
 	double ld_tm = (end_load_tm - br_start_load_tm);
-	GLB.batch_stat_load_tm.add_val(ld_tm);
+	slv().batch_stat_load_tm.add_val(ld_tm);
 
 	std::string f_nam = inst_info.get_f_nam();
-	PRT_OUT(1,
+	/*PRT_OUT(1,
 	os << std::endl;
 	os << "***********************************************";
 	os << std::endl;
 	os << "LOADED " << f_nam <<
-		" " << GLB.batch_consec << " of " << GLB.batch_num_files <<
+		" " << slv().batch_consec << " of " << slv().batch_num_files <<
 		std::endl;
-	);
+	);*/
 }
 
 void
 brain::check_timeout(){
-	if(br_prt_timer.check_period(due_periodic_prt)){
+	if(br_prt_timer.check_period(due_periodic_prt, this)){
 		set_result(k_timeout);
 	}
 }
@@ -1414,8 +1427,8 @@ brain::check_sat_assig(){
 		abort_func(1);
 	}
 
-	//row<long>& the_chosen = GLB.final_chosen_ids;
-	row<quanton*>& the_assig = GLB.final_assig;
+	//row<long>& the_chosen = slv().final_chosen_ids;
+	row<quanton*>& the_assig = slv().final_assig;
 
 	the_assig.clear();
 	BRAIN_CK_0(	(br_trail.size() > 0) && 
@@ -1439,12 +1452,12 @@ brain::solve_it(){
 		return;
 	}
 
-	if(GLB.just_read){
+	if(slv().just_read){
 		set_result(k_timeout);
 		return;
 	} 
 
-	//BRAIN_CK(! GLB.is_finishing());
+	//BRAIN_CK(! slv().is_finishing());
 
 	inst_info.ist_solve_time = run_time();
 
@@ -1463,7 +1476,7 @@ brain::solve_it(){
 	//std::cout << "recoils= " << recoil() << std::endl; 
 	BRAIN_CK(recoil() == (inst_info.ist_num_laps + 1));
 
-	if(GLB.op_ck_satisf && ! GLB.doing_dbg() && (inst_info.ist_result == k_yes_satisf)){
+	if(slv().op_ck_satisf && ! slv().doing_dbg() && (inst_info.ist_result == k_yes_satisf)){
 		check_sat_assig();
 	}
 
@@ -1566,12 +1579,12 @@ brain::simplify_it(long& num_ccls, long& num_vars, long& num_lits, row_long_t& a
 		return;
 	}
 
-	if(GLB.just_read){
+	if(slv().just_read){
 		set_result(k_timeout);
 		return;
 	} 
 
-	//BRAIN_CK(! GLB.is_finishing());
+	//BRAIN_CK(! slv().is_finishing());
 
 	inst_info.ist_solve_time = run_time();
 

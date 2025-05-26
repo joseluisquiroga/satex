@@ -193,13 +193,14 @@ global_data::init_global_data(){
 	init_dbg_exception_info_funcs();
 	init_exception_strings();
 	init_glb_nams();
-	init_brn_nams();
+	//init_brn_nams();
 
 	set_active_out_levs();
 }
 
 void	
 global_data::set_active_out_levs(){
+	//global_data& slv = *this;
 
 	//search PRT_OUT(val
 	// max lev == 9
@@ -253,8 +254,10 @@ global_data::init_dbg_exception_info_funcs(){
 /*
 double
 global_data::mem_percent_used(){
+	global_data& slv = *this;
+	
 	double perc_mem_used = 0.0;
-	if(GLB.using_mem_ctrl && (MEM_STATS.num_bytes_available > 0)){
+	if(slv.using_mem_ctrl && (MEM_STATS.num_bytes_available > 0)){
 		double tot = (double)(MEM_STATS.num_bytes_available);
 		double in_use = (double)(MEM_STATS.num_bytes_in_use);
 		perc_mem_used = ((in_use / tot) * 100);
@@ -265,8 +268,9 @@ global_data::mem_percent_used(){
 
 std::ostream&
 global_data::print_mem_used(std::ostream& os){
-	if(GLB.using_mem_ctrl){
-		os << GLB.batch_stat_mem_used;
+	global_data& slv = *this;
+	if(slv.using_mem_ctrl){
+		os << slv.batch_stat_mem_used;
 		/*
 		long used_mem = (long)mem_percent_used();
 		os << "MEM=" << MEM_STATS.num_bytes_in_use << " bytes of " 
@@ -278,6 +282,7 @@ global_data::print_mem_used(std::ostream& os){
 
 std::ostream&
 global_data::print_totals(std::ostream& os, double curr_tm){
+	global_data& slv = *this;
 
 	os << std::endl;
 	if(in_valid_inst()){
@@ -301,7 +306,7 @@ global_data::print_totals(std::ostream& os, double curr_tm){
 
 	os << std::endl;
 	os << batch_stat_solve_tm;
-	if(GLB.using_mem_ctrl){
+	if(slv.using_mem_ctrl){
 		os << batch_stat_mem_used;
 	}
 
@@ -335,33 +340,37 @@ avg_stat::print_avg_stat(std::ostream& os){
 
 std::ostream&
 global_data::print_final_totals(std::ostream& os){
+	global_data& slv = *this;
+	
 	os << std::endl;
 	//os << std::fixed;
 	//os.precision(2);
 
-	os << GLB.batch_stat_choices;
-	os << GLB.batch_stat_laps;
-	if(GLB.op_ck_satisf || GLB.doing_dbg()){
-		os << GLB.batch_stat_added_fires;
+	os << slv.batch_stat_choices;
+	os << slv.batch_stat_laps;
+	if(slv.op_ck_satisf || slv.doing_dbg()){
+		os << slv.batch_stat_added_fires;
 	}
-	os << GLB.batch_stat_load_tm;
-	os << GLB.batch_stat_solve_tm;
-	os << GLB.batch_stat_mem_used;
+	os << slv.batch_stat_load_tm;
+	os << slv.batch_stat_solve_tm;
+	os << slv.batch_stat_mem_used;
 
 	/*
 	os << "AVERAGE SOLVE TIME = " <<
-		GLB.batch_avg_solve_time.avg << std::endl;
+		slv.batch_avg_solve_time.avg << std::endl;
 	os << "TOTAL SOLVE TIME = " << 
-		GLB.batch_total_solve_time << std::endl;
+		slv.batch_total_solve_time << std::endl;
 	*/
 
-	double tot_tm = GLB.batch_end_time - GLB.batch_start_time;
+	double tot_tm = slv.batch_end_time - slv.batch_start_time;
 	os << "TOTAL TIME = " << tot_tm << std::endl;
 	return os;
 }
 
 void			
 global_data::print_batch_consec(){
+	global_data& slv = *this;
+	
 	DBG_COMMAND(34, return);
 
 	double perc = 0.0;
@@ -382,14 +391,16 @@ global_data::print_batch_consec(){
 
 void
 global_data::print_final_assig(){
-	if(GLB.batch_answer_name.size() == 0){
+	global_data& slv = *this;
+	
+	if(slv.batch_answer_name.size() == 0){
 		return;
 	}
 
 	instance_info& inst_info = get_curr_inst();
 	std::string f_nam = inst_info.get_f_nam();
 
-	const char* f_nm = GLB.batch_answer_name.c_str();
+	const char* f_nm = slv.batch_answer_name.c_str();
 	std::ofstream log_stm;
 	log_stm.open(f_nm, std::ios::app);
 	if(log_stm.good() && log_stm.is_open()){
@@ -405,6 +416,8 @@ global_data::print_final_assig(){
 
 void
 global_data::count_instance(instance_info& inst_info){
+	global_data& slv = *this;
+	
 	double end_time = run_time();
 	double full_tm = end_time - inst_info.ist_solve_time;
 
@@ -628,28 +641,19 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::
 	return resp;
 }
 
-void	err_header(std::ostringstream& msg_err){
-	msg_err.clear();
-	//msg_err = "";
-	msg_err.flush();
+void	
+global_data::log_message(const std::ostringstream& msg_log){
+	global_data& slv = *this;
 
-	msg_err << "file(" << GLB.batch_consec << "/"
-		<< GLB.batch_num_files << ")='"
-		<< GLB.get_curr_f_nam() << "'";
-	//msg_err << std::endl;
-}
-
-void	log_message(const std::ostringstream& msg_log){
-
-	if(! GLB.batch_log_on){
+	if(! slv.batch_log_on){
 		return;
 	}
 
-	if(GLB.batch_log_name.size() == 0){
+	if(slv.batch_log_name.size() == 0){
 		return;
 	}
 
-	const char* log_nm = GLB.batch_log_name.c_str();
+	const char* log_nm = slv.batch_log_name.c_str();
 	std::ofstream log_stm;
 	log_stm.open(log_nm, std::ios::app);
 	if(log_stm.good() && log_stm.is_open()){
@@ -658,79 +662,55 @@ void	log_message(const std::ostringstream& msg_log){
 	}
 }
 
-void	log_batch_info(){
-	if(! GLB.batch_log_on){
+void	
+global_data::log_batch_info(){
+	global_data& slv = *this;
+	
+	if(! slv.batch_log_on){
 		return;
 	}
 
-	if(GLB.batch_end_log_name.size() == 0){
+	if(slv.batch_end_log_name.size() == 0){
 		return;
 	}
 
 	std::ostringstream msg_log;
 
-	const char* log_nm = GLB.batch_end_log_name.c_str();
+	const char* log_nm = slv.batch_end_log_name.c_str();
 	std::ofstream log_stm;
 	log_stm.open(log_nm, std::ios::app);
 	if(! log_stm.good() || ! log_stm.is_open()){
-		GLB.reset_err_msg();
-		GLB.error_stm << "Could not open file " << log_nm << ".";
-		msg_log << GLB.error_stm.str();
+		slv.reset_err_msg();
+		slv.error_stm << "Could not open file " << log_nm << ".";
+		msg_log << slv.error_stm.str();
 		std::cerr << msg_log.str() << std::endl;
 		log_message(msg_log);
 		return;
 	}
 
-	GLB.batch_instances.print_row_data(log_stm, false, "\n");
+	slv.batch_instances.print_row_data(log_stm, false, "\n");
 	log_stm << std::endl; 
 	log_stm.close();
 
-	if(GLB.batch_end_msg_name.size() == 0){
+	if(slv.batch_end_msg_name.size() == 0){
 		return;
 	}
 
-	const char* msg_nm = GLB.batch_end_msg_name.c_str();
+	const char* msg_nm = slv.batch_end_msg_name.c_str();
 	std::ofstream msg_stm;
 	msg_stm.open(msg_nm, std::ios::app);
 	if(! msg_stm.good() || ! msg_stm.is_open()){
-		GLB.reset_err_msg();
-		GLB.error_stm << "Could not open file " << msg_nm << ".";
-		msg_log << GLB.error_stm.str();
+		slv.reset_err_msg();
+		slv.error_stm << "Could not open file " << msg_nm << ".";
+		msg_log << slv.error_stm.str();
 		std::cerr << msg_log.str() << std::endl;
 		log_message(msg_log);
 		return;
 	}
 
-	GLB.print_totals(msg_stm);
-	GLB.print_final_totals(msg_stm);
+	slv.print_totals(msg_stm);
+	slv.print_final_totals(msg_stm);
 
-}
-
-void	call_and_handle_exceptions(core_func_t the_func){
-
-	std::ostringstream msg_err;
-	try{
-		(*the_func)();
-	} 
-	catch (long code) {
-		err_header(msg_err);
-		msg_err << GLB.error_stm.str();
-		if(GLB.exception_strings.is_valid_idx(code)){
-			msg_err << GLB.exception_strings[code];
-		}
-		std::cerr << msg_err.str() << std::endl;
-		log_message(msg_err);
-		DBG(GLB.dbg_call_info_func(code));
-		abort_func(0);
-	}/*
-	catch (...) {
-		err_header(msg_err);
-		msg_err << "Unknown type exception in  ";
-		std::cerr << msg_err.str() << std::endl;
-		log_message(msg_err);
-	}*/
-
-	GLB.reset_global();
 }
 
 void	chomp_string(std::string& s1){
@@ -742,20 +722,23 @@ void	chomp_string(std::string& s1){
 	s1.resize(ii + 1);
 }
 
-void	read_batch_file(row<instance_info>& names){
+void	
+global_data::read_batch_file(row<instance_info>& names){
+	global_data& slv = *this;
+	
 	PRT_OUT(0, os << "Loading batch file '" 
-		<< GLB.batch_name << std::endl); 
+		<< slv.batch_name << std::endl); 
 
 	std::ifstream in_stm;
-	in_stm.open(GLB.batch_name.c_str());
+	in_stm.open(slv.batch_name.c_str());
 
 	if(! in_stm.good() || ! in_stm.is_open()){
-		GLB.reset_err_msg();
-		GLB.error_stm << "Could not open file " << GLB.batch_name << ".";
+		slv.reset_err_msg();
+		slv.error_stm << "Could not open file " << slv.batch_name << ".";
 
-		GLB.error_cod = k_brain_04_exception;
+		slv.error_cod = k_brain_04_exception;
 		DBG_THROW_CK(k_brain_01_exception != k_brain_01_exception);
-		throw GLB.error_cod;
+		throw slv.error_cod;
 		abort_func(1);
 	}
 
@@ -800,8 +783,14 @@ void	read_batch_file(row<instance_info>& names){
 }
 
 void	print_periodic_totals(void* pm, double curr_tm){
+	global_data* pt_slv = (global_data*)pm;
+	if(pt_slv == NULL){
+		throw solver_exception(slx_no_solver, "Called timer func without solver");
+	}
+	global_data& slv = *pt_slv;
+	
 	MARK_USED(pm);
-	PRT_OUT(0, GLB.print_totals(os, curr_tm));
+	PRT_OUT(0, slv.print_totals(os, curr_tm));
 }
 
 void	get_enter(std::ostream& os, char* msg){
@@ -811,8 +800,10 @@ void	get_enter(std::ostream& os, char* msg){
 
 void
 global_data::init_log_name(const char* sufix, std::string& log_nm){
+	global_data& slv = *this;
+	
 	bool is_batch = false;
-	const char* f_nam = GLB.get_file_name(is_batch);
+	const char* f_nam = slv.get_file_name(is_batch);
 
 	std::ostringstream log_ss;
 	log_ss << f_nam << "_";
@@ -821,21 +812,24 @@ global_data::init_log_name(const char* sufix, std::string& log_nm){
 	remove(log_nm.c_str());
 }
 
-void	do_all_instances(debug_info& dbg_inf){
-	GLB.batch_start_time = run_time();
-	GLB.batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
+void	
+global_data::do_all_instances(debug_info& dbg_inf){
+	global_data& slv = *this;
+	
+	slv.batch_start_time = run_time();
+	slv.batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
 
 	bool is_batch = false;
-	const char* f_nam = GLB.get_file_name(is_batch);
+	const char* f_nam = slv.get_file_name(is_batch);
 
 	SUPPORT_CK_0(f_nam != NULL_PT);
 
-	GLB.init_log_name("error.log", GLB.batch_log_name);
-	GLB.init_log_name("results.log", GLB.batch_end_log_name);
-	GLB.init_log_name("stats.log", GLB.batch_end_msg_name);
-	GLB.init_log_name("assigs.log", GLB.batch_answer_name);
+	slv.init_log_name("error.log", slv.batch_log_name);
+	slv.init_log_name("results.log", slv.batch_end_log_name);
+	slv.init_log_name("stats.log", slv.batch_end_msg_name);
+	slv.init_log_name("assigs.log", slv.batch_answer_name);
 
-	row<instance_info>& all_insts = GLB.batch_instances;
+	row<instance_info>& all_insts = slv.batch_instances;
 	SUPPORT_CK_0(all_insts.is_empty());
 	if(is_batch){
 		read_batch_file(all_insts);
@@ -844,19 +838,19 @@ void	do_all_instances(debug_info& dbg_inf){
 		ist.ist_file_path = f_nam;
 	} 
 
-	GLB.batch_num_files = all_insts.size();
+	slv.batch_num_files = all_insts.size();
 
 	print_op_cnf();
 
-	for(long ii = 0; ii < GLB.batch_num_files; ii++){
-		GLB.batch_consec = ii + 1;
+	for(long ii = 0; ii < slv.batch_num_files; ii++){
+		slv.batch_consec = ii + 1;
 		std::string inst_nam = all_insts[ii].ist_file_path;
-		//GLB.file_name = all_insts[ii].ist_file_path;
+		//slv.file_name = all_insts[ii].ist_file_path;
 
 		std::ifstream i_ff;
 		if(inst_nam.size() > 0){
-			GLB.batch_prt_totals_timer.
-				check_period(print_periodic_totals);
+			slv.batch_prt_totals_timer.
+				check_period(print_periodic_totals, this);
 
 			MEM_CTRL(mem_size mem_in_u = MEM_STATS.num_bytes_in_use;)
 			MEM_CTRL(MARK_USED(mem_in_u));
@@ -869,7 +863,7 @@ void	do_all_instances(debug_info& dbg_inf){
 
 	print_op_cnf();
 
-	GLB.batch_end_time = run_time();
+	slv.batch_end_time = run_time();
 
 	log_batch_info();
 	//PRT_OUT(0, log_batch_info());
@@ -996,6 +990,7 @@ global_data::get_args(int argc, char** argv)
 }
 
 int	sat3_main(int argc, char** argv){
+	global_data& slv = GLB;
 
 	DBG(std::cout << "FULL_DEBUG is defined" << std::endl);
 
@@ -1020,7 +1015,7 @@ int	sat3_main(int argc, char** argv){
 
 	MEM_STATS.num_bytes_available = (get_free_mem_kb() * NUM_BYTES_IN_KBYTE);
 
-	bool args_ok = GLB.get_args(argc, argv);
+	bool args_ok = slv.get_args(argc, argv);
 
 	double start_tm = 0.0;
 	MARK_USED(start_tm);
@@ -1032,14 +1027,14 @@ int	sat3_main(int argc, char** argv){
 		PRT_OUT(1, os << ".STARTING AT " << run_time() << std::endl);
 
 		double tot_mem = (double)(MEM_STATS.num_bytes_available);
-		GLB.batch_stat_mem_used.vs_max_val = tot_mem;
+		slv.batch_stat_mem_used.vs_max_val = tot_mem;
 
 		PRT_OUT(0, os << "Starting with "
 			<< MEM_STATS.num_bytes_available << " bytes available" 
 			<< std::endl); 
 		DBG(PRT_OUT(1, os << "DEBUG_BRAIN activated" 
 			<< std::endl));
-		do_all_instances(dbg_inf);
+		slv.do_all_instances(dbg_inf);
 
 		PRT_OUT(1, os << ".ENDING AT " << run_time() << std::endl);
 	}
@@ -1054,8 +1049,8 @@ int	sat3_main(int argc, char** argv){
 	if(args_ok){
 		//end_tm = run_time();
 		PRT_OUT(0, 
-			GLB.print_totals(os);
-			GLB.print_final_totals(os);
+			slv.print_totals(os);
+			slv.print_final_totals(os);
 		);
 
 		DO_FINAL_GETCHAR;

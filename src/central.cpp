@@ -35,9 +35,11 @@ print_ex(top_exception& ex1){
 }
 
 void
-print_op_cnf(){
+global_data::print_op_cnf(){
+	global_data& slv = *this;
+	
 	std::ostream& os = std::cout;
-	switch(GLB.op_cnf_id){
+	switch(slv.op_cnf_id){
 		case fo_join:
 			os << "TEST_JOIN" << std::endl;
 			break;
@@ -59,10 +61,12 @@ print_op_cnf(){
 }
 
 void
-do_cnf_file(debug_info& dbg_inf){
+global_data::do_cnf_file(debug_info& dbg_inf){
+	global_data& slv = *this;
+	
 	//std::ostream& os = std::cout;
 	try{
-		switch(GLB.op_cnf_id){
+		switch(slv.op_cnf_id){
 			case fo_join:
 				test_cnf_join();
 				break;
@@ -92,46 +96,46 @@ do_cnf_file(debug_info& dbg_inf){
 	}
 }
 
-
-void	init_brn_nams(){}
-
 std::ostream&
-test_open_out(std::ofstream& os){
-	if(GLB.output_file_nm == ""){
+global_data::test_open_out(std::ofstream& os){
+	global_data& slv = *this;
+	
+	if(slv.output_file_nm == ""){
 		return std::cout;
 	}
 
-	//instance_info& inst_info = GLB.get_curr_inst();
+	//instance_info& inst_info = slv.get_curr_inst();
 	//std::string f_nam = inst_info.get_f_nam();
 	//std::string of_nam = f_nam + "_out_" + suf;
-	std::string of_nam = GLB.output_file_nm;
+	std::string of_nam = slv.output_file_nm;
 
 	const char* out_nm = of_nam.c_str();
 	remove(out_nm);
 
 	os.open(out_nm, std::ios::app);
 	if(! os.good() || ! os.is_open()){
-		GLB.reset_err_msg();
-		GLB.error_stm << "Could not open file " << of_nam << ". Using cout.";
-		std::cerr << GLB.error_stm.str() << std::endl;
+		slv.reset_err_msg();
+		slv.error_stm << "Could not open file " << of_nam << ". Using cout.";
+		std::cerr << slv.error_stm.str() << std::endl;
 		return std::cout;
 	}
 	return os;
 }
 
 void
-test_cnf_join(){
-
-	instance_info& inst_info = GLB.get_curr_inst();
+global_data::test_cnf_join(){
+	global_data& slv = *this;
+	
+	instance_info& inst_info = slv.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	//DBG(GLB.dbg_update_config_entries());
+	//DBG(slv.dbg_update_config_entries());
 
 	row<long> inst_neus1;
 	row<long> inst_neus2;
 
 	std::string f_nam1 = inst_info.get_f_nam();
-	std::string f_nam2 = GLB.op_cnf_f_nam;
+	std::string f_nam2 = slv.op_cnf_f_nam;
 
 	dimacs_loader	the_loader1;
 	the_loader1.parse_file(f_nam1, inst_neus1);
@@ -159,18 +163,19 @@ test_cnf_join(){
 
 	inst_info.ist_result = k_yes_satisf;
 
-	GLB.count_instance(inst_info);
+	slv.count_instance(inst_info);
 }
 
 // test as ttnf
 
 void
-test_cnf_as_ttnf(bool smpfy_it){
+global_data::test_cnf_as_ttnf(bool smpfy_it){
+	global_data& slv = *this;
 
-	instance_info& inst_info = GLB.get_curr_inst();
+	instance_info& inst_info = slv.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	//DBG(GLB.dbg_update_config_entries());
+	//DBG(slv.dbg_update_config_entries());
 
 	row<long> inst_neus;
 
@@ -215,16 +220,17 @@ test_cnf_as_ttnf(bool smpfy_it){
 
 	print_dimacs_of(os, inst_neus, num_neu, num_var);
 
-	GLB.count_instance(inst_info);
+	slv.count_instance(inst_info);
 }
 
 void
-test_cnf_shuffle(){
+global_data::test_cnf_shuffle(){
+	global_data& slv = *this;
 
-	instance_info& inst_info = GLB.get_curr_inst();
+	instance_info& inst_info = slv.get_curr_inst();
 
 	inst_info.ist_num_laps++;
-	//DBG(GLB.dbg_update_config_entries());
+	//DBG(slv.dbg_update_config_entries());
 
 	row<long> inst_neus;
 
@@ -251,18 +257,20 @@ test_cnf_shuffle(){
 
 	print_dimacs_of(os, shuff_neus, num_neu, num_var);
 
-	GLB.count_instance(inst_info);
+	slv.count_instance(inst_info);
 }
 
 void
-test_simplify_cnf(){
+global_data::test_simplify_cnf(){
+	global_data& slv = *this;
 	
 	debug_info dbg_info;
 	brain the_brn;
 	the_brn.br_dbg_info = &dbg_info;
+	the_brn.br_slv = this;
 	dbg_info.dbg_brn = &the_brn;
 	
-	instance_info& inst_info = GLB.get_curr_inst();
+	instance_info& inst_info = slv.get_curr_inst();
 	the_brn.br_pt_inst = &inst_info;
 
 	long num_ccls = 0;
@@ -284,34 +292,38 @@ test_simplify_cnf(){
 		print_dimacs_of(os, after_ccls, num_ccls, num_vars);
 	}
 
-	GLB.count_instance(inst_info);
+	slv.count_instance(inst_info);
 }
 
 void
-call_solve_instance(debug_info& dbg_inf){
+global_data::call_solve_instance(debug_info& dbg_inf){
+	global_data& slv = *this;
 
 	brain the_brn;
 	the_brn.br_dbg_info = &dbg_inf;
+	the_brn.br_slv = this;
 	dbg_inf.dbg_brn = &the_brn;
 
-	instance_info& inst_info = GLB.get_curr_inst();
+	instance_info& inst_info = slv.get_curr_inst();
 	the_brn.br_pt_inst = &inst_info;
 
 	the_brn.load_it();
 	the_brn.solve_it();
 
-	GLB.count_instance(inst_info);
+	slv.count_instance(inst_info);
 }
 
 void
-do_instance(debug_info& dbg_inf)
+global_data::do_instance(debug_info& dbg_inf)
 {
-	instance_info& the_ans = GLB.get_curr_inst();
+	global_data& slv = *this;
+	
+	instance_info& the_ans = slv.get_curr_inst();
 	MARK_USED(the_ans);
 
 	/*DBG_PRT(0, os << "STARTING. batch_count=" 
-		<< GLB.batch_consec << " of " 
-		<< GLB.batch_num_files);*/
+		<< slv.batch_consec << " of " 
+		<< slv.batch_num_files);*/
 
 	std::string f_nam = the_ans.get_f_nam();
 	SUPPORT_CK_0(f_nam.size() > 0);
@@ -320,8 +332,8 @@ do_instance(debug_info& dbg_inf)
 	call_solve_instance(dbg_inf);
 
 	/*DBG_PRT(0, os << "FINISHING. batch_count="
-		<< GLB.batch_consec << " of " 
-		<< GLB.batch_num_files << std::endl;
+		<< slv.batch_consec << " of " 
+		<< slv.batch_num_files << std::endl;
 		the_ans.print_headers(os);
 		os << std::endl << the_ans;
 	);*/

@@ -152,6 +152,25 @@ void	append_reasons(row<reason>& dest, row<reason>& src);
 void	get_ids_of(row<quanton*>& quans, row_long_t& the_ids);
 
 
+//======================================================================
+// brain_exception
+
+typedef enum {
+	brx_no_debug_info,
+	brx_no_solver_info,
+	brx_no_brain_to_timer,
+} br_ex_cod_t;
+
+class brain_exception : public top_exception {
+public:
+	
+	brain_exception(long the_id = 0, t_string ff = "error_in_brain") : top_exception(the_id)
+	{
+	}
+
+	virtual t_string name(){ t_string nm = "brain_exception"; return nm; }
+};
+
 //=================================================================================================
 // ticket
 
@@ -453,6 +472,8 @@ class neuron {
 		BRAIN_DBG(dbg_info = ne_dbg_info);
 		return dbg_info;
 	}
+	
+	global_data& slv();
 
 	long	size(){ return ne_fibres_sz; }
 
@@ -651,6 +672,9 @@ class brain {
 
 	debug_info 		br_aux;
 	debug_info*		br_dbg_info;
+	
+	global_data*	br_slv;
+	
 	instance_info*	br_pt_inst;
 	timer			br_prt_timer;
 
@@ -694,30 +718,33 @@ class brain {
 	// methods
 
 	brain(){
-		//DBG_CK(GLB.pt_brain == NULL_PT);
-		//GLB.pt_brain = this;
-
 		init_brain();
 	}
 
 	~brain(){
-		//DBG_CK(GLB.pt_brain == this);
-		//GLB.pt_brain = NULL_PT;
-
 		clear_brain();
 	}
 
 	debug_info*	get_dbg_info(){
 		return br_dbg_info;
-	}	
+	}
 
 	debug_info&	dbginf(){
 		if(br_dbg_info != NULL){ return *br_dbg_info; }
 		return br_aux;
 	}	
+	
+	global_data& slv(){
+		if(br_slv != NULL){
+			return *br_slv;
+		}
+		throw brain_exception(brx_no_solver_info, "Brain without solver !!!!");
+	}
 
 	void	init_brain(){
 		br_dbg_info = NULL;
+		
+		br_slv = NULL;
 		
 		br_pt_inst = NULL_PT;
 		br_prt_timer.init_timer(PRINT_PERIOD, SOLVING_TIMEOUT);
@@ -957,9 +984,13 @@ class brain {
 
 inline
 void	due_periodic_prt(void* pm, double curr_secs){
-	MARK_USED(pm);
-	if(GLB.out_os != NULL_PT){
-		PRT_OUT(0, GLB.print_stats(*GLB.out_os, curr_secs));
+	brain* brn = (brain*)pm;
+	if(brn == NULL){
+		throw brain_exception(brx_no_brain_to_timer, "Timer func called without brain !!!");
+	}
+	global_data& slv = brn->slv();
+	if(slv.out_os != NULL_PT){
+		PRT_OUT(0, slv.print_stats(*(slv.out_os), curr_secs));
 	}
 }
 
@@ -1201,14 +1232,6 @@ void	system_exec(std::ostringstream& strstm);
 //=================================================================================================
 // central.cpp funcs
 
-std::ostream&	test_open_out(std::ofstream& os);
-void		test_cnf_join();
-void		test_cnf_as_ttnf(bool smpfy_it);
-void		test_cnf_shuffle();
-void		test_simplify_cnf();
-
-void		call_solve_instance(debug_info& dbg_inf);
-void		do_instance(debug_info& dbg_inf);
 void		print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_var);
 
 

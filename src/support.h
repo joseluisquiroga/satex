@@ -84,10 +84,10 @@ extern bool	dbg_bad_cycle1;
 
 #define PRT_OUT(lev, comm) \
 	DO_PRINTS( \
-		if(! GLB.silent && DBG_COND(GLB.out_lev, lev, \
-				(GLB.out_os != NULL_PT))) \
+		if(! slv.silent && DBG_COND(slv.out_lev, lev, \
+				(slv.out_os != NULL_PT))) \
 		{ \
-			std::ostream& os = *(GLB.out_os); \
+			std::ostream& os = *(slv.out_os); \
 			comm; \
 			os.flush(); \
 		} \
@@ -96,27 +96,6 @@ extern bool	dbg_bad_cycle1;
 //--end_of_def
 
 #define INVALID_DBG_LV 		-123
-
-#define SET_LV(lev, nm_var, tmp_lev) \
-	bool nm_var = GLB.dbg_lev[tmp_lev]; \
-	if(DBG_LV_COND(lev, true)){ \
-		GLB.dbg_lev[tmp_lev] = true; \
-	} \
-
-//--end_of_def
-
-#define RESET_LV(lev, nm_var, tmp_lev) \
-	bool nm_var = GLB.dbg_lev[tmp_lev]; \
-	if(DBG_LV_COND(lev, true)){ \
-		GLB.dbg_lev[tmp_lev] = false; \
-	} \
-
-//--end_of_def
-
-#define RECOVER_LV(tmp_lev, nm_var) \
-	GLB.dbg_lev[tmp_lev] = nm_var; \
-
-//--end_of_def
 
 bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 		bool is_ck = false,
@@ -237,6 +216,23 @@ typedef long 	consecutive_t;
 #define INVALID_CONSECUTIVE	-1
 #define MAX_CONSECUTIVE		std::numeric_limits<double>::max()
 
+
+//======================================================================
+// solver_exception
+
+typedef enum {
+	slx_no_solver,
+} sl_ex_cod_t;
+
+class solver_exception : public top_exception {
+public:
+	
+	solver_exception(long the_id = 0, t_string ff = "error_in_solver") : top_exception(the_id)
+	{
+	}
+
+	virtual t_string name(){ t_string nm = "solver_exception"; return nm; }
+};
 
 //=================================================================
 // average
@@ -583,7 +579,7 @@ public:
 		if(batch_instances.is_empty()){
 			return 0;
 		}
-		instance_info& inst_info = GLB.get_curr_inst();
+		instance_info& inst_info = get_curr_inst();
 		return inst_info.ist_num_laps;
 	}
 
@@ -668,6 +664,23 @@ public:
 	void	print_final_assig();
 	void	count_instance(instance_info& inst_info);
 
+	void	log_message(const std::ostringstream& msg_log);
+	void	log_batch_info();
+	void	read_batch_file(row<instance_info>& names);
+	void	do_all_instances(debug_info& dbg_inf);
+
+	void	print_op_cnf();
+	void	do_cnf_file(debug_info& dbg_inf);
+	
+	std::ostream&	test_open_out(std::ofstream& os);
+	void		test_cnf_join();
+	void		test_cnf_as_ttnf(bool smpfy_it);
+	void		test_cnf_shuffle();
+	void		test_simplify_cnf();
+
+	void		call_solve_instance(debug_info& dbg_inf);
+	void		do_instance(debug_info& dbg_inf);
+	
 	//int	walk_neuron_tree(std::string& dir_nm);
 
 	std::ostream&	print_mini_stats(std::ostream& os);
@@ -728,22 +741,9 @@ std::ostream& operator << (std::ostream& os, debug_entry& dbg_ety){
 
 typedef void (*core_func_t)(void);
 
-void	err_header(std::ostringstream& msg_err);
-void	log_message(const std::ostringstream& msg_log);
-void	log_batch_info();
-void	call_and_handle_exceptions(core_func_t the_func);
 void	chomp_string(std::string& s1);
-void	read_batch_file(row<std::string*>& names);
 void	get_enter(std::ostream& os, char* msg);
-void	do_all_instances();
 int	tests_main_(int argc, char** argv);
-
-//=================================================================
-// implemented in brain.cpp
-
-void	print_op_cnf();
-void	do_cnf_file(debug_info& dbg_inf);
-void	init_brn_nams();
 
 
 #endif		// SUPPORT_H
