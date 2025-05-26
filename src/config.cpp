@@ -176,11 +176,17 @@ debug_info::dbg_update_config_entries(){
 	std::ostream& os = std::cout;
 	MARK_USED(os);
 
-	if(GLB.get_curr_lap() >= (LONG_MAX - 1)){
+	global_data* slv = dbg_slv;
+	
+	if(slv == NULL){ 
+		return;
+	}
+	
+	if(slv->get_curr_lap() >= (LONG_MAX - 1)){
 		return;
 	}
 
-	long curr_round = (long)GLB.get_curr_lap();
+	long curr_round = (long)slv->get_curr_lap();
 	/*
 	if(curr_round <= 0){
 		return;
@@ -226,7 +232,7 @@ debug_info::init_dbg_conf(){
 	//DBG_PRT(-1, os << "dbg_lev=" << dbg_lev << std::endl); 
 
 	DBG_COMMAND(37, os << "PRINT_FULL_INFO" << std::endl; 
-		GLB.dbg_skip_print_info = true);
+		dbg_skip_print_info = true);
 
 	DBG_COMMAND(38, os << "SET IC ACTIVE" << std::endl; 
 		dbg_ic_active = true);

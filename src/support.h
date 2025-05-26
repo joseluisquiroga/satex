@@ -50,6 +50,7 @@ Declaration of classes that support and assist the system.
 #include <gmpxx.h>
 
 #include "tools.h"
+#include "config.h"
 #include "dimacs.h"
 
 #define GET_RUN_TIME() cpu_time()
@@ -452,7 +453,7 @@ enum cnf_oper_t {
 class quanton;
 class global_data;
 
-extern global_data		GLB;
+//extern global_data		GLB;
 
 void	glb_set_memout();
 long	get_free_mem_kb();
@@ -461,6 +462,8 @@ typedef	void 	(global_data::*dbg_info_fn_t)();
 
 class global_data {
 public:
+	debug_info*		sl_dbg_info;
+	
 	bool			silent;
 
 	bool			using_mem_ctrl;
@@ -488,8 +491,6 @@ public:
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
-
-	bool			dbg_skip_print_info;
 
 	row<long>		dbg_config_line;
 
@@ -545,7 +546,7 @@ public:
 	}
 
 	debug_info*	get_dbg_info(){
-		return NULL;
+		return sl_dbg_info;
 	}	
 
 	void		reset_global(){

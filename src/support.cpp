@@ -98,10 +98,12 @@ get_free_mem_kb(){
 //============================================================
 // global_data
 
-global_data		GLB;
+//global_data		GLB;
 
 void
 global_data::init_global_data(){
+	sl_dbg_info = NULL;
+	
 	silent = false;
 
 	using_mem_ctrl = false;
@@ -146,8 +148,6 @@ global_data::init_global_data(){
 	op_dbg_no_learning = false;
 
 	dbg_file_name = "";
-
-	dbg_skip_print_info = false;
 
 	dbg_num_laps = 0;
 
@@ -561,7 +561,7 @@ global_data::print_mini_stats(std::ostream& os){
 
 	os << CARRIAGE_RETURN;
 	os << "'" << f_nam << "'";
-	dbg_print_cond_func(NULL, true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
+	dbg_print_cond_func(get_dbg_info(), true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
 	return os; 
 }
 
@@ -584,7 +584,7 @@ global_data::print_stats(std::ostream& os, double current_secs){
 	os << std::endl;
 	os << "file_name: '" << f_nam << "'" << std::endl;
 	
-	dbg_print_cond_func(NULL, true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
+	dbg_print_cond_func(get_dbg_info(), true, false, "NO_NAME", 0, "true", INVALID_DBG_LV);
 	print_totals(os, current_secs);
 	os << std::endl << std::endl;
 
@@ -605,6 +605,9 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::
 		throw top_exception(prx_bad_cicle_1, "Recursive call to dbg_print_cond_func !!!!");
 	}
 	bad_cy = true;
+	
+	global_data* slv = NULL;
+	if(dbg_info != NULL){ slv = dbg_info->dbg_slv; }
 
 	bool resp = true;
 	if(prm){
@@ -616,19 +619,21 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::
 				os << "ck" << dbg_lv << ".";
 			}
 		}
-		if(GLB.batch_num_files > 1){
-			os << "#" << GLB.batch_consec << ".";
-		}
+		if(slv != NULL){ 
+			if(slv->batch_num_files > 1){
+				os << "#" << slv->batch_consec << ".";
+			}
 
-		long the_lap = GLB.get_curr_lap();
-		if(the_lap > 0){
-			if(is_ck){ os << "LAP="; }
-			os << the_lap << ".";
+			long the_lap = slv->get_curr_lap();
+			if(the_lap > 0){
+				if(is_ck){ os << "LAP="; }
+				os << the_lap << ".";
+			}
 		}
 
 		if(is_ck){
 			os << "ASSERT '" << prm_str << "' FAILED (";
-			os << GLB.get_curr_f_nam();
+			if(slv != NULL){ os << slv->get_curr_f_nam(); }
 			os << ")";
 			os << " in " << fnam << " at " << lnum;
 			os << std::endl;
@@ -990,13 +995,17 @@ global_data::get_args(int argc, char** argv)
 }
 
 int	sat3_main(int argc, char** argv){
-	global_data& slv = GLB;
+	//global_data& slv = GLB;
+	global_data slv;
 
 	DBG(std::cout << "FULL_DEBUG is defined" << std::endl);
 
 	debug_info dbg_inf;
 	MARK_USED(dbg_inf);
 	debug_info* pt_dbg_inf = &dbg_inf;
+	
+	slv.sl_dbg_info = &dbg_inf;
+	dbg_inf.dbg_slv = &slv;
 
 	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CKs" << std::endl) && true));
 	//SUPPORT_CK_1(pt_dbg_inf, ((std::cout << "doing CK_1s" << std::endl) && true));

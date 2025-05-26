@@ -89,11 +89,15 @@ comparison	cmp_dbg_entries(debug_entry const & e1, debug_entry const & e2){
 // debug_info
 
 class brain;
+class global_data;
 
 class debug_info {
 	public:
-		
+	
+	global_data*	dbg_slv;
 	brain*			dbg_brn;
+	
+	bool			dbg_skip_print_info;	
 		
 	row<debug_entry>	dbg_start_dbg_entries;
 	row<debug_entry>	dbg_stop_dbg_entries;
@@ -116,7 +120,10 @@ class debug_info {
 	}
 	
 	void init_debug_info(){
+		dbg_slv = NULL;
 		dbg_brn = NULL;
+		
+		dbg_skip_print_info = false;
 		
 		dbg_start_dbg_entries.clear();
 		dbg_stop_dbg_entries.clear();
