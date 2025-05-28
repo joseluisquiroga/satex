@@ -33,7 +33,7 @@ Code for testing purposes only.
 #include "unistd.h"
 #include "limits.h"
 
-#include "support.h"
+#include "solver.h"
 
 //include "brain.h"
 #include "tak_mak.h"

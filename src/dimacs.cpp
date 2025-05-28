@@ -24,7 +24,7 @@ Functions to read and parse dimacs files.
 #include <cassert>
 #include <cstring>
 
-#include "support.h"
+#include "solver.h"
 
 #define DIMACS_CK_0(prm) 	SUPPORT_CK_0(prm)
 #define DIMACS_CK(prm) 	SUPPORT_CK(prm)

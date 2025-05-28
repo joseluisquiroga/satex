@@ -4,7 +4,7 @@
 
 bible_sat
 
-support.h
+solve.h
 (C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
@@ -12,7 +12,7 @@ Place of birth: Bogota - Colombia - Southamerica.
 Id (cedula): 79523732 de Bogota.
 email: JoseLuisQuiroga@yahoo.com
 
-Declaration of classes that support and assist the system.
+Declaration of solver class and classes that assist the system.
 
 --------------------------------------------------------------*/
 
@@ -411,7 +411,7 @@ std::ostream& operator << (std::ostream& os, instance_info& obj){
 }
 
 //=================================================================
-// global_data
+// solver
 
 enum cnf_oper_t {
 	fo_invalid,
@@ -423,16 +423,16 @@ enum cnf_oper_t {
 };
 
 class quanton;
-class global_data;
+class solver;
 
-//extern global_data		GLB;
+//extern solver		GLB;
 
 void	glb_set_memout();
 long	get_free_mem_kb();
 
-typedef	void 	(global_data::*dbg_info_fn_t)();
+typedef	void 	(solver::*dbg_info_fn_t)();
 
-class global_data {
+class solver {
 public:
 	debug_info*		sl_dbg_info;
 	
@@ -506,13 +506,13 @@ public:
 
 	row<std::string>	exception_strings;
 
-	global_data(){
-		init_global_data();
+	solver(){
+		init_solver();
 	}
 
-	void 		init_global_data();
+	void 		init_solver();
 
-	~global_data(){
+	~solver(){
 	}
 
 	debug_info*	get_dbg_info(){

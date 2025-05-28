@@ -20,7 +20,7 @@ Classes and that implement the neural network.
 #include <cxxabi.h>	// trace stack 
 #include <cstring>
 
-#include "support.h"
+#include "solver.h"
 #include "brain.h"
 
 //============================================================
@@ -424,7 +424,7 @@ quanton::print_quanton(std::ostream& os, bool from_pt){
 
 row<quanton*>	neuron::ne_dbg_fibres;
 
-global_data& 
+solver& 
 neuron::slv(){
 	debug_info* dbg_info = NULL;
 	BRAIN_DBG(dbg_info = ne_dbg_info);
@@ -1349,7 +1349,7 @@ brain::add_neuron_from_lits(row_long_t& all_lits, long first, long last){
 
 void
 brain::load_instance(long num_neu, long num_var, row_long_t& load_ccls){
-	//global_data& the_slv = slv();
+	//solver& the_slv = slv();
 	
 	instance_info& inst_info = get_my_inst();
 	inst_info.ist_num_vars = num_var;

@@ -4,7 +4,7 @@
 
 bible_sat
 
-support.cpp  
+solver.cpp  
 (C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
@@ -12,14 +12,14 @@ Place of birth: Bogota - Colombia - Southamerica.
 Id (cedula): 79523732 de Bogota.
 email: JoseLuisQuiroga@yahoo.com
 
-Global classes and functions that support and assist the system.
+solver class and classes that assist the system.
 
 --------------------------------------------------------------*/
 
 #include <limits.h>
 #include <cstring>
 
-#include "support.h"
+#include "solver.h"
 #include "config.h"
 
 //DEFINE_MEM_STATS;
@@ -96,12 +96,12 @@ get_free_mem_kb(){
 }
 
 //============================================================
-// global_data
+// solver
 
-//global_data		GLB;
+//solver		GLB;
 
 void
-global_data::init_global_data(){
+solver::init_solver(){
 	sl_dbg_info = NULL;
 	
 	silent = false;
@@ -197,8 +197,8 @@ global_data::init_global_data(){
 }
 
 void	
-global_data::set_active_out_levs(){
-	//global_data& slv = *this;
+solver::set_active_out_levs(){
+	//solver& slv = *this;
 
 	//search PRT_OUT(val
 	// max lev == 9
@@ -209,8 +209,8 @@ global_data::set_active_out_levs(){
 }
 
 std::ostream&
-global_data::print_mem_used(std::ostream& os){
-	global_data& slv = *this;
+solver::print_mem_used(std::ostream& os){
+	solver& slv = *this;
 	if(slv.using_mem_ctrl){
 		os << slv.batch_stat_mem_used;
 		/*
@@ -223,8 +223,8 @@ global_data::print_mem_used(std::ostream& os){
 }
 
 std::ostream&
-global_data::print_totals(std::ostream& os, double curr_tm){
-	global_data& slv = *this;
+solver::print_totals(std::ostream& os, double curr_tm){
+	solver& slv = *this;
 
 	os << std::endl;
 	if(in_valid_inst()){
@@ -281,8 +281,8 @@ avg_stat::print_avg_stat(std::ostream& os){
 }
 
 std::ostream&
-global_data::print_final_totals(std::ostream& os){
-	global_data& slv = *this;
+solver::print_final_totals(std::ostream& os){
+	solver& slv = *this;
 	
 	os << std::endl;
 	//os << std::fixed;
@@ -310,8 +310,8 @@ global_data::print_final_totals(std::ostream& os){
 }
 
 void			
-global_data::print_batch_consec(){
-	global_data& slv = *this;
+solver::print_batch_consec(){
+	solver& slv = *this;
 	
 	DBG_COMMAND(34, return);
 
@@ -332,8 +332,8 @@ global_data::print_batch_consec(){
 }
 
 void
-global_data::print_final_assig(){
-	global_data& slv = *this;
+solver::print_final_assig(){
+	solver& slv = *this;
 	
 	if(slv.batch_answer_name.size() == 0){
 		return;
@@ -357,8 +357,8 @@ global_data::print_final_assig(){
 }
 
 void
-global_data::count_instance(instance_info& inst_info){
-	global_data& slv = *this;
+solver::count_instance(instance_info& inst_info){
+	solver& slv = *this;
 	
 	double end_time = run_time();
 	double full_tm = end_time - inst_info.ist_solve_time;
@@ -497,7 +497,7 @@ timer::check_period(tmr_func_t tmr_fn, void* pm_fn){
 // stats
 
 std::ostream&
-global_data::print_mini_stats(std::ostream& os){
+solver::print_mini_stats(std::ostream& os){
 	instance_info& inst_info = get_curr_inst();
 	std::string f_nam = inst_info.get_f_nam();
 
@@ -508,7 +508,7 @@ global_data::print_mini_stats(std::ostream& os){
 }
 
 std::ostream&
-global_data::print_stats(std::ostream& os, double current_secs){
+solver::print_stats(std::ostream& os, double current_secs){
 	DBG_COMMAND(35, return os);
 
 	DBG_COMMAND(36,
@@ -548,7 +548,7 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::
 	}
 	bad_cy = true;
 	
-	global_data* slv = NULL;
+	solver* slv = NULL;
 	if(dbg_info != NULL){ slv = dbg_info->dbg_slv; }
 
 	bool resp = true;
@@ -589,8 +589,8 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm, bool is_ck, const std::
 }
 
 void	
-global_data::log_message(const std::ostringstream& msg_log){
-	global_data& slv = *this;
+solver::log_message(const std::ostringstream& msg_log){
+	solver& slv = *this;
 
 	if(! slv.batch_log_on){
 		return;
@@ -610,8 +610,8 @@ global_data::log_message(const std::ostringstream& msg_log){
 }
 
 void	
-global_data::log_batch_info(){
-	global_data& slv = *this;
+solver::log_batch_info(){
+	solver& slv = *this;
 	
 	if(! slv.batch_log_on){
 		return;
@@ -670,8 +670,8 @@ void	chomp_string(std::string& s1){
 }
 
 void	
-global_data::read_batch_file(row<instance_info>& names){
-	global_data& slv = *this;
+solver::read_batch_file(row<instance_info>& names){
+	solver& slv = *this;
 	
 	PRT_OUT(0, os << "Loading batch file '" 
 		<< slv.batch_name << std::endl); 
@@ -727,11 +727,11 @@ global_data::read_batch_file(row<instance_info>& names){
 }
 
 void	print_periodic_totals(void* pm, double curr_tm){
-	global_data* pt_slv = (global_data*)pm;
+	solver* pt_slv = (solver*)pm;
 	if(pt_slv == NULL){
 		throw solver_exception(slx_no_solver, "Called timer func without solver");
 	}
-	global_data& slv = *pt_slv;
+	solver& slv = *pt_slv;
 	
 	MARK_USED(pm);
 	PRT_OUT(0, slv.print_totals(os, curr_tm));
@@ -743,8 +743,8 @@ void	get_enter(std::ostream& os, char* msg){
 }
 
 void
-global_data::init_log_name(const char* sufix, std::string& log_nm){
-	global_data& slv = *this;
+solver::init_log_name(const char* sufix, std::string& log_nm){
+	solver& slv = *this;
 	
 	bool is_batch = false;
 	const char* f_nam = slv.get_file_name(is_batch);
@@ -757,8 +757,8 @@ global_data::init_log_name(const char* sufix, std::string& log_nm){
 }
 
 void	
-global_data::do_all_instances(debug_info& dbg_inf){
-	global_data& slv = *this;
+solver::do_all_instances(debug_info& dbg_inf){
+	solver& slv = *this;
 	
 	slv.batch_start_time = run_time();
 	slv.batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
@@ -817,7 +817,7 @@ global_data::do_all_instances(debug_info& dbg_inf){
 }
 
 void
-global_data::set_input_name(){
+solver::set_input_name(){
 	if(input_file_nm.size() == 0){
 		return;
 	}
@@ -843,7 +843,7 @@ global_data::set_input_name(){
 }
 
 bool
-global_data::get_args(int argc, char** argv)
+solver::get_args(int argc, char** argv)
 {
 	std::ostream& os = std::cout;
 	MARK_USED(os);
@@ -934,8 +934,8 @@ global_data::get_args(int argc, char** argv)
 }
 
 int	sat3_main(int argc, char** argv){
-	//global_data& slv = GLB;
-	global_data slv;
+	//solver& slv = GLB;
+	solver slv;
 
 	DBG(std::cout << "FULL_DEBUG is defined" << std::endl);
 

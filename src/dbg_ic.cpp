@@ -24,7 +24,7 @@ funcs for inference graph printing
 #include <cstdlib>
 #include <cstring>
 
-#include "support.h"
+#include "solver.h"
 #include "brain.h"
 
 #define DBG_IC_RANKS		1

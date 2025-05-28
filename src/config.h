@@ -74,12 +74,12 @@ comparison	cmp_dbg_entries(debug_entry const & e1, debug_entry const & e2){
 // debug_info
 
 class brain;
-class global_data;
+class solver;
 
 class debug_info {
 	public:
 	
-	global_data*	dbg_slv;
+	solver*	dbg_slv;
 	brain*			dbg_brn;
 	
 	bool			dbg_skip_print_info;	

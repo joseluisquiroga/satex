@@ -31,7 +31,7 @@ default_rule: $(BIN_DIR)/$(EXE_NAM)
 ALL_OBJS = \
 $(OBJ_DIR)/test.o\
 $(OBJ_DIR)/brain.o\
-$(OBJ_DIR)/support.o\
+$(OBJ_DIR)/solver.o\
 $(OBJ_DIR)/config.o\
 $(OBJ_DIR)/dimacs.o\
 $(OBJ_DIR)/mem.o\
@@ -46,7 +46,7 @@ $(INCLUDE_DIR)/bit_row.h\
 $(INCLUDE_DIR)/tools.h\
 $(INCLUDE_DIR)/config.h\
 $(INCLUDE_DIR)/dimacs.h\
-$(INCLUDE_DIR)/support.h\
+$(INCLUDE_DIR)/solver.h\
 $(INCLUDE_DIR)/brain.h
 
 #---------------------------------------------------------
@@ -85,8 +85,8 @@ $(OBJ_DIR)/test.o: $(SRC_DIR)/test.cpp $(ALL_HEADERS)
 $(OBJ_DIR)/brain.o: $(SRC_DIR)/brain.cpp $(ALL_HEADERS)
 	$(CPP) -o $(OBJ_DIR)/brain.o $(CMPL_FLAGS)  -c $(SRC_DIR)/brain.cpp
 
-$(OBJ_DIR)/support.o: $(SRC_DIR)/support.cpp $(ALL_HEADERS)
-	$(CPP) -o $(OBJ_DIR)/support.o $(CMPL_FLAGS)  -c $(SRC_DIR)/support.cpp
+$(OBJ_DIR)/solver.o: $(SRC_DIR)/solver.cpp $(ALL_HEADERS)
+	$(CPP) -o $(OBJ_DIR)/solver.o $(CMPL_FLAGS)  -c $(SRC_DIR)/solver.cpp
 
 $(OBJ_DIR)/config.o: $(SRC_DIR)/config.cpp $(ALL_HEADERS)
 	$(CPP) -o $(OBJ_DIR)/config.o $(CMPL_FLAGS)  -c $(SRC_DIR)/config.cpp

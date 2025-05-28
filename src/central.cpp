@@ -21,12 +21,12 @@ funcs that implement top level funcs.
 #include <cstring>
 
 
-#include "support.h"
+#include "solver.h"
 #include "dimacs.h"
 #include "brain.h"
 
 //============================================================
-// code for support
+// code for solver
 
 void 
 print_ex(top_exception& ex1){
@@ -35,8 +35,8 @@ print_ex(top_exception& ex1){
 }
 
 void
-global_data::print_op_cnf(){
-	global_data& slv = *this;
+solver::print_op_cnf(){
+	solver& slv = *this;
 	
 	std::ostream& os = std::cout;
 	switch(slv.op_cnf_id){
@@ -61,8 +61,8 @@ global_data::print_op_cnf(){
 }
 
 void
-global_data::do_cnf_file(debug_info& dbg_inf){
-	global_data& slv = *this;
+solver::do_cnf_file(debug_info& dbg_inf){
+	solver& slv = *this;
 	
 	//std::ostream& os = std::cout;
 	try{
@@ -97,8 +97,8 @@ global_data::do_cnf_file(debug_info& dbg_inf){
 }
 
 std::ostream&
-global_data::test_open_out(std::ofstream& os){
-	global_data& slv = *this;
+solver::test_open_out(std::ofstream& os){
+	solver& slv = *this;
 	
 	if(slv.output_file_nm == ""){
 		return std::cout;
@@ -123,8 +123,8 @@ global_data::test_open_out(std::ofstream& os){
 }
 
 void
-global_data::test_cnf_join(){
-	global_data& slv = *this;
+solver::test_cnf_join(){
+	solver& slv = *this;
 	
 	instance_info& inst_info = slv.get_curr_inst();
 
@@ -169,8 +169,8 @@ global_data::test_cnf_join(){
 // test as ttnf
 
 void
-global_data::test_cnf_as_ttnf(bool smpfy_it){
-	global_data& slv = *this;
+solver::test_cnf_as_ttnf(bool smpfy_it){
+	solver& slv = *this;
 
 	instance_info& inst_info = slv.get_curr_inst();
 
@@ -224,8 +224,8 @@ global_data::test_cnf_as_ttnf(bool smpfy_it){
 }
 
 void
-global_data::test_cnf_shuffle(){
-	global_data& slv = *this;
+solver::test_cnf_shuffle(){
+	solver& slv = *this;
 
 	instance_info& inst_info = slv.get_curr_inst();
 
@@ -261,8 +261,8 @@ global_data::test_cnf_shuffle(){
 }
 
 void
-global_data::test_simplify_cnf(){
-	global_data& slv = *this;
+solver::test_simplify_cnf(){
+	solver& slv = *this;
 	
 	debug_info dbg_info;
 	brain the_brn;
@@ -296,8 +296,8 @@ global_data::test_simplify_cnf(){
 }
 
 void
-global_data::call_solve_instance(debug_info& dbg_inf){
-	global_data& slv = *this;
+solver::call_solve_instance(debug_info& dbg_inf){
+	solver& slv = *this;
 
 	brain the_brn;
 	the_brn.br_dbg_info = &dbg_inf;
@@ -314,9 +314,9 @@ global_data::call_solve_instance(debug_info& dbg_inf){
 }
 
 void
-global_data::do_instance(debug_info& dbg_inf)
+solver::do_instance(debug_info& dbg_inf)
 {
-	global_data& slv = *this;
+	solver& slv = *this;
 	
 	instance_info& the_ans = slv.get_curr_inst();
 	MARK_USED(the_ans);

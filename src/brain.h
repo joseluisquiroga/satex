@@ -119,7 +119,7 @@ DECLARE_PRINT_FUNCS(reason)
 #include <sstream>
 
 #include "tools.h"
-#include "support.h"
+#include "solver.h"
 
 //=================================================================
 // comparison declarations
@@ -473,7 +473,7 @@ class neuron {
 		return dbg_info;
 	}
 	
-	global_data& slv();
+	solver& slv();
 
 	long	size(){ return ne_fibres_sz; }
 
@@ -673,7 +673,7 @@ class brain {
 	debug_info 		br_aux;
 	debug_info*		br_dbg_info;
 	
-	global_data*	br_slv;
+	solver*	br_slv;
 	
 	instance_info*	br_pt_inst;
 	timer			br_prt_timer;
@@ -734,7 +734,7 @@ class brain {
 		return br_aux;
 	}	
 	
-	global_data& slv(){
+	solver& slv(){
 		if(br_slv != NULL){
 			return *br_slv;
 		}
@@ -988,7 +988,7 @@ void	due_periodic_prt(void* pm, double curr_secs){
 	if(brn == NULL){
 		throw brain_exception(brx_no_brain_to_timer, "Timer func called without brain !!!");
 	}
-	global_data& slv = brn->slv();
+	solver& slv = brn->slv();
 	if(slv.out_os != NULL_PT){
 		PRT_OUT(0, slv.print_stats(*(slv.out_os), curr_secs));
 	}

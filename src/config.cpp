@@ -21,7 +21,7 @@ Functions to read and parse config files.
 #include <cassert>
 #include <cstring>
 
-#include "support.h"
+#include "solver.h"
 
 
 t_string get_parse_err_msg(const char* hd_msg, long num_line, char ch_err, const char* msg){
@@ -176,7 +176,7 @@ debug_info::dbg_update_config_entries(){
 	std::ostream& os = std::cout;
 	MARK_USED(os);
 
-	global_data* slv = dbg_slv;
+	solver* slv = dbg_slv;
 	
 	if(slv == NULL){ 
 		return;
