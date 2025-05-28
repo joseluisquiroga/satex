@@ -75,7 +75,7 @@ brain::ck_current_ticket(){
 }
 
 bool
-brain::ck_motives(row<quanton*>& mots){
+brain::ck_motives(row_quanton_t& mots){
 	for(long ii = 0; ii < mots.size(); ii++){
 		quanton* mot = mots[ii];
 		MARK_USED(mot);
@@ -302,7 +302,7 @@ brain::print_all_quantons(std::ostream& os, long ln_sz, std::string ln_fd){
 //============================================================
 // check SAT result
 
-void	set_dots_of(row<quanton*>& quans){
+void	set_dots_of(row_quanton_t& quans){
 	for(long ii = 0; ii < quans.size(); ii++){
 		quanton* qua = quans[ii];
 		if(qua != &(quanton::ROOT_QUANTON)){
@@ -312,7 +312,7 @@ void	set_dots_of(row<quanton*>& quans){
 	}
 }
 
-void	reset_dots_of(row<quanton*>& quans){
+void	reset_dots_of(row_quanton_t& quans){
 	for(long ii = 0; ii < quans.size(); ii++){
 		quanton* qua = quans[ii];
 		if(qua != &(quanton::ROOT_QUANTON)){
@@ -351,7 +351,7 @@ brain::brn_compute_dots(bool only_orig){
 
 //for IS_SAT_CK
 bool
-brain::brn_compute_dots_of(row<quanton*>& assig, bool only_orig){
+brain::brn_compute_dots_of(row_quanton_t& assig, bool only_orig){
 	set_dots_of(assig);
 
 	long ii = 0;
@@ -422,7 +422,7 @@ quanton::print_quanton(std::ostream& os, bool from_pt){
 //============================================================
 // neuron methods
 
-row<quanton*>	neuron::ne_dbg_fibres;
+row_quanton_t	neuron::ne_dbg_fibres;
 
 solver& 
 neuron::slv(){
@@ -435,7 +435,7 @@ neuron::slv(){
 }
 
 quanton*
-neuron::update_fibres(row<quanton*>& synps, bool orig){
+neuron::update_fibres(row_quanton_t& synps, bool orig){
 	long num_neutral = 0;
 	long num_neg_chgs = 0;
 	if(ne_fibres != NULL){
@@ -444,21 +444,21 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 		ne_fibre_0_idx = INVALID_IDX;
 		ne_fibres[1]->tunnel_swapop(ne_fibre_1_idx);
 		ne_fibre_1_idx = INVALID_IDX;
-		tpl_free<quanton*>(ne_fibres, ne_fibres_sz);
+		tpl_free<quanton*>(ne_fibres, fib_sz());
 		ne_fibres = NULL;
 		ne_fibres_sz = 0;
 	}
 	ne_fibres_sz = synps.size();
-	if(ne_fibres_sz > 0){
-		BRAIN_CK_0(ne_fibres_sz > 1);
+	if(fib_sz() > 0){
+		BRAIN_CK_0(fib_sz() > 1);
 
-		row<quanton*> tmp_fibs;
-		tmp_fibs.set_cap(ne_fibres_sz);
+		row_quanton_t tmp_fibs;
+		tmp_fibs.set_cap(fib_sz());
 		synps.copy_to(tmp_fibs);
 		tmp_fibs.mix_sort(cmp_qlevel);
 		DBG_PRT(16, os << "update_syns " << tmp_fibs);
 
-		ne_fibres = tpl_malloc<quanton*>(ne_fibres_sz);
+		ne_fibres = tpl_malloc<quanton*>(fib_sz());
 
 		long no_neg_idx0 = INVALID_IDX;
 		long no_neg_idx1 = INVALID_IDX;
@@ -468,7 +468,7 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 			long id0 = INVALID_IDX;
 			long id1 = INVALID_IDX;
 		);
-		for(long ii = 0; ii < ne_fibres_sz; ii++){
+		for(long ii = 0; ii < fib_sz(); ii++){
 			quanton* qua = tmp_fibs[ii];
 			//quanton* qua = synps[ii];
 			DBG(
@@ -491,7 +491,7 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 			}
 
 		}
-		BRAIN_CK_0(num_neg_chgs < ne_fibres_sz);
+		BRAIN_CK_0(num_neg_chgs < fib_sz());
 
 		tmp_fibs.clear(false, true);
 
@@ -501,9 +501,9 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 		ne_fibre_1_idx = ne_fibres[1]->qu_tunnels.size() - 1;
 		ck_tunnels();
 	}
-	BRAIN_CK_0((ne_fibres_sz > 0) || (num_neutral != 1));
+	BRAIN_CK_0((fib_sz() > 0) || (num_neutral != 1));
 	quanton* forced_qua = NULL;
-	if(num_neg_chgs == (ne_fibres_sz - 1)){
+	if(num_neg_chgs == (fib_sz() - 1)){
 		// ABORT CASE
 		if(ne_fibres[0]->get_charge() == cg_negative){
 			debug_info* dbg_inf = get_dbg_info();
@@ -524,11 +524,11 @@ neuron::update_fibres(row<quanton*>& synps, bool orig){
 }
 
 quanton*		
-neuron::get_prt_fibres(row<quanton*>& tmp_fibres, bool sort_them){
+neuron::get_prt_fibres(row_quanton_t& tmp_fibres, bool sort_them){
 	quanton* signl_qua = NULL;
 	tmp_fibres.clear();
-	tmp_fibres.set_cap(ne_fibres_sz);
-	for (long ii = 0; ii < ne_fibres_sz; ii++){
+	tmp_fibres.set_cap(fib_sz());
+	for (long ii = 0; ii < fib_sz(); ii++){
 		quanton* qua = ne_fibres[ii];
 		tmp_fibres.push(qua);
 		if(qua->get_source() == this){
@@ -572,7 +572,7 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 		return ac_go_on;	// neu_is_satisf
 	}
 
-	long old_max = ne_fibres_sz - 1;
+	long old_max = fib_sz() - 1;
 	/*
 	if(ne_edge_tk.is_active(brn)){
 		BRAIN_CK(ne_edge <= old_max);
@@ -625,7 +625,7 @@ bool
 neuron::ck_all_neg(brain* brn, long from){
 	bool all_ok = true;
 #ifdef FULL_DEBUG
-	for(long ii = from; ii < ne_fibres_sz; ii++){
+	for(long ii = from; ii < fib_sz(); ii++){
 		all_ok = (all_ok && (ne_fibres[ii]->get_charge() == cg_negative) );
 	}
 #endif
@@ -662,9 +662,9 @@ neuron::print_neu_base(std::ostream& os, bool detail, bool prt_src, bool sort_fi
 	os << "\n";
 	os << "INDEX " << ne_index << " ";
 	os << "in_ " << ((ne_original)?("yes"):("no")) << "\n";
-	os << "fz: " << ne_fibres_sz << " ";
+	os << "fz: " << fib_sz() << " ";
 	os << "fb[ ";
-	for(long ii = 0; ii < ne_fibres_sz; ii++){
+	for(long ii = 0; ii < fib_sz(); ii++){
 		os << ne_fibres[ii] << " ";
 	}
 	os << "] ";
@@ -817,7 +817,7 @@ brain::choose_quanton(){
 }
 
 void
-brain::find_middle_reason_of(neuron* confl, reason& rsn, row<quanton*>& tmp_mots){
+brain::find_middle_reason_of(neuron* confl, reason& rsn, row_quanton_t& tmp_mots){
 
 	long remains = 0;
 	long trail_sz = br_trail.size();
@@ -843,7 +843,7 @@ brain::find_middle_reason_of(neuron* confl, reason& rsn, row<quanton*>& tmp_mots
 					(nxt_src->ne_fibres[0]->get_charge() == cg_positive) );
 		BRAIN_CK(	(last_qua == NULL) || nxt_src->neu_compute_binary());
 		long ii = (last_qua == NULL)?(0):(1);
-		for(; ii < nxt_src->ne_fibres_sz; ii++){
+		for(; ii < nxt_src->fib_sz(); ii++){
 			quanton* qua = nxt_src->ne_fibres[ii];
 			BRAIN_CK(qua->get_charge() == cg_negative);
 
@@ -924,7 +924,7 @@ brain::find_reasons(row<neuron*>& confls, row<reason>& resns){
 
 quanton*
 brain::add_reason(reason& rsn){
-	row<quanton*>& learnt = rsn.ra_motives;
+	row_quanton_t& learnt = rsn.ra_motives;
 
 	DBG_PRT(22, os << "adding " << rsn);
 
@@ -1165,7 +1165,7 @@ brain::alloc_neuron(bool orig){
 }
 
 neuron*
-brain::add_neuron(row<quanton*>& quans, quanton*& forced_qua, bool orig){
+brain::add_neuron(row_quanton_t& quans, quanton*& forced_qua, bool orig){
 	neuron*	neu = alloc_neuron(orig);
 	BRAIN_DBG(neu->ne_dbg_info = br_dbg_info);
 
@@ -1247,7 +1247,7 @@ void system_exec(std::ostringstream& strstm){
 
 void
 brain::set_random_choices(){
-	row<quanton*> tmp_bag;
+	row_quanton_t tmp_bag;
 	br_choices.copy_to(tmp_bag);
 
 	BRAIN_CK_0(br_choices.size() == tmp_bag.size());
@@ -1305,7 +1305,7 @@ brain::set_result(satisf_val re){
 }
 
 void
-brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row<quanton*>& neu_quas){
+brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas){
 	neu_quas.clear();
 
 	for(long ii = first; ii < last; ii++){
@@ -1323,7 +1323,7 @@ brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row<q
 
 void
 brain::add_neuron_from_lits(row_long_t& all_lits, long first, long last){
-	row<quanton*>& quas = br_tmp_fixing_quantons;
+	row_quanton_t& quas = br_tmp_fixing_quantons;
 
 	quas.clear();
 	get_quantons_from_lits(all_lits, first, last, quas);
@@ -1428,7 +1428,7 @@ brain::check_sat_assig(){
 	}
 
 	//row<long>& the_chosen = slv().final_chosen_ids;
-	row<quanton*>& the_assig = slv().final_assig;
+	row_quanton_t& the_assig = slv().final_assig;
 
 	the_assig.clear();
 	BRAIN_CK_0(	(br_trail.size() > 0) && 
@@ -1525,7 +1525,7 @@ neuron::save_clause(row_long_t& save_ccls, long& num_lits){
 
 	bool has_pos = false;
 	MARK_USED(has_pos);
-	for(long ii = 0; ii < size(); ii++){
+	for(long ii = 0; ii < fib_sz(); ii++){
 		BRAIN_CK(ne_fibres[ii] != NULL);
 		quanton& qua = *(ne_fibres[ii]);
 		charge_t chg = qua.get_charge();

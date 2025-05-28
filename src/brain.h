@@ -72,6 +72,8 @@ class neuron;
 class reason;
 class brain;
 
+typedef	row<quanton*>		row_quanton_t;
+
 //=================================================================
 // printing declarations
 
@@ -144,12 +146,12 @@ comparison	cmp_qlevel(quanton* const & qua1, quanton* const & qua2);
 
 charge_t 	negate_trinary(charge_t val);
 
-void	set_dots_of(row<quanton*>& quans);
-void	reset_dots_of(row<quanton*>& quans);
-//void	negate_quantons(row<quanton*>& qua_row);
+void	set_dots_of(row_quanton_t& quans);
+void	reset_dots_of(row_quanton_t& quans);
+//void	negate_quantons(row_quanton_t& qua_row);
 bool	compute_reasons(row<reason>& rsns);
 void	append_reasons(row<reason>& dest, row<reason>& src);
-void	get_ids_of(row<quanton*>& quans, row_long_t& the_ids);
+void	get_ids_of(row_quanton_t& quans, row_long_t& the_ids);
 
 
 //======================================================================
@@ -411,7 +413,7 @@ class neuron {
 	BRAIN_DBG(debug_info*		ne_dbg_info;)
 
 	static
-	row<quanton*>		ne_dbg_fibres;		// tmp row for quas (usually) sorted by id
+	row_quanton_t		ne_dbg_fibres;		// tmp row for quas (usually) sorted by id
 
 	long			ne_index;
 	bool			ne_original;
@@ -437,14 +439,14 @@ class neuron {
 	~neuron(){
 		//BRAIN_CK(ck_no_source_of_any());
 
-		row<quanton*> empty;
+		row_quanton_t empty;
 		BRAIN_CK_0(empty.size() == 0);
 		quanton* forced_qua = update_fibres(empty, false);
 		MARK_USED(forced_qua);
 		BRAIN_CK_0(forced_qua == NULL);
 
 		BRAIN_CK_0(ne_fibres == NULL);
-		BRAIN_CK_0(size() == 0);
+		BRAIN_CK_0(fib_sz() == 0);
 
 		init_neuron();
 	}
@@ -475,7 +477,7 @@ class neuron {
 	
 	solver& slv();
 
-	long	size(){ return ne_fibres_sz; }
+	long	fib_sz(){ return ne_fibres_sz; }
 
 	bool	ck_tunnels(){
 		BRAIN_CK_0(	(ne_fibre_0_idx == INVALID_IDX) || 
@@ -518,13 +520,13 @@ class neuron {
 
 	action_t	neu_tunnel_signals(brain* brn, quanton* qua);
 
-	quanton*	update_fibres(row<quanton*>& synps, bool orig);
-	quanton*	get_prt_fibres(row<quanton*>& tmp_fibres, bool sort_them = true);	// sorted by id 
+	quanton*	update_fibres(row_quanton_t& synps, bool orig);
+	quanton*	get_prt_fibres(row_quanton_t& tmp_fibres, bool sort_them = true);	// sorted by id 
 
 	bool		ck_all_neg(brain* brn, long from);
 
 	bool		ck_no_source_of_any(){
-		for(long ii = 0; ii < ne_fibres_sz; ii++){
+		for(long ii = 0; ii < fib_sz(); ii++){
 			quanton* qua = ne_fibres[ii];
 			MARK_USED(qua);
 			BRAIN_CK_0(qua->get_source() != this);
@@ -541,7 +543,7 @@ class neuron {
 	bool	save_clause(row_long_t& save_ccls, long& num_lits);
 
 	bool	neu_compute_binary(){
-		for(long ii = 0; ii < size(); ii++){
+		for(long ii = 0; ii < fib_sz(); ii++){
 			charge_t chg = ne_fibres[ii]->get_charge();
 			if(chg == cg_positive){
 				return true;
@@ -552,7 +554,7 @@ class neuron {
 
 	//for IS_SAT_CK
 	bool	neu_compute_dots(){
-		for(long ii = 0; ii < size(); ii++){
+		for(long ii = 0; ii < fib_sz(); ii++){
 			charge_t chg = ne_fibres[ii]->qu_dot;
 			if(chg == cg_positive){
 				return true;
@@ -570,7 +572,7 @@ class neuron {
 
 class reason {
 	public:
-	row<quanton*>		ra_motives;
+	row_quanton_t		ra_motives;
 	long			ra_target_level;
 
 	neuron*			ra_confl;	// only info attrib
@@ -606,7 +608,7 @@ class reason {
 		return dbg_info;
 	}
 	
-	void	fill_reason(row<quanton*>& tmp_mots, 
+	void	fill_reason(row_quanton_t& tmp_mots, 
 			neuron* cfl = NULL, long target_lev = INVALID_LEVEL)
 	{
 		init_reason(tmp_mots.size(), cfl, target_lev);
@@ -683,9 +685,9 @@ class brain {
 	// debug attributes
 
 	// temporal attributes
-	row<quanton*>		br_tmp_fixing_quantons;
-	row<quanton*>		br_tmp_motives;
-	row<quanton*>		br_tmp_edge;
+	row_quanton_t		br_tmp_fixing_quantons;
+	row_quanton_t		br_tmp_motives;
+	row_quanton_t		br_tmp_edge;
 
 	row<reason>		br_reasons;
 	long			br_excited_level;
@@ -696,17 +698,17 @@ class brain {
 
 	ticket			br_current_ticket;
 
-	//row<quanton*>		satisfying;		// charges after finishing
+	//row_quanton_t		satisfying;		// charges after finishing
 	k_row<quanton>		br_positons;	// all quantons with positive charge
 	k_row<quanton>		br_negatons;	// all quantons with negative charge
-	row<quanton*>		br_trail;		// in time of charging order
+	row_quanton_t		br_trail;		// in time of charging order
 
 	charge_t		br_choice_spin;
 	long			br_choice_order;
 
 	long			br_choices_lim;	// last known choice idx
-	row<quanton*>		br_choices;	// to find non charged quantons quickly
-	row<quanton*>		br_chosen;	// the in 'root' level + chosen ones
+	row_quanton_t		br_choices;	// to find non charged quantons quickly
+	row_quanton_t		br_chosen;	// the in 'root' level + chosen ones
 
 	k_row<neuron>		br_neurons;	// all neurons
 	queue<quanton*>		br_signals;	// forward propagated signals
@@ -800,14 +802,14 @@ class brain {
 	action_t	send_signal(quanton* qua, neuron* src);
 	quanton*	choose_quanton();
 
-	void		find_middle_reason_of(neuron* confl, reason& rsn, row<quanton*>& tmp_mots);
+	void		find_middle_reason_of(neuron* confl, reason& rsn, row_quanton_t& tmp_mots);
 	void		init_excited_level();
 	void		update_excited_level(reason& rsn);
 	void		find_reasons(row<neuron*>& confls, row<reason>&	resns);
 	quanton*	add_reason(reason& rsn);
 	void		learn_reasons(row<reason>& resns);
 	void		pulsate(row<neuron*>& cnflcts);
-	void		build_greater_than_predicate(long lim_idx, row<reason>& ord_resns, row<quanton*>& ceros_tmp);
+	void		build_greater_than_predicate(long lim_idx, row<reason>& ord_resns, row_quanton_t& ceros_tmp);
 
 	// aux methods
 
@@ -819,7 +821,7 @@ class brain {
 	void	set_random_choices();
 
 	neuron*	alloc_neuron(bool orig);
-	neuron*	add_neuron(row<quanton*>& quans, quanton*& forced_qua, bool orig);
+	neuron*	add_neuron(row_quanton_t& quans, quanton*& forced_qua, bool orig);
 
 	quanton*	get_quanton(long q_id){
 		quanton* qua = NULL;
@@ -933,7 +935,7 @@ class brain {
 	}
 
 	bool	ck_current_ticket();
-	bool	ck_motives(row<quanton*>& mots);
+	bool	ck_motives(row_quanton_t& mots);
 	//bool	ck_choices(bool after = false);
 	bool	ck_trail();
 	void	print_trail();
@@ -942,9 +944,9 @@ class brain {
 
 	bool	brn_compute_binary();
 	bool	brn_compute_dots(bool only_orig);
-	bool	brn_compute_dots_of(row<quanton*>& assig, bool only_orig = false);
+	bool	brn_compute_dots_of(row_quanton_t& assig, bool only_orig = false);
 
-	void		get_quantons_from_lits(row_long_t& all_lits, long first, long last, row<quanton*>& neu_quas);
+	void		get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas);
 	void		add_neuron_from_lits(row_long_t& all_lits, long first, long last);
 	void		load_instance(long num_neu, long num_var, row_long_t& load_ccls);
 	void		save_instance(long& num_ccls, long& num_vars, long& num_lits, row_long_t& save_ccls);
@@ -1172,7 +1174,7 @@ charge_t negate_trinary(charge_t val){
 
 /*
 inline
-void	negate_quantons(row<quanton*>& qua_row){
+void	negate_quantons(row_quanton_t& qua_row){
 	for(long kk = 0; kk < qua_row.size(); kk++){
 		qua_row[kk] = qua_row[kk]->qu_inverse;
 	}
@@ -1207,7 +1209,7 @@ void	append_reasons(row<reason>& dest, row<reason>& src){
 }
 
 inline
-void	get_ids_of(row<quanton*>& quans, row_long_t& the_ids){
+void	get_ids_of(row_quanton_t& quans, row_long_t& the_ids){
 	the_ids.clear();
 	for(long kk = 0; kk < quans.size(); kk++){
 		quanton& qua = *(quans[kk]);

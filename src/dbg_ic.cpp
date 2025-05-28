@@ -125,7 +125,7 @@ brain::dbg_ic_prt_dotty_label(std::ostream& os){
 std::ostream& 	
 brain::dbg_ic_prt_dotty_file(std::ostream& os, long style){
 	long ii;
-	row<quanton*> nodes;
+	row_quanton_t nodes;
 
 	os << "digraph \"ic_graph\" {" << std::endl;
 	//os << "node [style=filled,fontsize=20];" << std::endl;
@@ -217,7 +217,7 @@ brain::dbg_ic_prt_dotty_file(std::ostream& os, long style){
 			neuron* neu = NULL;
 			DBG_SOURCES(neu = qua1->qu_dbg_ic_all_sources[jj];)
 			assert(neu != NULL);
-			for(long kk = 0; kk < neu->size(); kk++){
+			for(long kk = 0; kk < neu->fib_sz(); kk++){
 				quanton* qua2 = (neu->ne_fibres)[kk];
 				long num_srcs2 = 0;
 				DBG_SOURCES(num_srcs2 = qua2->qu_dbg_ic_all_sources.size();)
