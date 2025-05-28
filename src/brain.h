@@ -299,7 +299,7 @@ class quanton {
 
 		BRAIN_CK_0(qu_source == NULL);
 
-		BRAIN_CK_0(qu_tunnels.size() == 0);
+		//BRAIN_CK_0(qu_tunnels.size() == 0);
 
 		qu_tunnels.clear(false, true);
 
@@ -377,6 +377,10 @@ class quanton {
 	void		set_charge(brain* brn, neuron* src, charge_t cha);
 	charge_t	get_charge(){ return qu_charge; }
 
+	bool		is_pos(){ return (get_charge() == cg_positive); } 
+	bool		is_neg(){ return (get_charge() == cg_negative); } 
+	bool		is_nil(){ return (get_charge() == cg_neutral); } 	
+	
 	void		set_source(brain* brn, neuron* neu);
 	neuron*		get_source(){
 		if(qu_source == NULL){
@@ -418,8 +422,9 @@ class neuron {
 	long			ne_index;
 	bool			ne_original;
 
-	long			ne_fibres_sz;
-	quanton**		ne_fibres;		// used in forward propagation of negative signls
+	row_quanton_t	ne_fibres;		// used in forward propagation of negative signls
+	//long			ne_fibres_sz;
+	//quanton**		ne_fibres;		// used in forward propagation of negative signls
 	long			ne_fibre_0_idx;		// this == fibres[0]->tunnels[fibre_0_idx]
 	long			ne_fibre_1_idx;		// this == fibres[1]->tunnels[fibre_1_idx]
 
@@ -438,15 +443,16 @@ class neuron {
 
 	~neuron(){
 		//BRAIN_CK(ck_no_source_of_any());
-
+		/*
 		row_quanton_t empty;
 		BRAIN_CK_0(empty.size() == 0);
 		quanton* forced_qua = update_fibres(empty, false);
 		MARK_USED(forced_qua);
 		BRAIN_CK_0(forced_qua == NULL);
 
-		BRAIN_CK_0(ne_fibres == NULL);
+		BRAIN_CK_0(fib_empty());
 		BRAIN_CK_0(fib_sz() == 0);
+		*/
 
 		init_neuron();
 	}
@@ -456,8 +462,8 @@ class neuron {
 		
 		ne_original = false;
 
-		ne_fibres = NULL;
-		ne_fibres_sz = 0;
+		//ne_fibres = NULL;
+		//ne_fibres_sz = 0;
 		ne_fibre_0_idx = INVALID_IDX;
 		ne_fibre_1_idx = INVALID_IDX;
 
@@ -477,8 +483,12 @@ class neuron {
 	
 	solver& slv();
 
-	long	fib_sz(){ return ne_fibres_sz; }
+	//long	fib_sz(){ return ne_fibres_sz; }
+	long	fib_sz(){ return ne_fibres.size(); }
 
+	//bool	fib_empty(){ return (ne_fibres == NULL_PT); }
+	bool	fib_empty(){ return (ne_fibres.is_empty()); }
+	
 	bool	ck_tunnels(){
 		BRAIN_CK_0(	(ne_fibre_0_idx == INVALID_IDX) || 
 				((ne_fibres[0]->qu_tunnels)[ne_fibre_0_idx] == this));

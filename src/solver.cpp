@@ -942,6 +942,7 @@ int	sat3_main(int argc, char** argv){
 	debug_info dbg_inf;
 	MARK_USED(dbg_inf);
 	debug_info* pt_dbg_inf = &dbg_inf;
+	MARK_USED(pt_dbg_inf);
 	
 	slv.sl_dbg_info = &dbg_inf;
 	dbg_inf.dbg_slv = &slv;
