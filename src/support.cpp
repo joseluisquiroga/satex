@@ -39,7 +39,7 @@ void	init_glb_nams(){
 }
 
 void	glb_set_memout(){
-	throw top_exception(mex_memout, "A memory out exeption occurred");
+	throw memory_exception(mex_memout);
 }
 
 long
@@ -190,8 +190,6 @@ global_data::init_global_data(){
 
 	gg_file_name = "";
 
-	init_dbg_exception_info_funcs();
-	init_exception_strings();
 	init_glb_nams();
 	//init_brn_nams();
 
@@ -209,62 +207,6 @@ global_data::set_active_out_levs(){
 	//out_lev[1] = true;	// file data
 
 }
-
-void	
-global_data::init_exception_strings(){
-	exception_strings.fill("", k_last_global_exception);
-
-	exception_strings[k_tools_01_exception] = 
-		"FATAL ERROR. Available memory exhausted.";
-	exception_strings[k_tools_02_exception] = 
-		"FATAL ERROR tools_02. Memory exhausted.";
-	exception_strings[k_tools_03_exception] = 
-		"FATAL ERROR tools_03. Internal row error.";
-	exception_strings[k_tools_04_exception] = 
-		"FATAL ERROR tools_04. Internal row error.";
-	exception_strings[k_tools_05_exception] = 
-		"FATAL ERROR tools_05. Internal row error.";
-	exception_strings[k_tools_06_exception] = 
-		"FATAL ERROR tools_06. Internal row error.";
-
-	exception_strings[k_brain_01_exception] = 
-		"EXCEPTION brain_01. Cannot open instance file.";
-
-	exception_strings[k_brain_02_exception] =
-		"EXCEPTION brain_02. Difference in number of clauses declared vs found.";
-
-	exception_strings[k_brain_03_exception] =
-		"EXCEPTION brain_03. Cannot open solver file for writing.";
-
-	exception_strings[k_brain_04_exception] =
-		"EXCEPTION brain_04. Cannot move solver file.";
-
-	exception_strings[k_brain_05_exception] =
-		"EXCEPTION brain_05. Cannot create path for solver file.";
-
-	exception_strings[k_brain_06_exception] =
-		"EXCEPTION brain_06. Cannot create path.";
-}
-
-void
-global_data::init_dbg_exception_info_funcs(){
-	dbg_exception_info_funcs.fill(&global_data::dbg_default_info, k_last_global_exception);
-}
-
-/*
-double
-global_data::mem_percent_used(){
-	global_data& slv = *this;
-	
-	double perc_mem_used = 0.0;
-	if(slv.using_mem_ctrl && (MEM_STATS.num_bytes_available > 0)){
-		double tot = (double)(MEM_STATS.num_bytes_available);
-		double in_use = (double)(MEM_STATS.num_bytes_in_use);
-		perc_mem_used = ((in_use / tot) * 100);
-	}
-	return perc_mem_used; 
-}
-*/
 
 std::ostream&
 global_data::print_mem_used(std::ostream& os){
@@ -741,10 +683,7 @@ global_data::read_batch_file(row<instance_info>& names){
 		slv.reset_err_msg();
 		slv.error_stm << "Could not open file " << slv.batch_name << ".";
 
-		slv.error_cod = k_brain_04_exception;
-		DBG_THROW_CK(k_brain_01_exception != k_brain_01_exception);
-		throw slv.error_cod;
-		abort_func(1);
+		throw file_exception(flx_cannot_open, slv.batch_name);
 	}
 
 	names.set_cap(1000);

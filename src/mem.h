@@ -68,8 +68,6 @@ call_assert(bool vv_ck, const std::string & file, int line, std::string ck_str){
 #define DBG_CK(prm)	   	DBG(glb_assert(prm))
 #define DBG_THROW(prm) 		DBG(prm)
 //define DBG_THROW(prm) 		;
-#define DBG_THROW_CK(prm) 	DBG_CK(prm)
-//define DBG_THROW_CK(prm) 	;
 
 #ifdef NO_MEM_CTRL
 #define MEM_CTRL(prm) ;
@@ -101,32 +99,16 @@ typedef std::ofstream 	t_ofstream;
 
 #define MAX_MEM_SZ		MAX_UTYPE(mem_size)
 
-enum mem_exception_code { 
-	k_mem_01_exception = 1,
-	k_mem_02_exception,
-	k_last_mem_exception
-};
-
 #define as_pt_char(the_str) (const_cast<char *>(the_str))
 
 void abort_func(long val, const char* msg = as_pt_char("Aborting."));
-
-/*
-inline
-void abort_func(long val, std::string msg = "<msg>"){
-	std::cerr << std::endl << "ABORTING! " << msg << std::endl; 
-	std::cerr << "Type ENTER.\n";
-	getchar();
-	exit(val);
-}*/
 
 //=================================================================
 // top_exception
 
 typedef enum {
 	prx_bad_cicle_1,
-	mex_memout,
-} me_ex_cod_t;
+} pr_ex_cod_t;
 
 
 class top_exception {
@@ -159,6 +141,28 @@ public:
 		os << "assert:\n" << ex_assrt << "\n";
 		DBG(abort_func(0);)
 	}
+};
+
+//======================================================================
+// memory_exception
+
+typedef enum {
+	mex_memout,
+	mex_memory_exhausted,
+	mex_memory_fully_exhausted,
+	mex_memory_exhausted_during_realloc,
+	mex_memory_fully_exhausted_during_realloc,
+	mex_memory_fully_exhausted_during_secure_realloc, 
+} me_ex_cod_t;
+
+class memory_exception : public top_exception {
+public:
+	
+	memory_exception(long the_id = 0) : top_exception(the_id)
+	{
+	}
+
+	virtual t_string name(){ t_string nm = "memory_exception"; return nm; }
 };
 
 //======================================================================
@@ -207,22 +211,14 @@ tpl_malloc(size_t the_size = 1){
 			if(MEM_STATS.set_memout_func != NULL_PT){
 				(*MEM_STATS.set_memout_func)();
 			} else {
-				error_code_t err_cod = k_mem_01_exception;
-				DBG_THROW_CK(k_mem_01_exception != k_mem_01_exception);
-				throw err_cod;
-				std::cerr << "FATAL ERROR. Memory exhausted" << std::endl;
-				abort_func(0);
+				throw memory_exception(mex_memory_exhausted);
 			}
 		}
 	);
 
 	obj_t*   tmp = (obj_t*)malloc(mem_sz);
 	if((tmp == NULL_PT) && (the_size != 0)){
-		error_code_t err_cod = k_mem_02_exception;
-		DBG_THROW_CK(k_mem_02_exception != k_mem_02_exception);
-		throw err_cod;
-		std::cerr << "FATAL ERROR. Memory exhausted" << std::endl;
-		abort_func(0);
+		throw memory_exception(mex_memory_fully_exhausted);
 	}
 	return tmp; 
 }
@@ -234,11 +230,7 @@ tpl_secure_realloc(obj_t* ptr, size_t old_size, size_t the_size){
 	mem_size mem_sz = the_size * sizeof(obj_t);
 	obj_t*   tmp = (obj_t*)malloc(mem_sz);
 	if((tmp == NULL_PT) && (the_size != 0)){
-		error_code_t err_cod = k_mem_02_exception;
-		DBG_THROW_CK(k_mem_02_exception != k_mem_02_exception);
-		throw err_cod;
-		std::cerr << "FATAL ERROR. Memory exhausted." << std::endl;
-		abort_func(0);
+		throw memory_exception(mex_memory_fully_exhausted_during_secure_realloc);
 	}
 
 	if(ptr != NULL_PT){
@@ -266,11 +258,7 @@ tpl_realloc(obj_t* ptr, size_t old_size, size_t the_size){
 			if(MEM_STATS.set_memout_func != NULL_PT){
 				(*MEM_STATS.set_memout_func)();
 			} else {
-				error_code_t err_cod = k_mem_01_exception;
-				DBG_THROW_CK(k_mem_01_exception != k_mem_01_exception);
-				throw err_cod;
-				std::cerr << "FATAL ERROR. Memory exhausted." << std::endl;
-				abort_func(0);
+				throw memory_exception(mex_memory_exhausted_during_realloc);
 			}
 		}
 	);
@@ -281,11 +269,7 @@ tpl_realloc(obj_t* ptr, size_t old_size, size_t the_size){
 	);
 	obj_t*   tmp = (obj_t*)realloc((void*)ptr, mem_sz);
 	if((tmp == NULL_PT) && (the_size != 0)){
-		error_code_t err_cod = k_mem_02_exception;
-		DBG_THROW_CK(k_mem_02_exception != k_mem_02_exception);
-		throw err_cod;
-		std::cerr << "FATAL ERROR. Memory exhausted." << std::endl;
-		abort_func(0);
+		throw memory_exception(mex_memory_fully_exhausted_during_realloc);
 	}
 	return tmp; 
 }

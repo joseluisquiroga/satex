@@ -32,21 +32,6 @@ Declaration of functions to read and parse config files.
 
 #define DBG_NUM_LEVS 200
 
-
-enum config_exception_code { 
-	k_config_01_exception = k_last_tool_exception,
-	k_config_02_exception,
-	k_config_03_exception,
-	k_config_04_exception,
-	k_config_05_exception,
-	k_config_06_exception,
-	k_config_07_exception,
-	k_config_08_exception,
-	k_config_09_exception,
-	k_last_config_exception
-};
-
-
 #define CONFIG_DBG(prm)	DBG(prm)
 #define CONFIG_CK(prm) 	DBG_CK(prm)
 

@@ -38,12 +38,6 @@ Declaration of functions to read and parse dimacs files.
 //include "kry.h"
 #include "tak_mak.h"
 
-enum dimacs_exception_code { 
-	k_dimacs_01_exception = k_last_config_exception,
-	k_last_dimacs_exception
-};
-
-
 #define DIMACS_DBG(prm)	DBG(prm)
 //define DIMACS_CK(prm) 	DBG_CK(prm)
 #define DIMACS_H_CK(prm) 	DBG_CK(prm)

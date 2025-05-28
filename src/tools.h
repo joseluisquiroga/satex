@@ -29,27 +29,6 @@ Some usefult abstract template classes.
 #include "mem.h"
 #include "bit_row.h"
 
-#ifndef BIT_ROW_H
-#define k_first_tools_exception k_last_mem_exception
-#else
-#define k_first_tools_exception k_last_bit_row_exception
-#endif
-
-enum tool_exception_code { 
-	k_tools_01_exception = k_first_tools_exception,
-	k_tools_02_exception,
-	k_tools_03_exception,
-	k_tools_04_exception,
-	k_tools_05_exception,
-	k_tools_06_exception,
-	k_tools_07_exception,
-	k_tools_08_exception,
-	k_tools_09_exception,
-	k_tools_10_exception,
-	k_tools_11_exception,
-	k_last_tool_exception
-};
-
 #define NUM_BYTES_IN_KBYTE	1024
 
 // 'integer' must be of a signed type
@@ -119,6 +98,29 @@ enum	cmp_is_sub {
 template <bool> struct ILLEGAL_USE_OF_OBJECT;
 template <> struct ILLEGAL_USE_OF_OBJECT<true>{};
 #define OBJECT_COPY_ERROR ILLEGAL_USE_OF_OBJECT<false>()
+
+//======================================================================
+// row_exception
+
+typedef enum {
+	rwx_ck_valid_pt_not_implemented,
+	rwx_set_cap_not_implemented,
+	rwx_clear_not_implemented,
+	rwx_pos_not_implemented,
+	rwx_invalid_r_queue_pull,
+	rwx_invalid_r_queue_put_head,
+	rwx_invalid_picker_pick,
+} rw_ex_cod_t;
+
+class row_exception : public top_exception {
+public:
+	
+	row_exception(long the_id = 0) : top_exception(the_id)
+	{
+	}
+
+	virtual t_string name(){ t_string nm = "row_exception"; return nm; }
+};
 
 //======================================================================
 // parse_exception
@@ -427,41 +429,25 @@ public:
 
 	virtual bool	ck_valid_pt(obj_t* pt_obj){ 
 		MARK_USED(pt_obj);
-		error_code_t err_cod = k_tools_06_exception;
-		DBG_THROW_CK(k_tools_06_exception != k_tools_06_exception);
-		throw err_cod;
-		std::cerr << "func: 'row_data::ck_valid_pt'" << std::endl;
-		abort_func(0); 
+		throw row_exception(rwx_ck_valid_pt_not_implemented);
 	}
 
 	virtual void	set_cap(row_index min_cap){ 
 		MARK_USED(min_cap);
-		error_code_t err_cod = k_tools_03_exception;
-		DBG_THROW_CK(k_tools_03_exception != k_tools_03_exception);
-		throw err_cod;
-		std::cerr << "func: 'row_data::set_cap'" << std::endl;
-		abort_func(0); 
+		throw row_exception(rwx_set_cap_not_implemented);
 	}
 
 	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){ 
 		MARK_USED(destroy);
 		MARK_USED(dealloc);
 		MARK_USED(from);
-		error_code_t err_cod = k_tools_04_exception;
-		DBG_THROW_CK(k_tools_04_exception != k_tools_04_exception);
-		throw err_cod;
-		std::cerr << "func: 'row_data::clear'" << std::endl;
-		abort_func(0); 
+		throw row_exception(rwx_clear_not_implemented);
 	}
 
 	virtual obj_t&		pos(row_index idx){ 
 		MARK_USED(idx);
-		error_code_t err_cod = k_tools_05_exception;
-		DBG_THROW_CK(k_tools_05_exception != k_tools_05_exception);
-		throw err_cod;
-		std::cerr << "func: 'row_data::pos'" << std::endl;
-		abort_func(0); 
-		return *((obj_t*)NULL_PT);
+		throw row_exception(rwx_pos_not_implemented);
+		//return *((obj_t*)NULL_PT);
 	}
 
 	row_index	sz_in_bytes(){
@@ -1312,11 +1298,7 @@ public:
 			}
 			//return tmp1; 
 		} else {
-			error_code_t err_cod = k_tools_07_exception;
-			DBG_THROW_CK(k_tools_07_exception != k_tools_07_exception);
-			throw err_cod;
-			std::cerr << "func: 'r_queue::pull()'" << std::endl;
-			abort_func(0);
+			throw row_exception(rwx_invalid_r_queue_pull);
 		}
 	}
 
@@ -1325,11 +1307,7 @@ public:
 			pull_idx--;
 			new (&(row<obj_t>::pos(pull_idx))) obj_t();
 		} else {
-			error_code_t err_cod = k_tools_08_exception;
-			DBG_THROW_CK(k_tools_08_exception != k_tools_08_exception);
-			throw err_cod;
-			std::cerr << "func: 'r_queue::put_head()'" << std::endl;
-			abort_func(0);
+			throw row_exception(rwx_invalid_r_queue_put_head);
 		}
 	}
 
@@ -1414,11 +1392,7 @@ public:
 		if((pick_idx >= 0) && (pick_idx < sz)){
 			return picker_row[pick_idx++];
 		} else {
-			error_code_t err_cod = k_tools_07_exception;
-			DBG_THROW_CK(k_tools_07_exception != k_tools_07_exception);
-			throw err_cod;
-			std::cerr << "func: 'picker::pick()'" << std::endl;
-			abort_func(0);
+			throw row_exception(rwx_invalid_picker_pick);
 		} 
 
 		/*

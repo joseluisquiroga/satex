@@ -130,16 +130,6 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 
 //--end_of_def
 
-#define	ABORT_WITH(ex_id, msg_str) \
-	error_code_t err_cod = ex_id; \
-	DBG_PRT(DBG_ALL_LVS, os << "ABORTED !!! " << #msg_str); \
-	DBG_THROW_CK(ex_id != ex_id); \
-	throw err_cod; \
-	std::cerr << "func: 'msg_str'" << std::endl; \
-	abort_func(0); \
-
-// end_of_def
-
 #define SUPPORT_CK_0(prm) DBG_CK(prm)
 
 // end_of_def
@@ -183,24 +173,6 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 // typedefs and defines
 
 class brain;
-
-enum brain_exception_code { 
-	k_brain_01_exception = k_last_dimacs_exception,
-	k_brain_02_exception,
-	k_brain_03_exception,
-	k_brain_04_exception,
-	k_brain_05_exception,
-	k_brain_06_exception,
-	k_last_brain_exception
-};
-
-enum global_exception_code { 
-	k_unknown_exception = k_last_brain_exception,
-	k_log_exception,
-	k_last_global_exception
-};
-
-//#define k_last_code_exception k_last_global_exception
 
 typedef	int	location;
 
@@ -494,8 +466,6 @@ public:
 
 	row<long>		dbg_config_line;
 
-	row<dbg_info_fn_t>	dbg_exception_info_funcs;
-
 	long			dbg_num_laps;
 
 	std::ostringstream	error_stm;
@@ -600,30 +570,14 @@ public:
 		return true;
 	}
 
-	/*
-	long	get_instance_idx(){
-		long ist_idx = batch_consec - 1;
-		SUPPORT_CK(batch_instances.is_valid_idx(ist_idx));
-		return ist_idx;
-	}*/
-
 	void	init_exception_strings();
 	void	init_log_name(const char* sufix, std::string& log_nm);
-
-	void	init_dbg_exception_info_funcs();
-
-	//void 	dbg_update_config_entries();
 
 	void	dbg_default_info(){
 		std::ostream& os = t_dbg_os;
 	
 		os << "NO DBG INFO AVAILABLE " << 
 		"(define a func for this error code)" << std::endl; 
-	}
-
-	void	dbg_call_info_func(long err_cod){
-		dbg_info_fn_t the_fn = dbg_exception_info_funcs[err_cod];
-		(this->*the_fn)();
 	}
 
 	std::string	get_curr_f_nam(){

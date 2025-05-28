@@ -42,10 +42,22 @@ typedef long		bit_row_index;
 
 #define BITS_CK(prm)	   	DBG_CK(prm)
 
-enum bit_row_exception_code { 
-	k_bit_row_01_exception = k_last_mem_exception,
-	k_bit_row_02_exception,
-	k_last_bit_row_exception
+//======================================================================
+// bit_row_exception
+
+typedef enum {
+	bwx_invalid_copy_with_equal,
+	bwx_invalid_copy_with_initer,
+} bw_ex_cod_t;
+
+class bit_row_exception : public top_exception {
+public:
+	
+	bit_row_exception(long the_id = 0) : top_exception(the_id)
+	{
+	}
+
+	virtual t_string name(){ t_string nm = "bit_row_exception"; return nm; }
 };
 
 //======================================================================
@@ -101,21 +113,13 @@ private:
 
 	bit_row&  operator = (bit_row& other){
 		MARK_USED(other);
-		error_code_t err_cod = k_bit_row_01_exception;
-		DBG_THROW_CK(k_bit_row_01_exception != k_bit_row_01_exception);
-		throw err_cod;
-		std::cerr << "FATAL ERROR. Memory exhausted" << std::endl;
-		abort_func(0);
-		return (*this);
+		throw bit_row_exception(bwx_invalid_copy_with_equal);
+		//return (*this);
 	}
 
 	bit_row(bit_row& other){ 
 		MARK_USED(other);
-		error_code_t err_cod = k_bit_row_02_exception;
-		DBG_THROW_CK(k_bit_row_02_exception != k_bit_row_02_exception);
-		throw err_cod;
-		std::cerr << "FATAL ERROR. Memory exhausted" << std::endl;
-		abort_func(0);
+		throw bit_row_exception(bwx_invalid_copy_with_initer);
 	}
 
 public:
