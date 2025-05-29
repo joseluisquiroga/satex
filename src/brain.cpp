@@ -1211,8 +1211,7 @@ brain::pulsate(row<neuron*>& cnflcts){
 
 void
 brain::recoil_to_level(long target_lev){
-	long lev = level();
-	BRAIN_CK_0(lev != ROOT_LEVEL);
+	BRAIN_CK_0(level() != ROOT_LEVEL);
 
 	DBG_PRT(14, os << "ordered_trail ";
 		br_trail.copy_to(br_tmp_edge, 1);
@@ -1224,31 +1223,22 @@ brain::recoil_to_level(long target_lev){
 	DBG_PRT(14, os << "chosen " << br_chosen);
 
 	quanton* qua = NULL;
-	long qua_lev = INVALID_LEVEL;
-	MARK_USED(qua_lev);
-	charge_t qua_chg = cg_neutral;
-	MARK_USED(qua_chg);
 
-	bool end_of_recoil = (lev <= target_lev);
 	while(br_trail.size() > 0){
 
-		bool end_of_lev = (br_trail.last()->qlevel() != lev);
+		bool end_of_lev = (br_trail.last()->qlevel() != level());
 		if(end_of_lev){
-			BRAIN_CK_0((br_trail.last()->qlevel() + 1) == lev);
-			BRAIN_CK_0(lev != ROOT_LEVEL);
+			BRAIN_CK_0((br_trail.last()->qlevel() + 1) == level());
+			BRAIN_CK_0(level() != ROOT_LEVEL);
 			dec_level();
-			lev = level();
 
-			end_of_recoil = (lev <= target_lev);
-			if(end_of_recoil){
+			if(level() <= target_lev){
 				break;
 			}
-			BRAIN_CK_0(lev != ROOT_LEVEL);
+			BRAIN_CK_0(level() != ROOT_LEVEL);
 		}
 
 		qua = br_trail.last();
-		qua_lev = qua->qlevel();
-		qua_chg = qua->get_charge();
 
 		qua->set_charge(this, NULL, cg_neutral);
 	}
