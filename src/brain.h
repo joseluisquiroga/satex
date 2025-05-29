@@ -716,7 +716,6 @@ class brain {
 	charge_t		br_choice_spin;
 	long			br_choice_order;
 
-	long			br_choices_lim;	// last known choice idx
 	row_quanton_t		br_choices;	// to find non charged quantons quickly
 	row_quanton_t		br_chosen;	// the in 'root' level + chosen ones
 
@@ -775,12 +774,11 @@ class brain {
 		// state attributes
 		br_choice_spin = cg_neutral;
 		br_choice_order = k_invalid_order;
-		br_choices_lim = INVALID_IDX;
 	}
 
 	void	clear_brain(){
 		if(level() != ROOT_LEVEL){
-			recoil_to_level(ROOT_LEVEL, br_reasons);
+			recoil_to_level(ROOT_LEVEL);
 		}
 
 		// reset neurons
@@ -826,7 +824,7 @@ class brain {
 	void	set_file_name_in_ic(std::string f_nam = "");
 	void	config_brain(std::string f_nam = "");
 	void	init_loading(long num_qua, long num_neu);
-	bool	init_sat();
+	//bool	init_sat();
 
 	void	set_random_choices();
 
@@ -879,49 +877,7 @@ class brain {
 		br_current_ticket.tk_level--;
 	}
 
-	void	recoil_to_level(long target_lev, row<reason>& resns){
-		long lev = level();
-		BRAIN_CK_0(lev != ROOT_LEVEL);
-
-		DBG_PRT(14, os << "ordered_trail ";
-			br_trail.copy_to(br_tmp_edge, 1);
-			br_tmp_edge.mix_sort(cmp_choice_idx_lt);
-			os << br_tmp_edge;
-		);
-
-		DBG_PRT(14, os << "trail " << br_trail);
-		DBG_PRT(14, os << "chosen " << br_chosen);
-
-		quanton* qua = NULL;
-		long qua_lev = INVALID_LEVEL;
-		MARK_USED(qua_lev);
-		charge_t qua_chg = cg_neutral;
-		MARK_USED(qua_chg);
-
-		bool end_of_recoil = (lev <= target_lev);
-		while(br_trail.size() > 0){
-
-			bool end_of_lev = (br_trail.last()->qlevel() != lev);
-			if(end_of_lev){
-				BRAIN_CK_0((br_trail.last()->qlevel() + 1) == lev);
-				BRAIN_CK_0(lev != ROOT_LEVEL);
-				dec_level();
-				lev = level();
-
-				end_of_recoil = (lev <= target_lev);
-				if(end_of_recoil){
-					break;
-				}
-				BRAIN_CK_0(lev != ROOT_LEVEL);
-			}
-
-			qua = br_trail.last();
-			qua_lev = qua->qlevel();
-			qua_chg = qua->get_charge();
-
-			qua->set_charge(this, NULL, cg_neutral);
-		}
-	}
+	void	recoil_to_level(long target_lev);
 
 	// aux func
 	bool	is_choice(long q_idx){
@@ -1101,11 +1057,6 @@ quanton::set_charge(brain* brn, neuron* neu, charge_t cha){
 			quanton* qua_cho = brn->br_chosen.pop();
 			MARK_USED(qua_cho);
 			BRAIN_CK(qua_cho == this);
-		}
-
-		if(qu_choice_idx < brn->br_choices_lim){ 
-			BRAIN_CK_0(qu_choice_idx >= 0);
-			brn->br_choices_lim = qu_choice_idx; 
 		}
 
 		qu_dbg_ic_trail_idx = INVALID_IDX;

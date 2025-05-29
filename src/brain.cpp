@@ -5,7 +5,7 @@
 bible_sat
 
 brain.cpp  
-(C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
+(C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
 
 Date of birth: December 28 of 1970.
 Place of birth: Bogota - Colombia - Southamerica.
@@ -84,39 +84,6 @@ brain::ck_motives(row_quanton_t& mots){
 	}
 	return true;
 }
-
-/*
-bool
-brain::ck_choices(bool after){
-	BRAIN_CK_0(br_choices_lim <= br_choices.size());
-	long lim_cho = br_choices_lim;
-	if(after){
-		lim_cho--;
-	}
-	long last_lev = INVALID_LEVEL;
-	for(long ii = 0; ii < lim_cho; ii++){
-		quanton* qua = br_choices[ii];
-		ticket& q_tk = qua->qu_charge_tk;
-		long q_trl_idx = q_tk.trail_idx();
-		bool is_cho = is_choice(q_trl_idx);
-		quanton* q_trl = br_trail[q_trl_idx];
-		MARK_USED(q_trl);
-		long q_lev = qua->qlevel();
-
-		if(is_cho || (last_lev == INVALID_LEVEL)){
-			last_lev = q_lev;
-		} else {
-			BRAIN_CK_0(q_lev <= last_lev);
-		}
-	
-		BRAIN_CK_0(q_trl->get_positon() == qua);
-		BRAIN_CK_0(q_tk.is_valid());
-		BRAIN_CK_0(qua->qu_choice_idx == ii);
-		BRAIN_CK_0(qua->qu_spin == cg_positive);
-		BRAIN_CK_0(qua->get_charge() != cg_neutral);
-	}
-	return true;
-}*/
 
 bool	
 quanton::ck_charge(brain* brn){
@@ -890,11 +857,10 @@ brain::choose_quanton(){
 	BRAIN_CK(ck_trail());
 	//BRAIN_CK(ck_choices());
 
-	for(long ii = br_choices_lim; ii < br_choices.size(); ii++){
+	for(long ii = 0; ii < br_choices.size(); ii++){
 		quanton* qua_ii = br_choices[ii];
 		if(qua_ii->get_charge() == cg_neutral){
 			qua = qua_ii;
-			br_choices_lim = ii + 1;
 			break;
 		}
 	}
@@ -1111,8 +1077,6 @@ brain::init_loading(long num_qua, long num_neu){
 	br_tmp_motives.set_cap(num_qua);
 	br_trail.set_cap(num_qua + 1);
 
-	br_choices_lim = 0;
-
 	br_trail.push(&(quanton::ROOT_QUANTON));
 
 	br_current_ticket.tk_level = 0;
@@ -1124,15 +1088,14 @@ brain::init_loading(long num_qua, long num_neu){
 
 }
 
+/*
 bool
 brain::init_sat(){
 	//SYNS_CK
-
-	/*
-	stats.num_start_neu = stats.num_neurons;
-	stats.num_start_qua = br_positons.size();
-	stats.num_start_syn = stats.num_synapses;
-	*/
+	
+	//stats.num_start_neu = stats.num_neurons;
+	//stats.num_start_qua = br_positons.size();
+	//stats.num_start_syn = stats.num_synapses;	
 
 	row<neuron*> ini_cnflicts;
 	brn_tunnel_signals(ini_cnflicts);
@@ -1142,7 +1105,7 @@ brain::init_sat(){
 	BRAIN_CK_0(ini_cnflicts.size() == 0);
 
 	return true;
-}
+}*/
 
 void
 brain::learn_reasons(row<reason>& resns){
@@ -1210,7 +1173,7 @@ brain::pulsate(row<neuron*>& cnflcts){
 		BRAIN_CK_0(br_reasons.size() > 0);
 		BRAIN_CK_0(br_signals.size() == 0);
 
-		recoil_to_level(br_excited_level, br_reasons);
+		recoil_to_level(br_excited_level);
 		inc_recoil();
 
 		instance_info& inst_info = get_my_inst();
@@ -1246,6 +1209,51 @@ brain::pulsate(row<neuron*>& cnflcts){
 	}
 }
 
+void
+brain::recoil_to_level(long target_lev){
+	long lev = level();
+	BRAIN_CK_0(lev != ROOT_LEVEL);
+
+	DBG_PRT(14, os << "ordered_trail ";
+		br_trail.copy_to(br_tmp_edge, 1);
+		br_tmp_edge.mix_sort(cmp_choice_idx_lt);
+		os << br_tmp_edge;
+	);
+
+	DBG_PRT(14, os << "trail " << br_trail);
+	DBG_PRT(14, os << "chosen " << br_chosen);
+
+	quanton* qua = NULL;
+	long qua_lev = INVALID_LEVEL;
+	MARK_USED(qua_lev);
+	charge_t qua_chg = cg_neutral;
+	MARK_USED(qua_chg);
+
+	bool end_of_recoil = (lev <= target_lev);
+	while(br_trail.size() > 0){
+
+		bool end_of_lev = (br_trail.last()->qlevel() != lev);
+		if(end_of_lev){
+			BRAIN_CK_0((br_trail.last()->qlevel() + 1) == lev);
+			BRAIN_CK_0(lev != ROOT_LEVEL);
+			dec_level();
+			lev = level();
+
+			end_of_recoil = (lev <= target_lev);
+			if(end_of_recoil){
+				break;
+			}
+			BRAIN_CK_0(lev != ROOT_LEVEL);
+		}
+
+		qua = br_trail.last();
+		qua_lev = qua->qlevel();
+		qua_chg = qua->get_charge();
+
+		qua->set_charge(this, NULL, cg_neutral);
+	}
+}
+	
 neuron*
 brain::alloc_neuron(bool orig){
 	neuron* neu = NULL;
@@ -1294,8 +1302,7 @@ brain::print_brain(std::ostream& os){
 	os << "signals:\n" << br_signals << "\n";
 	os << "\n";
 	os << "\n";
-	os << "choices_lim:" << br_choices_lim << "\n";
-	os << "\n choices:"; br_choices.print_row_data(os, true, " ", br_choices_lim, br_choices_lim); os << "\n";
+	os << "\n choices:"; br_choices.print_row_data(os, true, " "); os << "\n";
 	//os << "\n satisfying:" << satisfying << "\n";
 	os << "\n";
 
@@ -1613,7 +1620,7 @@ brain::solve_it(){
 	);
 
 	if(level() != ROOT_LEVEL){
-		recoil_to_level(ROOT_LEVEL, br_reasons);
+		recoil_to_level(ROOT_LEVEL);
 	}
 }
 
@@ -1715,4 +1722,8 @@ brain::simplify_it(long& num_ccls, long& num_vars, long& num_lits, row_long_t& a
 		set_result(k_yes_satisf);
 	}
 }
+
+// retract_choice  en brain.cpp
+// http://127.0.0.1:1234/?p=.git;a=commit;h=1cf6c67ed995682e208b732db7f52f5e3e8e4ea4
+// dbg_F_17. coding cicle aware choose. 2015-07-21 (ULTIMO con retract_choice)
 
