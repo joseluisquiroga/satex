@@ -2,7 +2,7 @@
 
 /*************************************************************
 
-bible_sat
+satex
 
 dbg_ic.cpp  
 (C 2025) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
