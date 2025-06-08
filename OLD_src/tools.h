@@ -1182,19 +1182,13 @@ public:
 
 	using row<obj_t>::clear; // JLQ_2025_05_13
 	
-	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){
+	virtual void	clear(bool destroy = false, bool dealloc = false){ 
 		first = 0;
 		row<obj_t>::clear(destroy, dealloc); 
 	}
-	
-	long		size() const { 
+	virtual long		size() const { 
 		return SZ_ATTRIB - first; 
 	}
-
-	bool	is_empty(){
-		return (size() == 0);
-	}
-
 };
 
 //======================================================================

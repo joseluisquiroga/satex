@@ -79,6 +79,9 @@ solver::do_cnf_file(debug_info& dbg_inf){
 			case fo_shuffle:
 				test_cnf_shuffle();
 				break;
+			case fo_simplify:
+				test_simplify_cnf();
+				break;
 			default:
 				do_instance(dbg_inf);
 				break;
@@ -187,6 +190,31 @@ solver::test_cnf_as_ttnf(bool smpfy_it){
 
 	inst_info.ist_solve_time = run_time();
 
+	/*
+	brain brn;
+	brn.br_pt_inst = &inst_info;
+	brn.load_instance(num_neu, num_var, inst_neus);
+
+	netix& hd_net = brn.get_head_net();
+
+	DBG_PRT(21, os << "BEFORE simplify " << hd_net);
+
+	if(smpfy_it){
+		bool just_forced_nuds = true;
+		hd_net.simplify_it(just_forced_nuds);
+		BRAIN_CK(! brn.has_br_forced());
+
+		if(brn.has_br_cannots()){
+			hd_net.set_result(k_no_satisf);
+		}
+		if(! brn.has_br_to_choose()){
+			hd_net.set_result(k_yes_satisf);
+		}
+	}
+
+	DBG_PRT(22, os << "AFTER simplify " << hd_net);
+	*/
+
 	std::ofstream out_stm;
 	std::ostream& os = test_open_out(out_stm);
 
@@ -228,6 +256,41 @@ solver::test_cnf_shuffle(){
 	std::ostream& os = test_open_out(out_stm);
 
 	print_dimacs_of(os, shuff_neus, num_neu, num_var);
+
+	slv.count_instance(inst_info);
+}
+
+void
+solver::test_simplify_cnf(){
+	solver& slv = *this;
+	
+	debug_info dbg_info;
+	brain the_brn;
+	the_brn.br_dbg_info = &dbg_info;
+	the_brn.br_slv = this;
+	dbg_info.dbg_brn = &the_brn;
+	
+	instance_info& inst_info = slv.get_curr_inst();
+	the_brn.br_pt_inst = &inst_info;
+
+	long num_ccls = 0;
+	long num_vars = 0;
+	long num_lits = 0;
+	row_long_t after_ccls;
+
+	the_brn.load_it();
+	the_brn.simplify_it(num_ccls, num_vars, num_lits, after_ccls);
+
+	if(inst_info.ist_result == k_unknown_satisf){
+		SUPPORT_CK_0(! after_ccls.is_empty());
+		SUPPORT_CK_0(num_ccls > 0);
+		SUPPORT_CK_0(num_vars > 0);
+
+		std::ofstream out_stm;
+		std::ostream& os = test_open_out(out_stm);
+
+		print_dimacs_of(os, after_ccls, num_ccls, num_vars);
+	}
 
 	slv.count_instance(inst_info);
 }
