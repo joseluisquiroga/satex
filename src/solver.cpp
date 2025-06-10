@@ -884,7 +884,7 @@ solver::get_args(int argc, char** argv)
 			op_cnf_id = fo_as_ttnf;
 		} else if(the_arg == "-shuffle_cnf"){
 			op_cnf_id = fo_shuffle;
-		} else if(the_arg == "-simplify_cnf"){
+		} else if(the_arg == "-tq"){
 			op_cnf_id = fo_simplify;
 
 		} else if((the_arg == "-laps") && ((ii + 1) < argc)){

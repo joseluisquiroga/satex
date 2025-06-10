@@ -631,6 +631,7 @@ public:
 	void		test_cnf_join();
 	void		test_cnf_as_ttnf(bool smpfy_it);
 	void		test_cnf_shuffle();
+	void		test_tier_queue();
 	void		test_simplify_cnf();
 
 	void		call_solve_instance(debug_info& dbg_inf);

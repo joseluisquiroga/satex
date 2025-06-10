@@ -52,6 +52,7 @@ enum charge_t {
 
 #define INVALID_RECOIL 0
 #define INVALID_LEVEL -1
+#define INVALID_TIER -1
 
 #define MAX_RECOIL LONG_MAX
 
@@ -71,6 +72,7 @@ class quanton;
 class neuron;
 class reason;
 class brain;
+class prop_signal;
 
 typedef	row<quanton*>		row_quanton_t;
 typedef	row<neuron*>		row_neuron_t;
@@ -112,6 +114,7 @@ DECLARE_PRINT_FUNCS(ticket)
 DECLARE_PRINT_FUNCS(quanton)
 DECLARE_PRINT_FUNCS(neuron)
 DECLARE_PRINT_FUNCS(reason)
+DECLARE_PRINT_FUNCS(prop_signal)
 
 //=================================================================================================
 // includes
@@ -258,6 +261,7 @@ class quanton {
 	ticket			qu_charge_tk;	// symetric. 
 
 	neuron*			qu_source;	// source of signal when charged
+	long			qu_tier;	// the tier at which it was charged
 
 	// tunneling attributes
 	row_neuron_t		qu_tunnels;	// tunnelled neurons.
@@ -316,6 +320,7 @@ class quanton {
 		qu_charge = cg_neutral;
 		qu_charge_tk.init_ticket();
 		qu_source = NULL;
+		qu_tier = INVALID_TIER;
 	}
 
 	quanton*	get_positon(){
@@ -350,6 +355,11 @@ class quanton {
 		qu_inverse->qu_dot = cg_neutral;
 	}
 
+	/*quanton&	opposite(){
+		BRAIN_CK(qu_inverse != NULL_PT);
+		return (*qu_inverse);
+	}*/
+
 	long		qrecoil(){ return qu_charge_tk.tk_recoil; }
 	long		qlevel(){ return qu_charge_tk.tk_level; }
 
@@ -357,10 +367,13 @@ class quanton {
 
 	void		set_charge(brain* brn, neuron* src, charge_t cha);
 	charge_t	get_charge(){ return qu_charge; }
+	bool		has_charge(){ return ! is_nil(); }
 
 	bool		is_pos(){ return (get_charge() == cg_positive); } 
 	bool		is_neg(){ return (get_charge() == cg_negative); } 
 	bool		is_nil(){ return (get_charge() == cg_neutral); } 	
+	
+	bool		has_tier(){ return (qu_tier != INVALID_TIER); }
 	
 	bool		can_bi_tunnel(){
 		bool bitunn = ((! qu_tunnels.is_empty()) && (! qu_inverse->qu_tunnels.is_empty()));
@@ -663,6 +676,35 @@ class reason {
 	}
 };
 
+//=================================================================================================
+// prop_signal
+
+class prop_signal {
+	public:
+
+	quanton*	ps_quanton;
+	neuron*		ps_source;
+	long		ps_tier;
+
+	prop_signal(){
+		init_prop_signal();
+	}
+
+	void	init_prop_signal(quanton* qua = NULL_PT, neuron* the_src = NULL_PT, 
+							 long the_tier = INVALID_TIER)
+	{
+		ps_quanton = qua;
+		ps_source = the_src;
+		ps_tier = the_tier;
+	}
+
+	~prop_signal(){
+		init_prop_signal();
+	}
+
+	std::ostream& 	print_prop_signal(std::ostream& os, bool from_pt = false);
+};
+
 
 //=================================================================================================
 // brain
@@ -713,6 +755,10 @@ class brain {
 	row_neuron_t		br_active_neus;	// all active neurons
 	queue<quanton*>		br_signals;	// forward propagated signals
 
+	long				br_first_psignal;
+	long				br_last_psignal;
+	row<prop_signal>	br_psignals;	// forward propagated signals (NEW approach)
+	
 	// final message
 
 	std::ostringstream	br_final_msg;
@@ -769,6 +815,10 @@ class brain {
 		// state attributes
 		br_choice_spin = cg_positive;
 		br_choice_order = k_right_order;
+		
+		br_first_psignal = 0;
+		br_last_psignal = 0;
+		
 	}
 
 	void	clear_brain(){
@@ -800,6 +850,11 @@ class brain {
 	}
 
 	// core methods
+	
+	action_t	send_psignal(quanton* qua, neuron* src, long max_tier = 1);
+	bool		has_psignals();
+	quanton*	receive_psignal();
+
 
 	void		brn_tunnel_signals();
 	action_t	send_signal(quanton* qua, neuron* src);
@@ -1130,6 +1185,7 @@ DEFINE_PRINT_FUNCS(ticket)
 DEFINE_PRINT_FUNCS(quanton)
 DEFINE_PRINT_FUNCS(neuron)
 DEFINE_PRINT_FUNCS(reason)
+DEFINE_PRINT_FUNCS(prop_signal)
 
 //=================================================================================================
 // other funcs

@@ -53,7 +53,7 @@ solver::print_op_cnf(){
 			os << "TEST_AS_TTNF" << std::endl;
 			break;
 		case fo_simplify:
-			os << "TEST_SIMPLIFY" << std::endl;
+			os << "TEST_TIER_QUEUE" << std::endl;
 			break;
 		default:
 			break;
@@ -78,6 +78,9 @@ solver::do_cnf_file(debug_info& dbg_inf){
 				break;
 			case fo_shuffle:
 				test_cnf_shuffle();
+				break;
+			case fo_simplify:
+				test_tier_queue();
 				break;
 			default:
 				do_instance(dbg_inf);
@@ -276,6 +279,45 @@ solver::do_instance(debug_info& dbg_inf)
 	);*/
 }
 
+long get_ptier(prop_signal const& psig){
+	return psig.ps_tier;
+}
 
+void
+solver::test_tier_queue(){
+	solver& slv = *this;
+	brain brn;
+	
+	brn.init_loading(17, 5);
+	
+	quanton* p3 = brn.get_quanton(3);
+	quanton* n5 = brn.get_quanton(-5);
+	
+	tier_queue<prop_signal> tq1(get_ptier);
+	
+	prop_signal s1;
+	s1.init_prop_signal(p3, NULL_PT, 2);
+	
+	tq1.push(s1);
+
+	prop_signal s2;
+	s2.init_prop_signal(n5, NULL_PT, 5);
+	
+	tq1.push(s2);
+
+	std::cout << "tot_tiers=" << tq1.tot_tiers() << "\n";
+	std::cout << "tq1=" << tq1 << "\n";
+	
+	prop_signal o1 = tq1.pick();
+	std::cout << "o1=" << o1 << "\n";
+
+	std::cout << "tq1=" << tq1 << "\n";
+	
+	prop_signal o2 = tq1.pick();
+	std::cout << "o2=" << o2 << "\n";
+	
+	std::cout << "tot_tiers=" << tq1.tot_tiers() << "\n";
+	std::cout << "tq1=" << tq1 << "\n";
+};
 
 

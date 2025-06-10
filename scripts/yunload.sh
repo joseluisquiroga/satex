@@ -5,6 +5,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo "YUNLOAD ${1} using "${BASH_SOURCE[0]}
 
+PRM=${1}
+
 # cd $SCRIPT_DIR
 
 YHOME=`cat ${HOME}/.yhome.txt`
@@ -14,18 +16,22 @@ then echo "YHOME=${YHOME} is not set";
 exit;
 fi
 
-# UPTOD=`find ${YHOME} -newer ${YHOME}/../../${BASE} | grep -v ${YHOME}/bin | head -2`
-# UPTOD=`find ${YHOME} \! -type d -newer ${YHOME}/../../*${BASE}.txt | grep -v ${YHOME} | head -2`
 CRY_FILE=`ls -t ${YHOME}/../../*.txt | head -n 1`
 echo "CRY_FILE="${CRY_FILE}
+
+${YHOME}/scripts/yclean_sh
 
 BASE=`basename ${YHOME}`
 UPTOD=`find ${YHOME} \! -type d -newer ${CRY_FILE}`
 
-if [ ${#UPTOD} != 0 -a ${#1} = 0 ]
+if [ ${#UPTOD} != 0 -a ${PRM} != "force" ]
 then 
 	echo ${UPTOD};
 	echo "Not up to date. ysave_sh first.";
+	if [ ${PRM} != 0 ]
+	then 
+		echo "Use 'force' as parameter to force the unload.";
+	fi
 exit;
 fi
 

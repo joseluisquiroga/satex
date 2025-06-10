@@ -107,9 +107,7 @@ typedef enum {
 	rwx_set_cap_not_implemented,
 	rwx_clear_not_implemented,
 	rwx_pos_not_implemented,
-	rwx_invalid_r_queue_pull,
-	rwx_invalid_r_queue_put_head,
-	rwx_invalid_picker_pick,
+	rwx_invalid_idx,
 } rw_ex_cod_t;
 
 class row_exception : public top_exception {
@@ -1168,20 +1166,19 @@ public:
 
 template <class obj_t>
 class queue : public row<obj_t> {
+public:
     long     first;
 
-public:
     queue(void) : first(0) { }
 
-    obj_t   head() { 
+    obj_t&	head() { 
 		return row<obj_t>::pos(first); 
 	}
+	
     obj_t   pick() { 
 		return row<obj_t>::pos(first++); 
 	}
 
-	using row<obj_t>::clear; // JLQ_2025_05_13
-	
 	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){
 		first = 0;
 		row<obj_t>::clear(destroy, dealloc); 
@@ -1195,281 +1192,135 @@ public:
 		return (size() == 0);
 	}
 
+	long	sz_attr(){
+		return SZ_ATTRIB;
+	}
 };
 
-//======================================================================
-// r_queue
+//=================================================================================================
+// tier_queue
 
-template <class obj_t, bool with_relocate = true>
-class r_queue : protected row<obj_t> {
-public:
-	typedef std::ostream& (*print_func_t)(std::ostream& os, obj_t& obj);
+template <class obj_t>
+class tier_queue {
+	queue<queue<obj_t> >	data;
 
-	long		pull_idx;
-
-	bool	is_valid_idx(row_index idx){
-		return ((idx >= 0) && (idx < (SZ_ATTRIB - pull_idx)));
-	}
-
-	obj_t&       operator [] (row_index idx)        {
-		TOOLS_CK(is_valid_idx(idx));
-		return row<obj_t>::pos(idx + pull_idx);
-	}
-
-	r_queue(){
-		pull_idx = 0;
-	}
-
-	~r_queue(){
-	}
-
-	row_index	get_cap(){
-		return row<obj_t>::get_cap();
-	}
-
-	virtual void	set_cap(row_index min_cap){
-		row<obj_t>::set_cap(min_cap);
-	}
-
-	const t_1byte*	get_data(){
-		return row<obj_t>::get_data();
-	}
-
-	void copy_to(row_data<obj_t>& dest){
-		row<obj_t>::copy_to(dest, pull_idx);
-	}
-
-	void copy_from(row_data<obj_t>& dest){
-		clear(true, true);
-		dest.copy_to(*this);
-	}
-
-	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){
-		pull_idx = 0;
-		row<obj_t>::clear(destroy, dealloc, from);
-	}	
-
-	obj_t&		first(){
-		TOOLS_CK(SZ_ATTRIB > pull_idx);
-		return row<obj_t>::pos(pull_idx);
-	}
-
-	obj_t&		last(){
-		TOOLS_CK(SZ_ATTRIB > 0);
-		return row<obj_t>::pos(SZ_ATTRIB - 1);
-	}
-
-	row_index	last_idx(){
-		return (SZ_ATTRIB - pull_idx - 1);
-	}
-
-	obj_t&	inc_sz(){
-		return row<obj_t>::inc_sz();
-	}
-
-	void	dec_sz(){
-		if(pull_idx == SZ_ATTRIB){
-			pull_idx--;
-		}
-		row<obj_t>::dec_sz();
-	}
-
-	void	relocate(){
-		if(! with_relocate){
-			return;
-		}
-		long pend_space = CAP_ATTRIB - pull_idx;
-		if(pull_idx <= pend_space){
-			return;
-		}
-
-		long pend_sz = pending_size();
-		TOOLS_CK(pull_idx > pend_sz);
-		long by_to_mv = pend_sz * sizeof(obj_t);
-		memcpy(DATA_ATTRIB, DATA_ATTRIB + pull_idx, by_to_mv);
-		SZ_ATTRIB = pend_sz;
-		pull_idx = 0;
-	}
-
-	void	pull(){
-		if((pull_idx >= 0) && (pull_idx < SZ_ATTRIB)){
-			relocate();
-
-			//obj_t tmp1 = row<obj_t>::pos(pull_idx);
-			row<obj_t>::pos(pull_idx).~obj_t();
-			pull_idx++;
-	
-			if(! has_pending() && with_relocate){
-				clear();
+protected:
+    void	find_limits(){
+		while(! data.is_empty()){
+			if(! data.last().is_empty()){
+				break;
 			}
-			//return tmp1; 
-		} else {
-			throw row_exception(rwx_invalid_r_queue_pull);
+			data.dec_sz();
+		}
+		while(! data.is_empty()){
+			if(! data.head().is_empty()){
+				break;
+			} 
+			data.first++;
 		}
 	}
 
-	void	put_head(){
-		if((pull_idx > 0) && (pull_idx <= SZ_ATTRIB)){
-			pull_idx--;
-			new (&(row<obj_t>::pos(pull_idx))) obj_t();
-		} else {
-			throw row_exception(rwx_invalid_r_queue_put_head);
+    long	find_tier_idx(long tier){
+		long max = -1;
+		if(! is_empty()){
+			max = get_tier(last());
+		}
+		while(max < tier){
+			data.inc_sz();
+			max++;
+		}
+		long neg_idx = (max - tier) + 1;
+		long abs_idx = data.sz_attr() - neg_idx;
+		if(abs_idx < data.first){
+			throw row_exception(rwx_invalid_idx);
+		}
+		return abs_idx;
+	}
+	
+public:
+	typedef long (*tier_func_t)(obj_t const & obj1);
+	
+	tier_func_t	 tier_fn;
+	
+	long 	get_tier(obj_t const & obj1){
+		return (*tier_fn)(obj1);
+	}
+	
+    tier_queue(tier_func_t tf){ 
+		tier_fn = tf;
+	}
+    
+    obj_t&   head() { 
+		find_limits();
+		return data.head().head(); 
+	}
+	
+    obj_t   pick() { 
+		find_limits();
+		return data.head().pick(); 
+	}
+
+	obj_t	pop(){ 
+		find_limits();
+		return data.last().pop(); 
+	}
+
+	void	push(const obj_t elem){ 
+		long ti = get_tier(elem);
+		long tidx = find_tier_idx(ti);
+		data[tidx].push(elem);
+	}
+	
+	obj_t&	last(){ 
+		find_limits();
+		return data.last().last();
+	}
+	
+	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){
+		data.clear(destroy, dealloc); 
+	}
+	
+	long		size() { 
+		find_limits();
+		long tot = 0;
+		for(long ii = data.first; ii < data.sz_attr(); ii++){
+			tot += data[ii].size();
 		}
 	}
 
-	long	pending_size(){
-		return SZ_ATTRIB - pull_idx; 
+	long		tot_tiers() { 
+		find_limits();
+		return data.size();
 	}
-
-	bool	has_pending(){ 
-		return (pending_size() > 0);
-	}
-
-	long	size(){
-		return pending_size();
-	}
-
+	
 	bool	is_empty(){
-		return (pending_size() == 0);
+		find_limits();
+		return (data.size() == 0);
 	}
 
-	std::ostream&	print_r_queue(
-		std::ostream& os, 
-		bool with_lims = true,
-		const char* sep = " ", 
-		row_index low = INVALID_IDX, 
-		row_index hi = INVALID_IDX,
-		bool pointers = false,
-		row_index grp_sz = -1,
-		const char* grp_sep = "\n",
-		row_index from_idx = 0,
-		print_func_t prt_fn = NULL_PT
-	){
-		if(from_idx == INVALID_IDX){
-			from_idx = SZ_ATTRIB;
-		}
-		os << "{" << pull_idx << ".";
-		row<obj_t>::print_row_data(os, with_lims, sep, low, hi, 
-				pointers, grp_sz, grp_sep, pull_idx + from_idx, prt_fn);
-		os << "}";
-		return os;
-	}
+	std::ostream&	print_tier_queue(std::ostream& os);
+	
 };
 
 template<class obj_t>
-inline
-std::ostream&	operator << (std::ostream& os, r_queue<obj_t>& rr){
-	rr.print_r_queue(os);
+std::ostream&
+tier_queue<obj_t>::print_tier_queue(std::ostream& os){
+	find_limits();
+	os << "{";
+	for(long ii = data.first; ii < data.sz_attr(); ii++){
+		data[ii].print_row_data(os, true, " ");
+		os << "\n";
+	}
+	os << "}\n";
 	return os;
 }
 
+template<class obj_t>
+inline
+std::ostream&	operator << (std::ostream& os, tier_queue<obj_t>& tq){
+	return tq.print_tier_queue(os);
+}
 
-//======================================================================
-// picker
-
-template <class obj_t>
-class picker {
-public:
-	bool			stopped;
-	row<obj_t>*		pick_row;
-    	row_index		pick_idx;
-
-	picker(){
-		pick_row = NULL_PT;
-		stopped = false;
-		pick_idx = 0;
-	}
-
-	~picker(){
-	}
-
-	row<obj_t>&	get_row(){
-		TOOLS_CK(pick_row != NULL_PT);
-		return *pick_row; 
-	}
-
-	void	init_picker(row<obj_t>& the_row){
-		pick_row = &the_row;
-	}
-
-	obj_t	pick() { 
-		row<obj_t>& picker_row = get_row();
-		row_index sz = picker_row.size();
-		if((pick_idx >= 0) && (pick_idx < sz)){
-			return picker_row[pick_idx++];
-		} else {
-			throw row_exception(rwx_invalid_picker_pick);
-		} 
-
-		/*
-		} else {
-			obj_t an_obj;
-			new (&an_obj) obj_t();
-			return an_obj;
-		}
-		*/
-	}
-
-	/*bool	is_picked(row_index idx){
-		return ((idx >= 0) && (idx < pick_idx));
-	}
-
-	bool	is_last_picked(row_index idx){
-		return (idx == (pick_idx - 1));
-	}
-
-	bool	was_picked(row_index idx){
-		return ((idx >= 0) && (idx < (pick_idx - 1)));
-	}*/
-
-	//row_index	pending_size() const { 
-	row_index	pending_size(){ 
-		row<obj_t>& picker_row = get_row();
-		return picker_row.size() - pick_idx; 
-	}
-
-	/*void	to_pos(row_index n_idx){ 
-		row<obj_t>& picker_row = get_row();
-		if(	(n_idx >= 0) && 
-			(n_idx < picker_row.size())	)
-		{ 
-			stopped = false; 
-		}
-		pick_idx = n_idx;
-	}*/
-
-	void	stop(){
-		stopped = true;
-	}
-
-	void	restart(){
-		row<obj_t>& picker_row = get_row();
-		if(pick_idx > picker_row.size()){
-			pick_idx = picker_row.size();
-		}
-		stopped = false;
-	}
-
-	bool	is_stopped(){
-		return stopped;
-	}
-
-	/*void	to_first(){ 
-		stopped = false;
-		pick_idx = 0;
-	}
-
-	void	to_last(){ 
-		row<obj_t>& picker_row = get_row();
-		stopped = true;
-		pick_idx = picker_row.size();
-	}*/
-
-	bool	has_pending(){ 
-		return (! stopped && (pending_size() > 0));
-	}
-
-};
 
 //======================================================================
 // k_row

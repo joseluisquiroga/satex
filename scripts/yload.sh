@@ -13,9 +13,9 @@ PRJ_NAME="bs"
 
 if [ ${#CRY_FILE} = 0 ]
 then 
-	echo "Please provide an argument";
-	echo "use: yload.sh <file_nam>";
-exit;
+	CRY_FILE=`ls -t *.txt | head -1`
+	echo "Using file "${CRY_FILE};
+	echo "If you want a different file, use: yload.sh <file_nam>";
 fi
 
 if [ ! -e ${CRY_FILE} -o -d ${CRY_FILE} ] 
@@ -58,7 +58,7 @@ then echo "CANNOT MOUNT RAMFS";
 exit;
 fi
 
-set -x
+#set -x
 
 rm -rf ${TMP_DIR}/*
 cp ${CRY_FILE} ${TMP_DIR}
@@ -88,7 +88,7 @@ YHOME=`pwd`
 echo ${YHOME} > ${HOME}/.yhome.txt
 cat ${HOME}/.yhome.txt
 
-set +x
+#set +x
 
 cd ${YHOME}/scripts
 sh yfinish_load.sh ${PRJ_NAME}
