@@ -2,7 +2,7 @@
 
 /*************************************************************
 
-yoshu
+satex
 
 dimacs.cpp  
 (C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.
@@ -25,6 +25,7 @@ Functions to read and parse dimacs files.
 #include <cstring>
 
 #include "solver.h"
+#include "sha2.h"
 
 #define DIMACS_CK_0(prm) 	SUPPORT_CK_0(prm)
 #define DIMACS_CK(prm) 	SUPPORT_CK(prm)
@@ -43,6 +44,89 @@ std::string	k_dimacs_header_str =
 t_string dimacs_err_msg(long num_line, char ch_err, const char* msg){
 	return get_parse_err_msg("DIMACS ERROR. ", num_line, ch_err, msg);
 }
+
+void
+read_file(t_string f_nam, row<char>& f_data){
+	const char* ff_nn = f_nam.c_str();
+	std::ifstream istm;
+	istm.open(ff_nn, std::ios::binary);
+	if(! istm.good() || ! istm.is_open()){
+		throw file_exception(flx_cannot_open, f_nam);
+	}
+
+	// get size of file:
+	istm.seekg (0, std::ios::end);
+	long file_sz = istm.tellg();
+	istm.seekg (0, std::ios::beg);
+
+	if(file_sz < 0){
+		throw file_exception(flx_cannot_calc_size, f_nam);
+	}
+
+	DBG_CK(sizeof(char) == 1);
+
+	char* file_content = tpl_malloc<char>(file_sz + 1); // leave room for END_OF_SEC
+	istm.read(file_content, file_sz);
+	long num_read = istm.gcount();
+	if(num_read != file_sz){
+		tpl_free<char>(file_content, file_sz + 1);
+
+		throw file_exception(flx_cannot_fit_in_mem, f_nam);
+	}
+	file_content[file_sz] = END_OF_SEC;
+
+	s_row<char> tmp_rr;
+	tmp_rr.init_data(file_content, file_sz + 1);
+
+	f_data.clear();
+	tmp_rr.move_to(f_data);
+
+	DBG_CK(f_data.last() == END_OF_SEC);
+	f_data.pop(); // read as writed but leave room for END_OF_SEC
+}
+
+void
+sha_bytes_of_arr(uchar_t* to_sha, long to_sha_sz, row<uchar_t>& the_sha){
+	the_sha.clear();
+	the_sha.fill(0, NUM_BYTES_SHA2);
+	uchar_t* sha_arr = (uchar_t*)(the_sha.get_c_array());
+
+	uchar_t* ck_arr1 = to_sha;
+	MARK_USED(ck_arr1);
+
+	sha2(to_sha, to_sha_sz, sha_arr, 0);
+	TOOLS_CK(ck_arr1 == to_sha);
+	TOOLS_CK((uchar_t*)(the_sha.get_c_array()) == sha_arr);
+}
+
+t_string 
+sha_txt_of_arr(uchar_t* to_sha, long to_sha_sz){
+	row<uchar_t>	the_sha;
+	sha_bytes_of_arr(to_sha, to_sha_sz, the_sha);
+	t_string sha_txt = the_sha.as_hex_str();
+	return sha_txt;
+}
+
+void
+dimacs_loader::load_file(t_string& f_nam){
+	ld_file_name = f_nam;
+	// loads the full file into ld_content
+	read_file(ld_file_name, ld_content);
+	
+	ld_file_sha = sha_txt_of_arr((uchar_t*)ld_content.get_data(), ld_content.get_data_sz());
+	
+	ld_content.push(END_OF_SEC); // it already has room for it
+
+	DBG_PRT(11, os << " ld_content="; ld_content.print_row_data(os, true, ""));
+}
+
+	/*
+	uchar_t* arr_to_sha = (uchar_t*)ld_content.get_c_array();
+	long arr_to_sha_sz = ld_content.get_c_array_sz() - 1;
+	ld_sha_str = sha_txt_of_arr(arr_to_sha, arr_to_sha_sz);
+
+	DBG_PRT(11, os << "SHA_SZ 1=" << arr_to_sha_sz);
+	*/
 
 void 
 dimacs_loader::skip_cnf_decl(const char*& pt_in, long line){
@@ -345,57 +429,6 @@ dimacs_loader::verif_tot_lits(std::string& f_nam, long tot_decl_lits, long tot_r
 }
 
 void
-dimacs_loader::load_file(){
-	// loads the full file into ld_content
-
-	std::string& f_nam = ld_file_name;
-	const char* ff_nn = f_nam.c_str();
-	std::ifstream istm;
-	istm.open(ff_nn, std::ios::binary);
-	if(! istm.good() || ! istm.is_open()){
-		throw file_exception(flx_cannot_open, f_nam);
-	}
-
-	// get size of file:
-	istm.seekg (0, std::ios::end);
-	long file_sz = istm.tellg();
-	istm.seekg (0, std::ios::beg);
-
-	if(file_sz < 0){
-		throw file_exception(flx_cannot_calc_size, f_nam);
-	}
-
-	BRAIN_CK(sizeof(char) == 1);
-
-	char* file_content = tpl_malloc<char>(file_sz + 1);
-	istm.read(file_content, file_sz);
-	long num_read = istm.gcount();
-	if(num_read != file_sz){
-		tpl_free<char>(file_content, file_sz + 1);
-
-		throw file_exception(flx_cannot_fit_in_mem, f_nam);
-	}
-	file_content[file_sz] = END_OF_SEC;
-
-	s_row<char> tmp_rr;
-	tmp_rr.init_data(file_content, file_sz + 1);
-
-	ld_content.clear();
-	tmp_rr.move_to(ld_content);
-
-	BRAIN_CK(ld_content.last() == END_OF_SEC);
-	DBG_PRT(11, os << " ld_content="; ld_content.print_row_data(os, true, ""));
-
-	/*
-	uchar_t* arr_to_sha = (uchar_t*)ld_content.get_c_array();
-	long arr_to_sha_sz = ld_content.get_c_array_sz() - 1;
-	ld_sha_str = sha_txt_of_arr(arr_to_sha, arr_to_sha_sz);
-
-	DBG_PRT(11, os << "SHA_SZ 1=" << arr_to_sha_sz);
-	*/
-}
-
-void
 dimacs_loader::parse_header(){
 	init_parse();
 
@@ -525,9 +558,9 @@ dimacs_loader::parse_all_ccls(row<long>& inst_ccls)
 void
 dimacs_loader::parse_file(std::string& f_nam, row<long>& inst_ccls)
 {
-	ld_file_name = f_nam;
+	//ld_file_name = f_nam;
 
-	load_file();
+	load_file(f_nam);
 
 	parse_all_ccls(inst_ccls);
 

@@ -146,6 +146,7 @@ solver::init_solver(){
 	op_cnf_num = 1;
 	op_ck_satisf = false;
 	op_dbg_no_learning = false;
+	op_save_final_assig = false;
 
 	dbg_file_name = "";
 
@@ -864,6 +865,8 @@ solver::get_args(int argc, char** argv)
 			op_ck_satisf = true;
 		} else if(the_arg == "-no_learning"){
 			op_dbg_no_learning = true;
+		} else if(the_arg == "-fa"){
+			op_save_final_assig = true;
 		} else if((the_arg == "-o") && ((ii + 1) < argc)){
 			int kk_idx = ii + 1;
 			ii++;

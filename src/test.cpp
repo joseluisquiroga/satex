@@ -2,7 +2,7 @@
 
 /*************************************************************
 
-yoshu
+satex
 
 test.cpp  
 (C 2010) QUIROGA BELTRAN, Jose Luis. Bogotá - Colombia.

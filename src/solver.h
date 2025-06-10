@@ -377,21 +377,27 @@ extern std::string	satisf_val_nams[];
 class instance_info {
 public:
 	std::string		ist_file_path;
+	std::string		ist_file_sha;
 	double			ist_solve_time;
 	satisf_val		ist_result;
 	long			ist_num_vars;
 	long			ist_num_ccls;
 	long			ist_num_lits;
-	consecutive_t		ist_num_laps;
+	consecutive_t	ist_num_laps;
+	std::string		ist_final_assig;
+	bool			ist_prt_final_assig;
 
 	instance_info(){
-		ist_file_path = "Unknown path";
+		ist_file_path = "Unknown_path";
+		ist_file_sha = "Unknown_sha";
 		ist_solve_time = 0.0;
 		ist_result = k_unknown_satisf;
 		ist_num_vars = 0;
 		ist_num_ccls = 0;
 		ist_num_lits = 0;
 		ist_num_laps = 0;
+		ist_final_assig = "Invalid_final_assig";
+		ist_prt_final_assig = false;
 	}
 
 	std::string	get_f_nam(){
@@ -460,6 +466,7 @@ public:
 	long			op_cnf_num;
 	bool			op_ck_satisf;
 	bool			op_dbg_no_learning;
+	bool			op_save_final_assig;
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
@@ -671,12 +678,16 @@ std::ostream&
 instance_info::print_instance_info(std::ostream& os){
 	std::string sep = RESULT_FIELD_SEP;
 	os << ist_file_path << sep;
+	os << ist_file_sha << sep;
 	os << satisf_val_nams[ist_result] << sep;
 	os << ist_solve_time << sep;
 	os << ist_num_vars << sep;
 	os << ist_num_ccls << sep;
 	os << ist_num_lits << sep;
 	os << ist_num_laps << sep;
+	if(ist_prt_final_assig){
+		os << ist_final_assig << sep;
+	}
 	return os;
 }
 

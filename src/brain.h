@@ -154,6 +154,7 @@ void	reset_dots_of(row_quanton_t& quans);
 bool	compute_reasons(row<reason>& rsns);
 void	append_reasons(row<reason>& dest, row<reason>& src);
 void	get_ids_of(row_quanton_t& quans, row_long_t& the_ids);
+t_string 	row_long_to_str(row_long_t& rr);
 
 
 //======================================================================
@@ -759,12 +760,6 @@ class brain {
 	k_row<neuron>		br_neurons;	// all neurons
 	row_neuron_t		br_active_neus;	// all active neurons
 
-	/*
-	long				br_first_psignal;
-	long				br_last_psignal;
-	row<prop_signal>	br_psignals;	// forward propagated signals (NEW approach)
-	*/
-
 	tier_queue<prop_signal>	br_tsignals;	// forward propagated tiered signals 
 	
 	// final message
@@ -774,6 +769,7 @@ class brain {
 	// temp 
 
 	row_quanton_t		br_tmp_quantons;		// tmp row for printing
+	row_long_t			br_tmp_final_assig;		// tmp row for final_assig
 	
 	// methods
 
@@ -824,9 +820,6 @@ class brain {
 		br_choice_spin = cg_positive;
 		br_choice_order = k_right_order;
 		
-		//br_first_psignal = 0;
-		//br_last_psignal = 0;
-		
 	}
 
 	void	clear_brain(){
@@ -858,12 +851,6 @@ class brain {
 
 	// core methods
 	
-	/*
-	action_t	send_psignal(quanton* qua, neuron* src, long max_tier);
-	bool		has_psignals();
-	quanton*	receive_psignal();
-	*/
-
 	action_t	send_tsignal(quanton* qua, neuron* src, long max_tier);
 	bool		has_tsignals();
 	quanton*	receive_tsignal();
@@ -1144,6 +1131,7 @@ void	get_ids_of(row_quanton_t& quans, row_long_t& the_ids){
 		the_ids.push(qua.qu_id);
 	}
 }
+
 
 //=================================================================================================
 // printing funcs

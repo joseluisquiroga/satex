@@ -261,6 +261,7 @@ public:
 	debug_info*			ld_dbg_info;
 
 	std::string		ld_file_name;
+	std::string		ld_file_sha;
 
 	bool			ld_as_3cnf;
 
@@ -317,7 +318,7 @@ public:
 	void 	read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line);
 	void 	skip_cnf_decl(const char*& pt_in, long line);
 	
-	void	load_file();
+	void	load_file(t_string& f_nam);
 	void	parse_header();
 	bool	parse_clause(row<integer>& lits);
 
@@ -347,6 +348,14 @@ public:
 
 	long	get_cursor_pos();
 };
+
+//=================================================================
+// file funcs
+
+void		read_file(t_string f_nam, row<char>& f_data);
+void		sha_bytes_of_arr(uchar_t* to_sha, long to_sha_sz, row<uchar_t>& the_sha);
+t_string 	sha_txt_of_arr(uchar_t* to_sha, long to_sha_sz);
+
 
 //=================================================================
 // map funcs

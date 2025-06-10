@@ -1202,6 +1202,8 @@ brain::load_it(){
 
 	long num_neu = the_loader.ld_num_ccls;
 	long num_var = the_loader.ld_num_vars;
+	
+	inst_info.ist_file_sha = the_loader.ld_file_sha;
 
 	load_instance(num_neu, num_var, inst_ccls);
 }
@@ -1339,13 +1341,29 @@ brain::check_sat_assig(){
 	row_quanton_t& the_assig = slv().final_assig;
 
 	the_assig.clear();
-	br_trail.copy_to(the_assig);	
+	br_trail.copy_to(the_assig);
 
 	if(! brn_compute_dots_of(the_assig)){
 		std::cerr << "FATAL ERROR 002. Wrong is_sat answer !" << std::endl;
 		abort_func(1);
 	}
 	//print_satifying(cho_nm);
+	
+	if(slv().op_save_final_assig){
+		instance_info& inst_info = get_my_inst();
+		inst_info.ist_prt_final_assig = true;
+		get_ids_of(the_assig, br_tmp_final_assig);
+		br_tmp_final_assig.push(0);
+		inst_info.ist_final_assig = row_long_to_str(br_tmp_final_assig);
+	}
+}
+
+t_string
+row_long_to_str(row_long_t& rr){
+	t_ostr_stream ss_val;
+	rr.print_row_data(ss_val, false);
+	//ss_val << rr;
+	return ss_val.str();
 }
 
 void 
@@ -1388,7 +1406,7 @@ brain::solve_it(){
 
 void
 brain::dpg_post_solve(){
-	instance_info& inst_info = get_my_inst();	
+	instance_info& inst_info = get_my_inst();
 	std::string f_nam = inst_info.get_f_nam();
 	
 	DBG_PRT(32, os << "BRAIN=" << std::endl;
@@ -1422,77 +1440,6 @@ brain::dpg_post_solve(){
 		dbg_ic_print();
 	}
 }
-
-/*
-action_t
-brain::send_psignal(quanton* qua, neuron* src, long max_tier){
-	BRAIN_CK((max_tier > 0) || (level() == ROOT_LEVEL));
-	BRAIN_CK(br_first_psignal <= br_last_psignal);
-	if(br_psignals.is_empty()){
-		br_psignals.inc_sz();
-	}
-	br_last_psignal++;
-	if(br_last_psignal == br_psignals.size()){
-		br_psignals.inc_sz();
-	}
-	BRAIN_CK(br_psignals.is_valid_idx(br_last_psignal));
-	
-	prop_signal& sgnl = br_psignals[br_last_psignal];
-	sgnl.init_prop_signal(qua, src, max_tier);
-	
-	return ac_go_on;
-}
-	
-bool
-brain::has_psignals(){
-	BRAIN_CK(br_first_psignal <= br_last_psignal);
-	if(br_first_psignal == br_last_psignal){
-		br_first_psignal = 0;
-		br_last_psignal = 0;
-	}
-	return (br_first_psignal < br_last_psignal);
-}
-
-quanton*
-brain::receive_psignal(){
-	BRAIN_CK(has_psignals());
-	brain* brn = this;
-	
-	br_first_psignal++;
-	BRAIN_CK(br_first_psignal <= br_last_psignal);
-	BRAIN_CK(br_psignals.is_valid_idx(br_first_psignal));
-	prop_signal& sgnl = br_psignals[br_first_psignal];
-	
-	BRAIN_CK(sgnl.ps_quanton != NULL_PT);
-	quanton* pt_qua = sgnl.ps_quanton;
-
-	quanton& qua = *(pt_qua);
-	neuron* neu = sgnl.ps_source;
-	long sg_tier = sgnl.ps_tier;
-	BRAIN_CK(sg_tier != INVALID_TIER);
-	
-	if(qua.has_charge()){
-		BRAIN_CK(neu != NULL_PT);
-		if(qua.is_neg()){
-			if(!(neu->ne_is_conflict)){
-				brn->br_conflicts.push(neu);
-				neu->ne_is_conflict = true;
-			}
-		} 
-		pt_qua = NULL_PT;
-	} else {
-		qua.set_charge(brn, neu, cg_positive, sg_tier);
-
-		BRAIN_CK((qua.qu_source == neu) || 
-			((level() == ROOT_LEVEL) && (qua.qu_source == NULL_PT)));
-		BRAIN_CK((qua.qu_tier == sg_tier) || 
-			((level() == ROOT_LEVEL) && (qua.qu_tier == 0)));
-	}
-	
-	sgnl.init_prop_signal();
-	return pt_qua;
-}
-*/
 
 std::ostream&
 prop_signal::print_prop_signal(std::ostream& os, bool from_pt){

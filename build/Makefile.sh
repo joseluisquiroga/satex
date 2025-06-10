@@ -35,12 +35,14 @@ $(OBJ_DIR)/solver.o\
 $(OBJ_DIR)/config.o\
 $(OBJ_DIR)/dimacs.o\
 $(OBJ_DIR)/mem.o\
+$(OBJ_DIR)/sha2.o\
 $(OBJ_DIR)/tak_mak.o\
 $(OBJ_DIR)/dbg_ic.o\
 $(OBJ_DIR)/central.o
 
 ALL_HEADERS = \
 $(INCLUDE_DIR)/mem.h\
+$(INCLUDE_DIR)/sha2.h\
 $(INCLUDE_DIR)/platform.h\
 $(INCLUDE_DIR)/bit_row.h\
 $(INCLUDE_DIR)/tools.h\
@@ -105,6 +107,9 @@ $(OBJ_DIR)/dbg_ic.o: $(SRC_DIR)/dbg_ic.cpp $(ALL_HEADERS)
 
 $(OBJ_DIR)/central.o: $(SRC_DIR)/central.cpp $(ALL_HEADERS)
 	$(CPP) -o $(OBJ_DIR)/central.o $(CMPL_FLAGS)  -c $(SRC_DIR)/central.cpp
+
+$(OBJ_DIR)/sha2.o: $(SRC_DIR)/sha2.cpp $(ALL_HEADERS)
+	$(CPP) -o $(OBJ_DIR)/sha2.o $(CMPL_FLAGS)  -c $(SRC_DIR)/sha2.cpp
 
 
 
