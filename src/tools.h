@@ -1184,8 +1184,12 @@ public:
 		row<obj_t>::clear(destroy, dealloc); 
 	}
 	
-	long		size() const { 
-		return SZ_ATTRIB - first; 
+	long		size(){ 
+		long q_sz = (SZ_ATTRIB - first);
+		if(q_sz == 0){
+			clear(true, false);
+		}
+		return q_sz;
 	}
 
 	bool	is_empty(){
@@ -1250,12 +1254,12 @@ public:
 		tier_fn = tf;
 	}
     
-    obj_t&   head() { 
+    obj_t&   head(){ 
 		find_limits();
 		return data.head().head(); 
 	}
 	
-    obj_t   pick() { 
+    obj_t   pick(){ 
 		find_limits();
 		return data.head().pick(); 
 	}
@@ -1280,7 +1284,7 @@ public:
 		data.clear(destroy, dealloc); 
 	}
 	
-	long		size() { 
+	long		size(){ 
 		find_limits();
 		long tot = 0;
 		for(long ii = data.first; ii < data.sz_attr(); ii++){
@@ -1288,7 +1292,7 @@ public:
 		}
 	}
 
-	long		tot_tiers() { 
+	long		tot_tiers(){ 
 		find_limits();
 		return data.size();
 	}
