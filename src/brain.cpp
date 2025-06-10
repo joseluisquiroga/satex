@@ -563,7 +563,7 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 	max_tier = max_val(max_tier, ne_fibres[1]->qu_tier);
 	
 	quanton* forced_qua = forced_quanton();	
-	action_t sgl_nxt = brn->send_psignal(forced_qua, neu, max_tier + 1);
+	action_t sgl_nxt = brn->send_tsignal(forced_qua, neu, max_tier + 1);
 	
 	BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
 	BRAIN_CK_2(ne_fibres[1]->ck_all_tunnels());
@@ -660,17 +660,7 @@ quanton::qua_tunnel_signals(brain* brn){
 		neuron* neu = qu_tunnels[ii];
 		BRAIN_CK(neu != NULL);
 		action_t resp = neu->neu_tunnel_signals(brn, this);
-		if(resp != ac_go_on){
-			DBG_PRT(18, os << "**confict** " << neu);
-			if(!(neu->ne_is_conflict)){
-				brn->br_conflicts.push(neu);
-				neu->ne_is_conflict = true;
-			}
-			if(resp == ac_stop){
-				stop_tunn = true;
-				break;
-			}
-		}
+		BRAIN_CK(resp == ac_go_on);
 	} // end for (ii)
 	BRAIN_CK_2(ck_all_tunnels());
 }
@@ -689,8 +679,8 @@ brain::brn_tunnel_signals(){
 	);
 
 	br_conflicts.clear();
-	while(has_psignals()){
-		quanton* qua = receive_psignal();
+	while(has_tsignals()){
+		quanton* qua = receive_tsignal();
 		if(qua == NULL_PT){
 			continue;
 		}
@@ -706,7 +696,7 @@ brain::brn_tunnel_signals(){
 
 	DBG(
 		//BRAIN_CK_0(! has_signals());
-		BRAIN_CK_0(! has_psignals());
+		BRAIN_CK_0(! has_tsignals());
 		ticket tk2;
 		tk2.update_ticket(this);
 		BRAIN_CK_0(cmp_ticket_eq(tk1, tk2));
@@ -968,7 +958,7 @@ brain::learn_reasons(row<reason>& resns){
 			DBG_PRT(23, os << "added_forced_quanton: " << forced_qua;
 				if(rsn.size() == 1){ os << " IS_SINGLETON"; } 
 			);
-			action_t ok = send_psignal(forced_qua, rsn.ra_neuron);
+			action_t ok = send_tsignal(forced_qua, rsn.ra_neuron, trail_tier() + 1);
 			MARK_USED(ok);
 			BRAIN_CK_0(ok == ac_go_on);
 		}
@@ -1012,8 +1002,7 @@ brain::pulsate(){
 		}
 
 		BRAIN_CK_0(br_reasons.size() > 0);
-		//BRAIN_CK_0(! has_signals());
-		BRAIN_CK_0(! has_psignals());
+		BRAIN_CK_0(! has_tsignals());
 
 		retract_to_level(br_excited_level);
 		inc_recoil();
@@ -1044,7 +1033,7 @@ brain::pulsate(){
 
 		DBG_PRT(25, os << "**CHOICE**"  << qua);
 
-		action_t ok = send_psignal(qua, NULL);
+		action_t ok = send_tsignal(qua, NULL, trail_tier() + 1);
 		MARK_USED(ok);
 		BRAIN_CK_0(ok == ac_go_on);
 	}
@@ -1268,7 +1257,7 @@ brain::add_neuron_from_lits(row_long_t& all_lits, long first, long last){
 		BRAIN_CK_0(quas.size() == 1);
 		BRAIN_CK_0(level() == ROOT_LEVEL);
 
-		action_t ok = send_psignal(quas[0], NULL);
+		action_t ok = send_tsignal(quas[0], NULL, 0);
 		if(ok != ac_go_on){
 			set_result(k_no_satisf);
 		}
@@ -1434,6 +1423,7 @@ brain::dpg_post_solve(){
 	}
 }
 
+/*
 action_t
 brain::send_psignal(quanton* qua, neuron* src, long max_tier){
 	BRAIN_CK((max_tier > 0) || (level() == ROOT_LEVEL));
@@ -1477,7 +1467,6 @@ brain::receive_psignal(){
 	quanton* pt_qua = sgnl.ps_quanton;
 
 	quanton& qua = *(pt_qua);
-	//quanton& opp = qua.opposite();
 	neuron* neu = sgnl.ps_source;
 	long sg_tier = sgnl.ps_tier;
 	BRAIN_CK(sg_tier != INVALID_TIER);
@@ -1492,18 +1481,18 @@ brain::receive_psignal(){
 		} 
 		pt_qua = NULL_PT;
 	} else {
-		//qua.set_charge(brn, neu, cg_positive, sg_tier);
 		qua.set_charge(brn, neu, cg_positive, sg_tier);
 
 		BRAIN_CK((qua.qu_source == neu) || 
 			((level() == ROOT_LEVEL) && (qua.qu_source == NULL_PT)));
-		//BRAIN_CK((qua.qu_tier == sg_tier) || 
-		//	((level() == ROOT_LEVEL) && (qua.qu_tier == 0)));
+		BRAIN_CK((qua.qu_tier == sg_tier) || 
+			((level() == ROOT_LEVEL) && (qua.qu_tier == 0)));
 	}
 	
 	sgnl.init_prop_signal();
 	return pt_qua;
 }
+*/
 
 std::ostream&
 prop_signal::print_prop_signal(std::ostream& os, bool from_pt){
@@ -1515,4 +1504,55 @@ prop_signal::print_prop_signal(std::ostream& os, bool from_pt){
 	os << "}";
 	os.flush();
 	return os;
+}
+
+action_t
+brain::send_tsignal(quanton* qua, neuron* src, long max_tier){
+	BRAIN_CK((max_tier > 0) || (level() == ROOT_LEVEL));
+	prop_signal snw;
+	snw.init_prop_signal(qua, src, max_tier);
+	br_tsignals.push(snw);
+	return ac_go_on;
+}
+
+bool
+brain::has_tsignals(){
+	bool has_tsig = ! br_tsignals.is_empty();
+	return has_tsig;
+}
+
+quanton*
+brain::receive_tsignal(){
+	BRAIN_CK(has_tsignals());
+	brain* brn = this;
+	prop_signal sgnl = br_tsignals.pick();
+	
+	BRAIN_CK(sgnl.ps_quanton != NULL_PT);
+	quanton* pt_qua = sgnl.ps_quanton;
+
+	quanton& qua = *(pt_qua);
+	neuron* neu = sgnl.ps_source;
+	long sg_tier = sgnl.ps_tier;
+	BRAIN_CK(sg_tier != INVALID_TIER);
+	
+	if(qua.has_charge()){
+		BRAIN_CK(neu != NULL_PT);
+		if(qua.is_neg()){
+			if(!(neu->ne_is_conflict)){
+				brn->br_conflicts.push(neu);
+				neu->ne_is_conflict = true;
+			}
+		} 
+		pt_qua = NULL_PT;
+	} else {
+		qua.set_charge(brn, neu, cg_positive, sg_tier);
+
+		BRAIN_CK((qua.qu_source == neu) || 
+			((level() == ROOT_LEVEL) && (qua.qu_source == NULL_PT)));
+		BRAIN_CK((qua.qu_tier == sg_tier) || 
+			((level() == ROOT_LEVEL) && (qua.qu_tier == 0)));
+	}
+	
+	sgnl.init_prop_signal();
+	return pt_qua;
 }

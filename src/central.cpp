@@ -313,7 +313,7 @@ tq_get_tier(tq_psig_t& tq){
 
 void
 solver::test_tier_queue(){
-	solver& slv = *this;
+	//solver& slv = *this;
 	brain brn;
 	
 	brn.init_loading(17, 5);

@@ -759,9 +759,11 @@ class brain {
 	k_row<neuron>		br_neurons;	// all neurons
 	row_neuron_t		br_active_neus;	// all active neurons
 
+	/*
 	long				br_first_psignal;
 	long				br_last_psignal;
 	row<prop_signal>	br_psignals;	// forward propagated signals (NEW approach)
+	*/
 
 	tier_queue<prop_signal>	br_tsignals;	// forward propagated tiered signals 
 	
@@ -822,8 +824,8 @@ class brain {
 		br_choice_spin = cg_positive;
 		br_choice_order = k_right_order;
 		
-		br_first_psignal = 0;
-		br_last_psignal = 0;
+		//br_first_psignal = 0;
+		//br_last_psignal = 0;
 		
 	}
 
@@ -856,11 +858,13 @@ class brain {
 
 	// core methods
 	
-	action_t	send_psignal(quanton* qua, neuron* src, long max_tier = 1);
+	/*
+	action_t	send_psignal(quanton* qua, neuron* src, long max_tier);
 	bool		has_psignals();
 	quanton*	receive_psignal();
+	*/
 
-	action_t	send_tsignal(quanton* qua, neuron* src, long max_tier = 1);
+	action_t	send_tsignal(quanton* qua, neuron* src, long max_tier);
 	bool		has_tsignals();
 	quanton*	receive_tsignal();
 
@@ -941,6 +945,14 @@ class brain {
 		}
 		quanton* qua = br_trail.last();
 		return qua->qlevel();
+	}
+	
+	long	trail_tier(){
+		if(br_trail.is_empty()){
+			return 0;
+		}
+		quanton* qua = br_trail.last();
+		return qua->qu_tier;
 	}
 	
 	void		retract_to_level(long target_lev);
