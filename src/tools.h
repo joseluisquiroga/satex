@@ -226,8 +226,15 @@ cmp_integer(integer const & i1, integer const & i2){
 
 typedef char	trinary;
 
-template<class obj_t> static inline obj_t min(obj_t x, obj_t y) { return (x < y) ? x : y; }
-template<class obj_t> static inline obj_t max(obj_t x, obj_t y) { return (x > y) ? x : y; }
+template<class obj_t> static inline obj_t 
+min_val(obj_t x, obj_t y) { 
+	return (x < y) ? x : y; 
+}
+
+template<class obj_t> static inline obj_t 
+max_val(obj_t x, obj_t y) { 
+	return (x > y) ? x : y; 
+}
 
 WIN32_COD(
 inline
@@ -992,6 +999,7 @@ public:
 	}
 
 	~row(){
+		//std::cerr << "Called ~row (DESTROY)\n";
 		clear(true, true);
 	}
 
@@ -1169,7 +1177,12 @@ class queue : public row<obj_t> {
 public:
     long     first;
 
-    queue(void) : first(0) { }
+    queue() : first(0) { }
+
+	~queue(){
+		//std::cerr << "Called ~queue (DESTROY)\n";
+		//clear(true, true); // row::clear(true, true) is called by ~row
+	}
 
     obj_t&	head() { 
 		return row<obj_t>::pos(first); 
@@ -1180,13 +1193,14 @@ public:
 	}
 
 	virtual void	clear(bool destroy = false, bool dealloc = false, row_index from = 0){
+		//std::cerr << "Called queue::clear (CLEAR)\n" << STACK_STR << "\n";
 		first = 0;
 		row<obj_t>::clear(destroy, dealloc); 
 	}
 	
 	long		size(){ 
 		long q_sz = (SZ_ATTRIB - first);
-		if(q_sz == 0){
+		if((q_sz == 0) && (first != 0)){
 			clear(true, false);
 		}
 		return q_sz;
@@ -1199,7 +1213,23 @@ public:
 	long	sz_attr(){
 		return SZ_ATTRIB;
 	}
+
+	std::ostream&	print_queue(std::ostream& os);
+	
 };
+
+template<class obj_t>
+std::ostream&
+queue<obj_t>::print_queue(std::ostream& os){
+	os << "[";
+	for(long ii = first; ii < sz_attr(); ii++){
+		os << row<obj_t>::pos(ii);
+		os << " ";
+	}
+	os << "]";
+	return os;
+}
+
 
 //=================================================================================================
 // tier_queue
@@ -1225,10 +1255,7 @@ protected:
 	}
 
     long	find_tier_idx(long tier){
-		long max = -1;
-		if(! is_empty()){
-			max = get_tier(last());
-		}
+		long max = last_tier();
 		while(max < tier){
 			data.inc_sz();
 			max++;
@@ -1250,22 +1277,39 @@ public:
 		return (*tier_fn)(obj1);
 	}
 	
+    long	last_tier(){
+		long max = -1;
+		if(! is_empty()){
+			max = get_tier(last());
+		}
+		return max;
+	}
+	
     tier_queue(tier_func_t tf){ 
 		tier_fn = tf;
 	}
     
     obj_t&   head(){ 
 		find_limits();
+		if(data.is_empty()){
+			throw row_exception(rwx_invalid_idx);
+		}
 		return data.head().head(); 
 	}
 	
     obj_t   pick(){ 
 		find_limits();
+		if(data.is_empty()){
+			throw row_exception(rwx_invalid_idx);
+		}
 		return data.head().pick(); 
 	}
 
 	obj_t	pop(){ 
 		find_limits();
+		if(data.is_empty()){
+			throw row_exception(rwx_invalid_idx);
+		}
 		return data.last().pop(); 
 	}
 
@@ -1277,6 +1321,9 @@ public:
 	
 	obj_t&	last(){ 
 		find_limits();
+		if(data.is_empty()){
+			throw row_exception(rwx_invalid_idx);
+		}
 		return data.last().last();
 	}
 	
@@ -1312,7 +1359,7 @@ tier_queue<obj_t>::print_tier_queue(std::ostream& os){
 	find_limits();
 	os << "{";
 	for(long ii = data.first; ii < data.sz_attr(); ii++){
-		data[ii].print_row_data(os, true, " ");
+		data[ii].print_queue(os);
 		os << "\n";
 	}
 	os << "}\n";

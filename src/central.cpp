@@ -279,8 +279,36 @@ solver::do_instance(debug_info& dbg_inf)
 	);*/
 }
 
-long get_ptier(prop_signal const& psig){
-	return psig.ps_tier;
+void
+tq_print_options(){
+	std::cout << "p (push) k (pick) \n";	
+}
+
+typedef tier_queue<prop_signal> tq_psig_t;
+
+quanton*
+tq_get_quanton(brain& brn){
+	std::string the_ln;
+	std::cout << "quanton id ?\n";
+	long max = brn.br_positons.last_idx();
+	std::cout << "min=" << -max << " max=" << max << "\n";
+	std::getline(std::cin, the_ln);
+	const char* str1 = the_ln.c_str();
+	long qid = parse_int(str1, 0);
+	quanton* qua = brn.get_quanton(qid);
+	return qua;
+}
+
+long
+tq_get_tier(tq_psig_t& tq){
+	std::string the_ln;
+	std::cout << "tier ?\n";
+	long max = tq.last_tier();
+	std::cout << " last_tier=" << max << "\n";
+	std::getline(std::cin, the_ln);
+	const char* str1 = the_ln.c_str();
+	long ti = parse_int(str1, 0);
+	return ti;
 }
 
 void
@@ -290,34 +318,28 @@ solver::test_tier_queue(){
 	
 	brn.init_loading(17, 5);
 	
-	quanton* p3 = brn.get_quanton(3);
-	quanton* n5 = brn.get_quanton(-5);
+	tq_psig_t tq1(get_ptier);
 	
-	tier_queue<prop_signal> tq1(get_ptier);
-	
-	prop_signal s1;
-	s1.init_prop_signal(p3, NULL_PT, 2);
-	
-	tq1.push(s1);
-
-	prop_signal s2;
-	s2.init_prop_signal(n5, NULL_PT, 5);
-	
-	tq1.push(s2);
-
-	std::cout << "tot_tiers=" << tq1.tot_tiers() << "\n";
-	std::cout << "tq1=" << tq1 << "\n";
-	
-	prop_signal o1 = tq1.pick();
-	std::cout << "o1=" << o1 << "\n";
-
-	std::cout << "tq1=" << tq1 << "\n";
-	
-	prop_signal o2 = tq1.pick();
-	std::cout << "o2=" << o2 << "\n";
-	
-	std::cout << "tot_tiers=" << tq1.tot_tiers() << "\n";
-	std::cout << "tq1=" << tq1 << "\n";
+	prop_signal snw;
+	while(true){
+		std::string the_ln;
+		tq_print_options();
+		std::getline(std::cin, the_ln);
+		if(the_ln == ""){
+			break;
+		}
+		if(the_ln == "p"){
+			quanton* qua = tq_get_quanton(brn);
+			long ti = tq_get_tier(tq1);
+			snw.init_prop_signal(qua, NULL_PT, ti);
+			tq1.push(snw);			
+		}
+		else if(the_ln == "k"){
+			prop_signal o1 = tq1.pick();
+			std::cout << "sig=" << o1 << "\n";
+		}
+		std::cout << "TIERS=\n" << tq1 << "\n";
+	}
 };
 
 

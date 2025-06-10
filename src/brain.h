@@ -365,7 +365,7 @@ class quanton {
 
 	bool		ck_charge(brain* brn);
 
-	void		set_charge(brain* brn, neuron* src, charge_t cha);
+	void		set_charge(brain* brn, neuron* src, charge_t cha, long n_tier);
 	charge_t	get_charge(){ return qu_charge; }
 	bool		has_charge(){ return ! is_nil(); }
 
@@ -705,6 +705,11 @@ class prop_signal {
 	std::ostream& 	print_prop_signal(std::ostream& os, bool from_pt = false);
 };
 
+inline
+long get_ptier(prop_signal const& psig){
+	return psig.ps_tier;
+}
+
 
 //=================================================================================================
 // brain
@@ -753,11 +758,12 @@ class brain {
 
 	k_row<neuron>		br_neurons;	// all neurons
 	row_neuron_t		br_active_neus;	// all active neurons
-	queue<quanton*>		br_signals;	// forward propagated signals
 
 	long				br_first_psignal;
 	long				br_last_psignal;
 	row<prop_signal>	br_psignals;	// forward propagated signals (NEW approach)
+
+	tier_queue<prop_signal>	br_tsignals;	// forward propagated tiered signals 
 	
 	// final message
 
@@ -769,7 +775,7 @@ class brain {
 	
 	// methods
 
-	brain(){
+	brain() : br_tsignals(get_ptier) {
 		init_brain();
 	}
 
@@ -846,7 +852,6 @@ class brain {
 		br_choices.clear(false, true);
 
 		br_neurons.clear(false, true);	// already reseted
-		br_signals.clear(false, true);
 	}
 
 	// core methods
@@ -855,9 +860,11 @@ class brain {
 	bool		has_psignals();
 	quanton*	receive_psignal();
 
+	action_t	send_tsignal(quanton* qua, neuron* src, long max_tier = 1);
+	bool		has_tsignals();
+	quanton*	receive_tsignal();
 
 	void		brn_tunnel_signals();
-	action_t	send_signal(quanton* qua, neuron* src);
 	quanton*	choose_quanton();
 
 	void		find_middle_reason_of(neuron* confl, reason& rsn, row_quanton_t& tmp_mots);
@@ -940,10 +947,6 @@ class brain {
 	
 	bool 		has_conflicts(){
 		return (! br_conflicts.is_empty());
-	}
-
-	bool 		has_signals(){
-		return (! br_signals.is_empty());
 	}
 
 	bool	ck_motives(row_quanton_t& mots);
@@ -1054,54 +1057,6 @@ quanton::set_source(brain* brn, neuron* neu){
 	DBG(
 		qu_source->ck_all_neg(brn, 1);
 	);
-}
-
-inline 
-void		
-quanton::set_charge(brain* brn, neuron* neu, charge_t cha){
-	BRAIN_CK(ck_charge(brn));
-	//BRAIN_CK(this != &ROOT_QUANTON);
-
-	BRAIN_CK((cha == cg_positive) || (cha == cg_neutral));
-	BRAIN_CK(get_charge() != cg_negative);
-	BRAIN_CK((get_charge() != cg_positive) || (cha == cg_neutral));
-	BRAIN_CK((get_charge() != cg_neutral) || (cha == cg_positive));
-
-	if(brn->level() == ROOT_LEVEL){ 
-		neu = NULL; 
-	}
-
-	qu_charge = cha;
-	qu_inverse->qu_charge = negate_trinary(cha);
-	set_source(brn, neu);
-
-	if(get_charge() == cg_neutral){
-		DBG_PRT(15, os << "unbind " << *this);
-		BRAIN_CK(neu == NULL);
-		quanton* qua_trl = brn->br_trail.pop();
-		MARK_USED(qua_trl);
-		BRAIN_CK(qua_trl == this);
-		BRAIN_CK(qlevel() != ROOT_LEVEL);
-
-		qu_charge_tk.init_ticket();
-		qu_inverse->qu_charge_tk.init_ticket();
-		qu_charge_tk.tk_recoil = brn->recoil();
-	} else {
-
-		long lst_lv = brn->trail_level();
-		MARK_USED(lst_lv);
-		brn->br_trail.push(this);
-
-		qu_charge_tk.update_ticket(brn);
-		qu_inverse->qu_charge_tk.update_ticket(brn);
-
-		DBG_PRT(15, os << "BIND " << this; 
-			if(neu != NULL){ os << " src: "; os << neu; }
-		);
-	}
-
-	BRAIN_CK(ck_charge(brn));
-
 }
 
 inline
