@@ -1041,6 +1041,11 @@ brain::pulsate(){
 
 void
 brain::retract_to_level(long target_lev){
+	if(level() == INVALID_LEVEL){
+		BRAIN_CK(br_trail.is_empty());
+		return;
+	}
+	
 	brain* brn = this;
 	BRAIN_CK_0(level() != ROOT_LEVEL);
 
@@ -1051,6 +1056,8 @@ brain::retract_to_level(long target_lev){
 	);
 
 	DBG_PRT(14, os << "trail " << br_trail);
+	DBG_PRT(14, os << "trail_level " << trail_level());
+	DBG_PRT(14, os << "level " << level());
 
 	quanton* qua = NULL;
 
@@ -1231,9 +1238,6 @@ brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_q
 	for(long ii = first; ii < last; ii++){
 		BRAIN_CK(all_lits.is_valid_idx(ii));
 		long nio_id = all_lits[ii];
-	
-
-
 
 		quanton* qua = get_quanton(nio_id);
 		BRAIN_CK_0(qua != NULL_PT);
@@ -1349,13 +1353,11 @@ brain::check_sat_assig(){
 	}
 	//print_satifying(cho_nm);
 	
-	if(slv().op_save_final_assig){
-		instance_info& inst_info = get_my_inst();
-		inst_info.ist_prt_final_assig = true;
-		get_ids_of(the_assig, br_tmp_final_assig);
-		br_tmp_final_assig.push(0);
-		inst_info.ist_final_assig = row_long_to_str(br_tmp_final_assig);
-	}
+	instance_info& inst_info = get_my_inst();
+	get_ids_of(the_assig, br_tmp_final_assig);
+	br_tmp_final_assig.push(0);
+	inst_info.ist_final_assig = row_long_to_str(br_tmp_final_assig);
+	br_tmp_final_assig.clear(true, true);
 }
 
 t_string

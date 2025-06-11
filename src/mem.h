@@ -91,6 +91,7 @@ typedef t_4byte			t_dword;
 typedef std::string		t_string;
 typedef std::ostream 	t_ostream;
 typedef std::ostringstream 	t_ostr_stream;
+typedef std::istringstream 	t_istr_stream;
 typedef std::ofstream 	t_ofstream;
 
 #define t_dbg_os std::cerr

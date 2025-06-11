@@ -21,10 +21,7 @@ solver class and classes that assist the system.
 
 #include "solver.h"
 #include "config.h"
-
-//DEFINE_MEM_STATS;
-
-//bool	dbg_bad_cycle1 = false;		// dbg_print_cond_func
+#include "sha2.h"
 
 std::string	satisf_val_nams[k_last_satisf_val];
 
@@ -38,8 +35,87 @@ void	init_glb_nams(){
 	satisf_val_nams[k_error] = "error";
 }
 
+satisf_val	
+result_str_to_val(t_string& res_str){
+	satisf_val val = k_unknown_satisf;
+	if(res_str == satisf_val_nams[k_yes_satisf]){
+		val = k_yes_satisf;
+	} else if(res_str == satisf_val_nams[k_no_satisf]){
+		val = k_no_satisf;
+	} else if(res_str == satisf_val_nams[k_timeout]){
+		val = k_timeout;
+	} else if(res_str == satisf_val_nams[k_memout]){
+		val = k_memout;
+	} else if(res_str == satisf_val_nams[k_error]){
+		val = k_error;
+	}
+	return val;
+}
+
 void	glb_set_memout(){
 	throw memory_exception(mex_memout);
+}
+
+void
+read_file(t_string f_nam, row<char>& f_data){
+	const char* ff_nn = f_nam.c_str();
+	std::ifstream istm;
+	istm.open(ff_nn, std::ios::binary);
+	if(! istm.good() || ! istm.is_open()){
+		throw file_exception(flx_cannot_open, f_nam);
+	}
+
+	// get size of file:
+	istm.seekg (0, std::ios::end);
+	long file_sz = istm.tellg();
+	istm.seekg (0, std::ios::beg);
+
+	if(file_sz < 0){
+		throw file_exception(flx_cannot_calc_size, f_nam);
+	}
+
+	DBG_CK(sizeof(char) == 1);
+
+	char* file_content = tpl_malloc<char>(file_sz + 1); // leave room for END_OF_SEC
+	istm.read(file_content, file_sz);
+	long num_read = istm.gcount();
+	if(num_read != file_sz){
+		tpl_free<char>(file_content, file_sz + 1);
+
+		throw file_exception(flx_cannot_fit_in_mem, f_nam);
+	}
+	file_content[file_sz] = END_OF_SEC;
+
+	s_row<char> tmp_rr;
+	tmp_rr.init_data(file_content, file_sz + 1);
+
+	f_data.clear();
+	tmp_rr.move_to(f_data);
+
+	DBG_CK(f_data.last() == END_OF_SEC);
+	f_data.pop(); // read as writed but leave room for END_OF_SEC
+}
+
+void
+sha_bytes_of_arr(uchar_t* to_sha, long to_sha_sz, row<uchar_t>& the_sha){
+	the_sha.clear();
+	the_sha.fill(0, NUM_BYTES_SHA2);
+	uchar_t* sha_arr = (uchar_t*)(the_sha.get_c_array());
+
+	uchar_t* ck_arr1 = to_sha;
+	MARK_USED(ck_arr1);
+
+	sha2(to_sha, to_sha_sz, sha_arr, 0);
+	TOOLS_CK(ck_arr1 == to_sha);
+	TOOLS_CK((uchar_t*)(the_sha.get_c_array()) == sha_arr);
+}
+
+t_string 
+sha_txt_of_arr(uchar_t* to_sha, long to_sha_sz){
+	row<uchar_t>	the_sha;
+	sha_bytes_of_arr(to_sha, to_sha_sz, the_sha);
+	t_string sha_txt = the_sha.as_hex_str();
+	return sha_txt;
 }
 
 long
@@ -98,8 +174,6 @@ get_free_mem_kb(){
 //============================================================
 // solver
 
-//solver		GLB;
-
 void
 solver::init_solver(){
 	sl_dbg_info = NULL;
@@ -146,7 +220,6 @@ solver::init_solver(){
 	op_cnf_num = 1;
 	op_ck_satisf = false;
 	op_dbg_no_learning = false;
-	op_save_final_assig = false;
 
 	dbg_file_name = "";
 
@@ -158,6 +231,8 @@ solver::init_solver(){
 
 	input_file_nm = "";
 	output_file_nm = "";
+	
+	input_log_name = "";
 
 	batch_log_on = true;
 	batch_name = "";
@@ -188,8 +263,6 @@ solver::init_solver(){
 	batch_max_mem_used_perc = 0.0;
 	*/
 	batch_end_time = 0.0;
-
-	gg_file_name = "";
 
 	init_glb_nams();
 	//init_brn_nams();
@@ -671,20 +744,20 @@ void	chomp_string(std::string& s1){
 }
 
 void	
-solver::read_batch_file(row<instance_info>& names){
+solver::read_batch_file(t_string& fnam, row<instance_info>& names){
 	solver& slv = *this;
 	
 	PRT_OUT(0, os << "Loading batch file '" 
-		<< slv.batch_name << std::endl); 
+		<< fnam << std::endl); 
 
 	std::ifstream in_stm;
-	in_stm.open(slv.batch_name.c_str());
+	in_stm.open(fnam.c_str());
 
 	if(! in_stm.good() || ! in_stm.is_open()){
 		slv.reset_err_msg();
-		slv.error_stm << "Could not open file " << slv.batch_name << ".";
+		slv.error_stm << "Could not open file " << fnam << ".";
 
-		throw file_exception(flx_cannot_open, slv.batch_name);
+		throw file_exception(flx_cannot_open, fnam);
 	}
 
 	names.set_cap(1000);
@@ -743,58 +816,50 @@ void	get_enter(std::ostream& os, char* msg){
 	getchar();
 }
 
-void
-solver::init_log_name(const char* sufix, std::string& log_nm){
-	solver& slv = *this;
-	
-	bool is_batch = false;
-	const char* f_nam = slv.get_file_name(is_batch);
-
+t_string
+solver::remove_log(const char* sufix){
 	std::ostringstream log_ss;
-	log_ss << f_nam << "_";
+	log_ss << input_file_nm << "_";
 	log_ss << sufix;
-	log_nm = log_ss.str();
-	remove(log_nm.c_str());
+	
+	t_string lgnam = log_ss.str();
+	remove(lgnam.c_str());
+	return lgnam;
 }
 
 void	
 solver::do_all_instances(debug_info& dbg_inf){
-	solver& slv = *this;
-	
-	slv.batch_start_time = run_time();
-	slv.batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
+	batch_start_time = run_time();
+	batch_prt_totals_timer.init_timer(PRINT_TOTALS_PERIOD);
 
-	bool is_batch = false;
-	const char* f_nam = slv.get_file_name(is_batch);
+	batch_log_name = remove_log("error.log");
+	batch_end_log_name = remove_log("results.log");
+	batch_end_msg_name = remove_log("stats.log");
+	batch_answer_name = remove_log("assigs.log");
 
-	SUPPORT_CK_0(f_nam != NULL_PT);
-
-	slv.init_log_name("error.log", slv.batch_log_name);
-	slv.init_log_name("results.log", slv.batch_end_log_name);
-	slv.init_log_name("stats.log", slv.batch_end_msg_name);
-	slv.init_log_name("assigs.log", slv.batch_answer_name);
-
-	row<instance_info>& all_insts = slv.batch_instances;
+	row<instance_info>& all_insts = batch_instances;
 	SUPPORT_CK_0(all_insts.is_empty());
-	if(is_batch){
-		read_batch_file(all_insts);
+	if(batch_name.size() > 0){
+		read_batch_file(batch_name, all_insts);
+	} else if(input_log_name.size() > 0){
+		read_log_file(input_log_name, all_insts);
 	} else {
 		instance_info& ist = all_insts.inc_sz();
-		ist.ist_file_path = f_nam;
+		ist.ist_file_path = input_file_nm;
 	} 
 
-	slv.batch_num_files = all_insts.size();
+	batch_num_files = all_insts.size();
 
 	print_op_cnf();
 
-	for(long ii = 0; ii < slv.batch_num_files; ii++){
-		slv.batch_consec = ii + 1;
+	for(long ii = 0; ii < batch_num_files; ii++){
+		batch_consec = ii + 1;
 		std::string inst_nam = all_insts[ii].ist_file_path;
-		//slv.file_name = all_insts[ii].ist_file_path;
+		//file_name = all_insts[ii].ist_file_path;
 
 		std::ifstream i_ff;
 		if(inst_nam.size() > 0){
-			slv.batch_prt_totals_timer.
+			batch_prt_totals_timer.
 				check_period(print_periodic_totals, this);
 
 			MEM_CTRL(mem_size mem_in_u = MEM_STATS.num_bytes_in_use;)
@@ -808,7 +873,7 @@ solver::do_all_instances(debug_info& dbg_inf){
 
 	print_op_cnf();
 
-	slv.batch_end_time = run_time();
+	batch_end_time = run_time();
 
 	log_batch_info();
 	//PRT_OUT(0, log_batch_info());
@@ -818,12 +883,13 @@ solver::do_all_instances(debug_info& dbg_inf){
 }
 
 void
-solver::set_input_name(){
+solver::set_input_kind(){
 	if(input_file_nm.size() == 0){
 		return;
 	}
 
 	bool is_batch = false;
+	bool is_log = false;
 	int f_ln = input_file_nm.size();
 	if(f_ln > 4){
 		const char* f_nm = input_file_nm.c_str();
@@ -831,16 +897,19 @@ solver::set_input_name(){
 		if(strcmp(f_ext, ".lst") == 0){
 			is_batch = true;
 		}
+		if(strcmp(f_ext, ".log") == 0){
+			is_log = true;
+		}
 	}
 
 	if(is_batch){
 		SUPPORT_CK(batch_name.size() == 0);
 		batch_name = input_file_nm;
-	} else {
-		SUPPORT_CK(gg_file_name.size() == 0);
-		gg_file_name = input_file_nm;
 	}
-
+	if(is_log){
+		input_log_name = input_file_nm;
+		op_cnf_id = fo_ck_assig;
+	}
 }
 
 bool
@@ -865,9 +934,7 @@ solver::get_args(int argc, char** argv)
 			op_ck_satisf = true;
 		} else if(the_arg == "-no_learning"){
 			op_dbg_no_learning = true;
-		} else if(the_arg == "-fa"){
-			op_save_final_assig = true;
-		} else if((the_arg == "-o") && ((ii + 1) < argc)){
+		} else if((the_arg == "-o") && ((ii + 1) < argc)){ 
 			int kk_idx = ii + 1;
 			ii++;
 
@@ -931,7 +998,7 @@ solver::get_args(int argc, char** argv)
 		return false;
 	}
 
-	set_input_name();
+	set_input_kind();
 
 	return true;
 }
@@ -1076,4 +1143,68 @@ separate C++ operators.
 	specify induce deduce simplify learn analyze synthesize
 
 */
+
+void	
+solver::read_log_file(t_string fnam, row<instance_info>& names){
+	std::ifstream flog(fnam.c_str());
+	if(! flog.is_open()){
+		std::cerr << "Could not open file " << fnam << "\n";
+		throw file_exception(flx_cannot_open, fnam);
+		return;
+	}
+	
+	names.set_cap(1000);
+	names.clear();
+	
+	t_string lin;
+	while(std::getline(flog, lin)){
+		if(lin.size() == 0){
+			continue;
+		}
+		t_istr_stream lis(lin);
+		t_string tok;
+		
+		instance_info& ist = names.inc_sz();
+		int num_tok = 0;
+		while(std::getline(lis, tok, '|')){
+			//std::cout << "TOK= " << tok << "|";
+			if(num_tok == 0){
+				ist.ist_file_path = tok;
+			}
+			if(num_tok == 1){
+				ist.ist_ck_sha = tok;
+			}
+			if(num_tok == 2){
+				ist.ist_ck_result = result_str_to_val(tok);
+			}
+			if(num_tok == 8){
+				tok += "\n";
+				parse_assig(tok, ist.ist_ck_assig);
+			}
+			num_tok++;
+		}
+		std::cout << ist << "\n";
+	}
+	flog.close();
+}
+
+void 
+parse_assig(t_string& assig, row_long_t& lits){
+	const char* pt_in = assig.c_str();
+	
+	long num_ln = 0;
+
+	if(*pt_in != '\n'){
+		skip_whitespace(pt_in, num_ln);
+		while(*pt_in != '\n'){
+			long val = parse_int(pt_in, num_ln); 
+			if(val == 0){ break; }
+			
+			skip_whitespace(pt_in, num_ln);	
+			lits.push(val);
+		}
+	} else {
+		skip_line(pt_in, num_ln);
+	}	
+}
 

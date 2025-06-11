@@ -55,6 +55,9 @@ solver::print_op_cnf(){
 		case fo_simplify:
 			os << "TEST_TIER_QUEUE" << std::endl;
 			break;
+		case fo_ck_assig:
+			os << "CHECK_FINAL_ASSIG" << std::endl;
+			break;
 		default:
 			break;
 	}
@@ -81,6 +84,9 @@ solver::do_cnf_file(debug_info& dbg_inf){
 				break;
 			case fo_simplify:
 				test_tier_queue();
+				break;
+			case fo_ck_assig:
+				check_final_assig(dbg_inf);
 				break;
 			default:
 				do_instance(dbg_inf);
@@ -341,5 +347,52 @@ solver::test_tier_queue(){
 		std::cout << "TIERS=\n" << tq1 << "\n";
 	}
 };
+
+void
+solver::check_final_assig(debug_info& dbg_inf){
+	brain brn;
+	brn.br_dbg_info = &dbg_inf;
+	brn.br_slv = this;
+	dbg_inf.dbg_brn = &brn;
+
+	instance_info& ist = get_curr_inst();
+	brn.br_pt_inst = &ist;
+	
+	if(ist.ist_ck_result != k_yes_satisf){
+		std::cout << "NOT_SAT_INSTANCE file=" << ist.ist_file_path << "\n";
+		return;
+	}
+
+	brn.load_it();
+	
+	if(ist.ist_file_sha != ist.ist_ck_sha){
+		std::cerr << "BAD_SHA FOR YES_SAT file=" << ist.ist_file_path << "\n";
+		return;
+	}
+
+	row_long_t& lits = ist.ist_ck_assig;
+	row_quanton_t all_quas;
+	brn.get_quantons_from_lits(lits, 0, lits.size(), all_quas);
+	
+	brn.inc_level();
+	
+	BRAIN_CK(brn.level() == 1);
+	
+	for(long ii = 0; ii < all_quas.size(); ii++){
+		quanton* qua = all_quas[ii];
+		BRAIN_CK(qua != NULL_PT);
+		qua->set_charge(&brn, NULL_PT, cg_positive, 1);
+	}
+	
+	brn.check_sat_assig();
+	
+	brn.retract_to_level(ROOT_LEVEL);
+
+	brn.dec_level();
+	
+	final_assig.clear(true, true);	// So global memcheck says its OK.
+	
+	std::cout << "FILE= " << ist.ist_file_path << " CHECKED SAT ASSIG OK\n";
+}
 
 

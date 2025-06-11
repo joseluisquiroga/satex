@@ -385,7 +385,9 @@ public:
 	long			ist_num_lits;
 	consecutive_t	ist_num_laps;
 	std::string		ist_final_assig;
-	bool			ist_prt_final_assig;
+	satisf_val		ist_ck_result;
+	std::string		ist_ck_sha;
+	row_long_t		ist_ck_assig;
 
 	instance_info(){
 		ist_file_path = "Unknown_path";
@@ -396,8 +398,9 @@ public:
 		ist_num_ccls = 0;
 		ist_num_lits = 0;
 		ist_num_laps = 0;
+		ist_ck_result = k_unknown_satisf;
+		ist_ck_sha = "";
 		ist_final_assig = "Invalid_final_assig";
-		ist_prt_final_assig = false;
 	}
 
 	std::string	get_f_nam(){
@@ -425,7 +428,8 @@ enum cnf_oper_t {
 	fo_as_3cnf,
 	fo_as_ttnf,
 	fo_shuffle,
-	fo_simplify
+	fo_simplify,
+	fo_ck_assig,
 };
 
 class quanton;
@@ -466,7 +470,6 @@ public:
 	long			op_cnf_num;
 	bool			op_ck_satisf;
 	bool			op_dbg_no_learning;
-	bool			op_save_final_assig;
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
@@ -481,6 +484,8 @@ public:
 	std::string		input_file_nm;
 	std::string		output_file_nm;
 
+	std::string		input_log_name;
+	
 	bool			batch_log_on;
 	std::string		batch_name;
 	std::string		batch_log_name;
@@ -509,8 +514,6 @@ public:
 
 	row<instance_info>	batch_instances;
 
-	std::string		gg_file_name;
-
 	row<std::string>	exception_strings;
 
 	solver(){
@@ -532,7 +535,7 @@ public:
 	}
 
 	bool		get_args(int argc, char** argv);
-	void		set_input_name();
+	void		set_input_kind();
 
 	instance_info&	get_curr_inst(){
 		long batch_idx = batch_consec - 1;
@@ -578,7 +581,7 @@ public:
 	}
 
 	void	init_exception_strings();
-	void	init_log_name(const char* sufix, std::string& log_nm);
+	t_string	remove_log(const char* sufix);
 
 	void	dbg_default_info(){
 		std::ostream& os = t_dbg_os;
@@ -595,23 +598,12 @@ public:
 		return inst_info.get_f_nam();
 	}
 
-	const char*	get_file_name(bool& is_batch){
-		const char* f_nam = gg_file_name.c_str();
-		is_batch = false;
-		if(batch_name.size() > 0){
-			is_batch = true;
-			f_nam = batch_name.c_str();
-		}
-		return f_nam;
-	}
-
 	std::ostream&	get_os(){
 		if(out_os != NULL_PT){
 			return *out_os;
 		}
 		return std::cout;
 	}
-
 
 	void	set_active_out_levs();
 
@@ -628,7 +620,8 @@ public:
 
 	void	log_message(const std::ostringstream& msg_log);
 	void	log_batch_info();
-	void	read_batch_file(row<instance_info>& names);
+	void 	read_log_file(t_string fnam, row<instance_info>& names);
+	void	read_batch_file(t_string& fnam, row<instance_info>& names);
 	void	do_all_instances(debug_info& dbg_inf);
 
 	void	print_op_cnf();
@@ -643,6 +636,7 @@ public:
 
 	void		call_solve_instance(debug_info& dbg_inf);
 	void		do_instance(debug_info& dbg_inf);
+	void		check_final_assig(debug_info& dbg_inf);
 	
 	//int	walk_neuron_tree(std::string& dir_nm);
 
@@ -685,8 +679,15 @@ instance_info::print_instance_info(std::ostream& os){
 	os << ist_num_ccls << sep;
 	os << ist_num_lits << sep;
 	os << ist_num_laps << sep;
-	if(ist_prt_final_assig){
-		os << ist_final_assig << sep;
+	os << ist_final_assig << sep;
+	if(ist_ck_result != k_unknown_satisf){
+		os << satisf_val_nams[ist_ck_result] << sep;
+	}
+	if(ist_ck_sha.size() > 0){
+		os << ist_ck_sha << sep;
+	}
+	if(! ist_ck_assig.is_empty()){
+		os << ist_ck_assig << sep;
 	}
 	return os;
 }
@@ -707,6 +708,15 @@ std::ostream& operator << (std::ostream& os, debug_entry& dbg_ety){
 // global functions
 
 typedef void (*core_func_t)(void);
+
+void	init_glb_nams();
+satisf_val	result_str_to_val(t_string& res_str);
+
+void		read_file(t_string f_nam, row<char>& f_data);
+void		sha_bytes_of_arr(uchar_t* to_sha, long to_sha_sz, row<uchar_t>& the_sha);
+t_string 	sha_txt_of_arr(uchar_t* to_sha, long to_sha_sz);
+
+void 	parse_assig(t_string& assig, row_long_t& lits);
 
 void	chomp_string(std::string& s1);
 void	get_enter(std::ostream& os, char* msg);

@@ -350,14 +350,6 @@ public:
 };
 
 //=================================================================
-// file funcs
-
-void		read_file(t_string f_nam, row<char>& f_data);
-void		sha_bytes_of_arr(uchar_t* to_sha, long to_sha_sz, row<uchar_t>& the_sha);
-t_string 	sha_txt_of_arr(uchar_t* to_sha, long to_sha_sz);
-
-
-//=================================================================
 // map funcs
 
 void		shuffle_lit_mapping(tak_mak& rnd_gen, row<integer>& to_shuff);

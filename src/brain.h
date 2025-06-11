@@ -830,6 +830,7 @@ class brain {
 		// reset neurons
 		br_neurons.clear(true);
 		br_tmp_quantons.clear(false, true);
+		br_tmp_final_assig.clear(false, true);
 
 		// temporal attributes
 		br_tmp_fixing_quantons.clear(false, true);
