@@ -104,6 +104,12 @@ typedef std::ofstream 	t_ofstream;
 
 void abort_func(long val, const char* msg = as_pt_char("Aborting."));
 
+#ifdef DBG_MEM_CHANGES
+#define MEM_CHANGED(prm) prm
+#else
+#define MEM_CHANGED(prm) ;
+#endif
+
 //=================================================================
 // top_exception
 
@@ -182,12 +188,14 @@ public:
 	mem_size 		num_bytes_available;
 	memout_func_t	set_memout_func;
 	bool			use_secure_alloc;
+	bool			dbg_changes;
 
 	glb_mem_data(){
 		num_bytes_in_use = 0;
 		num_bytes_available = 0;
 		set_memout_func = NULL_PT;
 		use_secure_alloc = false;
+		dbg_changes = false;
 	}
 
 	~glb_mem_data(){
@@ -205,6 +213,7 @@ tpl_malloc(size_t the_size = 1){
 	MEM_CTRL(
 		MEM_CK((MAX_MEM_SZ - mem_sz) > MEM_STATS.num_bytes_in_use);
 		MEM_STATS.num_bytes_in_use += mem_sz;
+		MEM_CHANGED(if(MEM_STATS.dbg_changes){ std::cout << "tpl_malloc INC mem_sz=" << mem_sz << "\n" << STACK_STR << "\n";});
 
 		if(	(MEM_STATS.num_bytes_available > 0) && 
 			(MEM_STATS.num_bytes_in_use > MEM_STATS.num_bytes_available) )
@@ -250,8 +259,10 @@ tpl_realloc(obj_t* ptr, size_t old_size, size_t the_size){
 		mem_size old_mem_sz = old_size * sizeof(obj_t);
 		MEM_CK(MEM_STATS.num_bytes_in_use >= old_mem_sz);
 		MEM_STATS.num_bytes_in_use -= old_mem_sz;
+		MEM_CHANGED(if(MEM_STATS.dbg_changes){ std::cout << "tpl_realloc DEC old_mem_sz=" << old_mem_sz << "\n";});
 		MEM_CK((MAX_MEM_SZ - mem_sz) > MEM_STATS.num_bytes_in_use);
 		MEM_STATS.num_bytes_in_use += mem_sz;
+		MEM_CHANGED(if(MEM_STATS.dbg_changes){ std::cout << "tpl_realloc INC mem_sz=" << mem_sz << "\n" << STACK_STR << "\n";});
 
 		if(	(MEM_STATS.num_bytes_available > 0) && 
 			(MEM_STATS.num_bytes_in_use > MEM_STATS.num_bytes_available) )
@@ -291,6 +302,7 @@ tpl_free(obj_t*& ptr, size_t the_size = 1){
 		mem_size old_mem_sz = the_size * sizeof(obj_t);
 		MEM_CK(MEM_STATS.num_bytes_in_use >= old_mem_sz);
 		MEM_STATS.num_bytes_in_use -= old_mem_sz;
+		MEM_CHANGED(if(MEM_STATS.dbg_changes){ std::cout << "tpl_free DEC old_mem_sz=" << old_mem_sz << "\n" << STACK_STR << "\n";});
 	);
 }
 

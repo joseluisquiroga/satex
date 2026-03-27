@@ -144,22 +144,6 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 
 // end_of_def
 
-/*
-#define BRAIN_CK_0(prm) DBG_CK(prm)
-//define BRAIN_CK_0(prm)	SUPPORT_CK(prm)
-
-#define BRAIN_CK(prm) \
-	DBG_CK(dbg_print_cond_func(get_dbg_info(), (! (prm)), true, __FILE__, __LINE__, #prm)); \
-
-// end_of_def
-
-#define BRAIN_CK_1(prm)	;
-//define BRAIN_CK_1(prm)	BRAIN_CK(prm)
-
-#define BRAIN_CK_2(prm)	;
-//define BRAIN_CK_2(prm)	BRAIN_CK(prm)
-*/
-
 #define DBG_SLOW(prm)
 //define DBG_SLOW(prm)	DBG(prm)
 
@@ -454,13 +438,15 @@ public:
 	bool			prt_help;
 	bool			prt_version;
 	bool			prt_headers;
+	bool 			is_test;
+	std::string		test_id;
 
 	std::string		help_str;
 	std::string		version_str;
 
 	bool			just_read;
 
-	row<quanton*>		final_assig;
+	row<quanton*>	final_assig;
 	row<long>		final_trail_ids;
 	row<long>		final_chosen_ids;
 
@@ -471,14 +457,11 @@ public:
 	std::string		op_cnf_f_nam;
 	long			op_cnf_num;
 	bool			op_ck_satisf;
-	bool			op_dbg_no_learning;
 
 	std::string		dbg_file_name;
 	std::ofstream		dbg_file;
 
 	row<long>		dbg_config_line;
-
-	long			dbg_num_laps;
 
 	std::ostringstream	error_stm;
 	long			error_cod;
@@ -638,6 +621,7 @@ public:
 
 	void		call_solve_instance(debug_info& dbg_inf);
 	void		do_instance(debug_info& dbg_inf);
+	void		do_test();
 	void		check_final_assig(debug_info& dbg_inf);
 	
 	//int	walk_neuron_tree(std::string& dir_nm);

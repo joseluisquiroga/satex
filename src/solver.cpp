@@ -171,6 +171,70 @@ get_free_mem_kb(){
 	return free_mem_kb;
 }
 
+void
+solver::read_log_file(t_string fnam, row<instance_info>& names){
+	std::ifstream flog(fnam.c_str());
+	if(! flog.is_open()){
+		std::cerr << "Could not open file " << fnam << "\n";
+		throw file_exception(flx_cannot_open, fnam);
+		return;
+	}
+	
+	names.set_cap(1000);
+	names.clear();
+	
+	t_string lin;
+	while(std::getline(flog, lin)){
+		if(lin.size() == 0){
+			continue;
+		}
+		t_istr_stream lis(lin);
+		t_string tok;
+		
+		instance_info& ist = names.inc_sz();
+		int num_tok = 0;
+		while(std::getline(lis, tok, '|')){
+			//std::cout << "TOK= " << tok << "|";
+			if(num_tok == 0){
+				ist.ist_file_path = tok;
+			}
+			if(num_tok == 1){
+				ist.ist_ck_sha = tok;
+			}
+			if(num_tok == 2){
+				ist.ist_ck_result = result_str_to_val(tok);
+			}
+			if(num_tok == 8){
+				tok += "\n";
+				parse_assig(tok, ist.ist_ck_assig);
+			}
+			num_tok++;
+		}
+		std::cout << ist << "\n";
+	}
+	flog.close();
+}
+
+void 
+parse_assig(t_string& assig, row_long_t& lits){
+	const char* pt_in = assig.c_str();
+	
+	long num_ln = 0;
+
+	if(*pt_in != '\n'){
+		skip_whitespace(pt_in, num_ln);
+		while(*pt_in != '\n'){
+			long val = parse_int(pt_in, num_ln); 
+			if(val == 0){ break; }
+			
+			skip_whitespace(pt_in, num_ln);	
+			lits.push(val);
+		}
+	} else {
+		skip_line(pt_in, num_ln);
+	}	
+}
+
 //============================================================
 // solver
 
@@ -185,6 +249,7 @@ solver::init_solver(){
 	prt_help = false;
 	prt_version = false;
 	prt_headers = false;
+	is_test = false;
 
 	help_str =
 		"<file_name[.lst]> [-h | -v] [-p <root_path>] [-m <max_kb_to_use>] \n"
@@ -219,11 +284,9 @@ solver::init_solver(){
 	op_cnf_f_nam = "";
 	op_cnf_num = 1;
 	op_ck_satisf = false;
-	op_dbg_no_learning = false;
 
 	dbg_file_name = "";
 
-	dbg_num_laps = 0;
 
 	reset_err_msg();
 
@@ -867,6 +930,7 @@ solver::do_all_instances(debug_info& dbg_inf){
 
 			do_cnf_file(dbg_inf);
 
+			DBG_PRT(5, os << MEM_STATS.num_bytes_in_use << " - " << mem_in_u << " = " << (MEM_STATS.num_bytes_in_use - mem_in_u));
 			SUPPORT_CK_0(mem_in_u == MEM_STATS.num_bytes_in_use);
 		}
 	}
@@ -932,8 +996,6 @@ solver::get_args(int argc, char** argv)
 			just_read = true;
 		} else if(the_arg == "-ck"){
 			op_ck_satisf = true;
-		} else if(the_arg == "-no_learning"){
-			op_dbg_no_learning = true;
 		} else if((the_arg == "-o") && ((ii + 1) < argc)){ 
 			int kk_idx = ii + 1;
 			ii++;
@@ -956,13 +1018,14 @@ solver::get_args(int argc, char** argv)
 			op_cnf_id = fo_shuffle;
 		} else if(the_arg == "-tq"){
 			op_cnf_id = fo_simplify;
-
-		} else if((the_arg == "-laps") && ((ii + 1) < argc)){
+		} else if((the_arg == "-test") && ((ii + 1) < argc)){
+			is_test = true;
 
 			int kk_idx = ii + 1;
 			ii++;
 
-			dbg_num_laps = atol(argv[kk_idx]);
+			test_id = argv[kk_idx];
+
 
 		} else if((the_arg == "-m") && ((ii + 1) < argc)){
 			int kk_idx = ii + 1;
@@ -992,6 +1055,11 @@ solver::get_args(int argc, char** argv)
 		os << std::endl;
 		return false;
 	}
+	if(is_test){
+		os << " DOING_TEST \n";
+		do_test();
+		return false;
+	}
 	if(input_file_nm.size() == 0){
 		os << argv[0] << " " << help_str << std::endl;
 		os << argv[0] << " " << version_str << std::endl;
@@ -1003,7 +1071,7 @@ solver::get_args(int argc, char** argv)
 	return true;
 }
 
-int	sat3_main(int argc, char** argv){
+int	solver_main(int argc, char** argv){
 	//solver& slv = GLB;
 	solver slv;
 
@@ -1088,123 +1156,12 @@ int	main(int argc, char** argv){
 	//int rr = tests_main_(argc, argv);
 	int rr = 0;
 	try{
-		rr = sat3_main(argc, argv);
+		rr = solver_main(argc, argv);
 	} catch (...) {
-		std::cerr << "INTERNAL ERROR !!! (sat3_main)" << "\n";
+		std::cerr << "INTERNAL ERROR !!! (solver_main)" << "\n";
 		std::cerr << STACK_STR << "\n";
 		abort_func(0);
 	}
 	return rr;
-}
-
-/*
-
-==============================================================
-method pointers
-
-DECL example
-char (the_class::*the_method_pt)(int param1);
-
-ASSIG example
-the_method_pt = &the_class::a_method_of_the_class;
-
-CALL Example
-char cc = (an_object_of_the_class.*the_method_pt)(3);
-
-
-Note that "::*", ".*" and "->*" are actually 
-separate C++ operators.  
-
-	reason, reasoning, reasoned, reasoner
-
-		inductive, induce, induced, inducing, inducible
-
-		deductive, deduce, deduced, deducing, deducible
-
-		learn, learned, learning, learnable, learner
-
-		specify, specified, specifying, specifiable, 
-		specifier, specifies, specification
-
-	study, studying, studied, studiable, studies
-
-		analytic, analyze, analysed, analysing, analyzable
-		analyser, analysis
-
-		synthetic, synthesize, synthesized, synthesizing, 
-		synthesizer, synthesis
-
-		memorize, memorized, memorizing, memorizable, memorizer
-
-		simplify, simplified, simplifying, simplificative, 
-		simplifier, simplifies, simplification
-
-
-	specify induce deduce simplify learn analyze synthesize
-
-*/
-
-void	
-solver::read_log_file(t_string fnam, row<instance_info>& names){
-	std::ifstream flog(fnam.c_str());
-	if(! flog.is_open()){
-		std::cerr << "Could not open file " << fnam << "\n";
-		throw file_exception(flx_cannot_open, fnam);
-		return;
-	}
-	
-	names.set_cap(1000);
-	names.clear();
-	
-	t_string lin;
-	while(std::getline(flog, lin)){
-		if(lin.size() == 0){
-			continue;
-		}
-		t_istr_stream lis(lin);
-		t_string tok;
-		
-		instance_info& ist = names.inc_sz();
-		int num_tok = 0;
-		while(std::getline(lis, tok, '|')){
-			//std::cout << "TOK= " << tok << "|";
-			if(num_tok == 0){
-				ist.ist_file_path = tok;
-			}
-			if(num_tok == 1){
-				ist.ist_ck_sha = tok;
-			}
-			if(num_tok == 2){
-				ist.ist_ck_result = result_str_to_val(tok);
-			}
-			if(num_tok == 8){
-				tok += "\n";
-				parse_assig(tok, ist.ist_ck_assig);
-			}
-			num_tok++;
-		}
-		std::cout << ist << "\n";
-	}
-	flog.close();
-}
-
-void 
-parse_assig(t_string& assig, row_long_t& lits){
-	const char* pt_in = assig.c_str();
-	
-	long num_ln = 0;
-
-	if(*pt_in != '\n'){
-		skip_whitespace(pt_in, num_ln);
-		while(*pt_in != '\n'){
-			long val = parse_int(pt_in, num_ln); 
-			if(val == 0){ break; }
-			
-			skip_whitespace(pt_in, num_ln);	
-			lits.push(val);
-		}
-	} else {
-		skip_line(pt_in, num_ln);
-	}	
 }
 

@@ -54,7 +54,7 @@ dimacs_loader::load_file(t_string& f_nam){
 	
 	ld_content.push(END_OF_SEC); // it already has room for it
 
-	DBG_PRT(11, os << " ld_content="; ld_content.print_row_data(os, true, ""));
+	DBG_PRT(9, os << " ld_content="; ld_content.print_row_data(os, true, ""));
 }
 
 	/*
@@ -271,7 +271,7 @@ void
 dimacs_loader::calc_f_lit_equal_or(long d_lit, row<long>& or_lits,
 			row_row_long_t& rr_lits)
 {
-	DBG_PRT(41, os << "EQ_OR. d_lit=" << d_lit << " or_lits=" << or_lits);
+	DBG_PRT(11, os << "EQ_OR. d_lit=" << d_lit << " or_lits=" << or_lits);
 
 	DIMACS_CK(d_lit > 0);
 	DIMACS_CK(! or_lits.is_empty());
@@ -546,8 +546,6 @@ init_lit_mapping(tak_mak& rnd_gen, row<integer>& the_map, long num_var){
 	}
 
 	shuffle_lit_mapping(rnd_gen, the_map);
-
-	//DBG_PRT(12, os << "num_var=" << num_var << " VAR_MAPPING=" << the_map);
 }
 
 integer
@@ -655,8 +653,6 @@ init_ccl_mapping(tak_mak& rnd_gen, row<integer>& the_map, long num_ccl){
 	}
 
 	shuffle_ccl_mapping(rnd_gen, the_map);
-
-	//DBG_PRT(13, os << "num_ccl=" << num_ccl << " VAR_MAPPING=" << the_map);
 }
 
 void
@@ -742,9 +738,9 @@ void
 dimacs_loader::calc_f_lit_equal_and(long d_lit, row<long>& and_lits,
 			row_row_long_t& rr_lits)
 {
-	DBG_PRT(42, os << "EQ_AND. d_lit=" << d_lit << " and_lits=" << and_lits);
+	DBG_PRT(12, os << "EQ_AND. d_lit=" << d_lit << " and_lits=" << and_lits);
 
-	DIMACS_CK(! and_lits.is_empty());
+	SUPPORT_CK(! and_lits.is_empty());
 	row<long>& f1 = rr_lits.inc_sz();
 
 	and_lits.copy_to(f1);
@@ -802,9 +798,9 @@ dimacs_loader::finish_parse(row<long>& inst_ccls)
 	verif_num_ccls(ld_file_name, ld_decl_ccls, ld_parsed_ccls);
 	//verif_tot_lits(ld_file_name, ld_decl_lits, ld_parsed_lits);
 
-	DIMACS_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
-	DIMACS_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
-	DIMACS_CK(ld_as_3cnf || (ld_nud_added_lits == 0));
+	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
+	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
+	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_lits == 0));
 
 	ld_num_ccls = ld_decl_ccls + ld_nud_added_ccls;
 	ld_num_vars = ld_decl_vars + ld_nud_added_vars;

@@ -83,10 +83,10 @@ solver::do_cnf_file(debug_info& dbg_inf){
 				test_cnf_shuffle();
 				break;
 			case fo_simplify:
-				test_tier_queue();
+				//test_tier_queue();
 				break;
 			case fo_ck_assig:
-				check_final_assig(dbg_inf);
+				//check_final_assig(dbg_inf);
 				break;
 			default:
 				do_instance(dbg_inf);
@@ -100,6 +100,7 @@ solver::do_cnf_file(debug_info& dbg_inf){
 		std::cerr << STACK_STR << "\n";
 		abort_func(0);
 	}
+	DBG_PRT(5, print_all_cls_sizes(os));
 }
 
 std::ostream&
@@ -267,132 +268,16 @@ solver::do_instance(debug_info& dbg_inf)
 	instance_info& the_ans = slv.get_curr_inst();
 	MARK_USED(the_ans);
 
-	/*DBG_PRT(0, os << "STARTING. batch_count=" 
-		<< slv.batch_consec << " of " 
-		<< slv.batch_num_files);*/
-
 	std::string f_nam = the_ans.get_f_nam();
 	SUPPORT_CK_0(f_nam.size() > 0);
-	//DBG_PRT(0, os << "FILE=" << f_nam << std::endl);
 
 	call_solve_instance(dbg_inf);
-
-	/*DBG_PRT(0, os << "FINISHING. batch_count="
-		<< slv.batch_consec << " of " 
-		<< slv.batch_num_files << std::endl;
-		the_ans.print_headers(os);
-		os << std::endl << the_ans;
-	);*/
 }
 
 void
-tq_print_options(){
-	std::cout << "p (push) k (pick) \n";	
+solver::do_test()
+{
+	//f4();
+	//test_psig();
 }
-
-typedef tier_queue<prop_signal> tq_psig_t;
-
-quanton*
-tq_get_quanton(brain& brn){
-	std::string the_ln;
-	std::cout << "quanton id ?\n";
-	long max = brn.br_positons.last_idx();
-	std::cout << "min=" << -max << " max=" << max << "\n";
-	std::getline(std::cin, the_ln);
-	const char* str1 = the_ln.c_str();
-	long qid = parse_int(str1, 0);
-	quanton* qua = brn.get_quanton(qid);
-	return qua;
-}
-
-long
-tq_get_tier(tq_psig_t& tq){
-	std::string the_ln;
-	std::cout << "tier ?\n";
-	long max = tq.last_tier();
-	std::cout << " last_tier=" << max << "\n";
-	std::getline(std::cin, the_ln);
-	const char* str1 = the_ln.c_str();
-	long ti = parse_int(str1, 0);
-	return ti;
-}
-
-void
-solver::test_tier_queue(){
-	//solver& slv = *this;
-	brain brn;
-	
-	brn.init_loading(17, 5);
-	
-	tq_psig_t tq1(get_ptier);
-	
-	prop_signal snw;
-	while(true){
-		std::string the_ln;
-		tq_print_options();
-		std::getline(std::cin, the_ln);
-		if(the_ln == ""){
-			break;
-		}
-		if(the_ln == "p"){
-			quanton* qua = tq_get_quanton(brn);
-			long ti = tq_get_tier(tq1);
-			snw.init_prop_signal(qua, NULL_PT, ti);
-			tq1.push(snw);			
-		}
-		else if(the_ln == "k"){
-			prop_signal o1 = tq1.pick();
-			std::cout << "sig=" << o1 << "\n";
-		}
-		std::cout << "TIERS=\n" << tq1 << "\n";
-	}
-};
-
-void
-solver::check_final_assig(debug_info& dbg_inf){
-	brain brn;
-	brn.br_dbg_info = &dbg_inf;
-	brn.br_slv = this;
-	dbg_inf.dbg_brn = &brn;
-
-	instance_info& ist = get_curr_inst();
-	brn.br_pt_inst = &ist;
-	
-	if(ist.ist_ck_result != k_yes_satisf){
-		std::cout << "NOT_SAT_INSTANCE file=" << ist.ist_file_path << "\n";
-		return;
-	}
-
-	brn.load_it();
-	
-	if(ist.ist_file_sha != ist.ist_ck_sha){
-		std::cerr << "BAD_SHA FOR YES_SAT file=" << ist.ist_file_path << "\n";
-		return;
-	}
-
-	row_long_t& lits = ist.ist_ck_assig;
-	row_quanton_t all_quas;
-	brn.get_quantons_from_lits(lits, 0, lits.size(), all_quas);
-	
-	brn.inc_level();
-	
-	BRAIN_CK(brn.level() == 1);
-	
-	for(long ii = 0; ii < all_quas.size(); ii++){
-		quanton* qua = all_quas[ii];
-		BRAIN_CK(qua != NULL_PT);
-		qua->set_charge(&brn, NULL_PT, cg_positive, 1);
-	}
-	
-	brn.check_sat_assig();
-	
-	brn.retract_to_level(ROOT_LEVEL);
-
-	brn.dec_level();
-	
-	final_assig.clear(true, true);	// So global memcheck says its OK.
-	
-	std::cout << "FILE= " << ist.ist_file_path << " CHECKED SAT ASSIG OK\n";
-}
-
 
