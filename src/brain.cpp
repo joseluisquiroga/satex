@@ -514,13 +514,13 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 	BRAIN_CK(ck_tunnels());
 	if(ne_fibres[0] == qua){
 		swap_fibres_0_1();
-		BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
-		BRAIN_CK_2(ne_fibres[1]->ck_all_tunnels());
+		BRAIN_CK(ne_fibres[0]->ck_all_tunnels());
+		BRAIN_CK(ne_fibres[1]->ck_all_tunnels());
 	}
 	BRAIN_CK(ne_fibres[1] == qua);
 	if(ne_fibres[0]->get_charge() == cg_positive){
-		BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
-		BRAIN_CK_2(ne_fibres[1]->ck_all_tunnels());
+		BRAIN_CK(ne_fibres[0]->ck_all_tunnels());
+		BRAIN_CK(ne_fibres[1]->ck_all_tunnels());
 		return ac_go_on;	// neu_is_satisf
 	}
 
@@ -544,9 +544,9 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 
 			BRAIN_CK(ne_fibres[ii]->get_charge() == cg_negative);
 
-			BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
-			BRAIN_CK_2(ne_fibres[1]->ck_all_tunnels());
-			BRAIN_CK_2(ne_fibres[ii]->ck_all_tunnels());
+			BRAIN_CK(ne_fibres[0]->ck_all_tunnels());
+			BRAIN_CK(ne_fibres[1]->ck_all_tunnels());
+			BRAIN_CK(ne_fibres[ii]->ck_all_tunnels());
 			return ac_go_on;	// neu_has_no_forced_quanton
 		}
 		DBG(
@@ -565,8 +565,8 @@ neuron::neu_tunnel_signals(brain* brn, quanton* qua){
 	quanton* forced_qua = forced_quanton();	
 	action_t sgl_nxt = brn->send_tsignal(forced_qua, neu, max_tier + 1);
 	
-	BRAIN_CK_2(ne_fibres[0]->ck_all_tunnels());
-	BRAIN_CK_2(ne_fibres[1]->ck_all_tunnels());
+	BRAIN_CK(ne_fibres[0]->ck_all_tunnels());
+	BRAIN_CK(ne_fibres[1]->ck_all_tunnels());
 	return sgl_nxt;
 }
 
@@ -662,7 +662,7 @@ quanton::qua_tunnel_signals(brain* brn){
 		action_t resp = neu->neu_tunnel_signals(brn, this);
 		BRAIN_CK(resp == ac_go_on);
 	} // end for (ii)
-	BRAIN_CK_2(ck_all_tunnels());
+	BRAIN_CK(ck_all_tunnels());
 }
 
 void
@@ -964,9 +964,7 @@ brain::learn_reasons(row<reason>& resns){
 		}
 	}
 
-	if(dbginf().dbg_ic_active && dbginf().dbg_ic_after){
-		dbg_ic_print();
-	}
+	IC_DBG(if(dbginf().dbg_ic_active && dbginf().dbg_ic_after){	dbg_ic_print();	})
 
 	resns.clear(true);
 }
@@ -997,9 +995,7 @@ brain::pulsate(){
 		find_reasons(br_conflicts, br_reasons);
 		BRAIN_CK_0(br_reasons.size() > 0);
 
-		if(dbginf().dbg_ic_active){
-			dbg_ic_print();
-		}
+		IC_DBG(if(dbginf().dbg_ic_active){ dbg_ic_print();})
 
 		BRAIN_CK_0(br_reasons.size() > 0);
 		BRAIN_CK_0(! has_tsignals());
@@ -1151,16 +1147,18 @@ brain::config_brain(std::string f_nam){
 	}
 	set_file_name_in_ic(f_nam);
 
-	if(dbginf().dbg_ic_active){
-		std::ostringstream o_str;
-		o_str << "rm " << DBG_DIR << "*.dot";
-		system_exec(o_str);
-	}
-	if(dbginf().dbg_ic_gen_jpg){
-		std::ostringstream o_str;
-		o_str << "rm " << DBG_DIR << "all_dot_to_jpg.bat";
-		system_exec(o_str);
-	}
+	IC_DBG(
+		if(dbginf().dbg_ic_active){
+			std::ostringstream o_str;
+			o_str << "rm " << DBG_DIR << "*.dot";
+			system_exec(o_str);
+		}
+		if(dbginf().dbg_ic_gen_jpg){
+			std::ostringstream o_str;
+			o_str << "rm " << DBG_DIR << "all_dot_to_jpg.bat";
+			system_exec(o_str);
+		}
+	)
 }
 
 void system_exec(std::ostringstream& strstm){
@@ -1438,9 +1436,7 @@ brain::dpg_post_solve(){
 	//std::cout << std::endl;
 	//std::cout << ".";
 
-	if(dbginf().dbg_ic_active){
-		dbg_ic_print();
-	}
+	IC_DBG(if(dbginf().dbg_ic_active){ dbg_ic_print();} )
 }
 
 std::ostream&

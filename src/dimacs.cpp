@@ -744,7 +744,7 @@ dimacs_loader::calc_f_lit_equal_and(long d_lit, row<long>& and_lits,
 {
 	DBG_PRT(42, os << "EQ_AND. d_lit=" << d_lit << " and_lits=" << and_lits);
 
-	BRAIN_CK(! and_lits.is_empty());
+	DIMACS_CK(! and_lits.is_empty());
 	row<long>& f1 = rr_lits.inc_sz();
 
 	and_lits.copy_to(f1);
@@ -802,9 +802,9 @@ dimacs_loader::finish_parse(row<long>& inst_ccls)
 	verif_num_ccls(ld_file_name, ld_decl_ccls, ld_parsed_ccls);
 	//verif_tot_lits(ld_file_name, ld_decl_lits, ld_parsed_lits);
 
-	BRAIN_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
-	BRAIN_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
-	BRAIN_CK(ld_as_3cnf || (ld_nud_added_lits == 0));
+	DIMACS_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
+	DIMACS_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
+	DIMACS_CK(ld_as_3cnf || (ld_nud_added_lits == 0));
 
 	ld_num_ccls = ld_decl_ccls + ld_nud_added_ccls;
 	ld_num_vars = ld_decl_vars + ld_nud_added_vars;

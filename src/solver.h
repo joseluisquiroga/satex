@@ -144,6 +144,7 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 
 // end_of_def
 
+/*
 #define BRAIN_CK_0(prm) DBG_CK(prm)
 //define BRAIN_CK_0(prm)	SUPPORT_CK(prm)
 
@@ -157,6 +158,7 @@ bool	dbg_print_cond_func(debug_info* dbg_info, bool prm,
 
 #define BRAIN_CK_2(prm)	;
 //define BRAIN_CK_2(prm)	BRAIN_CK(prm)
+*/
 
 #define DBG_SLOW(prm)
 //define DBG_SLOW(prm)	DBG(prm)

@@ -497,7 +497,7 @@ solver::count_instance(instance_info& inst_info){
 	} else if(inst_res == k_memout){
 		batch_num_memout++;
 	} else {
-		BRAIN_CK(inst_res == k_error);
+		SUPPORT_CK(inst_res == k_error);
 		batch_num_error++;
 	}
 

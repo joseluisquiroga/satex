@@ -26,6 +26,17 @@ Declarations of classes and that implement the neural network.
 #define BRAIN_DBG(prm) 		DBG(prm)
 #define DBG_SOURCES(cod)	DBG(cod)
 
+#define BRAIN_CK_0(prm) DBG_CK(prm)
+
+#define BRAIN_CK(prm) \
+	DBG_CK(dbg_print_cond_func(get_dbg_info(), (! (prm)), true, __FILE__, __LINE__, #prm)); \
+
+// end_of_def
+
+//define IC_DBG(prm) 		DBG(prm)
+#define IC_DBG(prm) 		;
+
+
 //=================================================================================================
 // MAIN CLASSES
 
@@ -1133,6 +1144,16 @@ void	get_ids_of(row_quanton_t& quans, row_long_t& the_ids){
 	}
 }
 
+
+inline
+void print_all_cls_sizes(std::ostream& os){
+	os << "sizeof(quanton)" << sizeof(quanton) << "\n";
+	os << "sizeof(neuron)" << sizeof(neuron) << "\n";
+	os << "sizeof(brain)" << sizeof(brain) << "\n";
+	os << "sizeof(brain_exception)" << sizeof(brain_exception) << "\n";
+	os << "sizeof(row_quanton_t)" << sizeof(row_quanton_t) << "\n";
+	os << "sizeof(row_neuron_t)" << sizeof(row_neuron_t) << "\n";
+}
 
 //=================================================================================================
 // printing funcs
