@@ -250,6 +250,8 @@ solver::init_solver(){
 	prt_version = false;
 	prt_headers = false;
 	is_test = false;
+	
+	test_pm = "";
 
 	help_str =
 		"<file_name[.lst]> [-h | -v] [-p <root_path>] [-m <max_kb_to_use>] \n"
@@ -1024,7 +1026,7 @@ solver::get_args(int argc, char** argv)
 			int kk_idx = ii + 1;
 			ii++;
 
-			test_id = argv[kk_idx];
+			test_pm = argv[kk_idx];
 
 
 		} else if((the_arg == "-m") && ((ii + 1) < argc)){
@@ -1157,6 +1159,11 @@ int	main(int argc, char** argv){
 	int rr = 0;
 	try{
 		rr = solver_main(argc, argv);
+		
+	} catch (std::domain_error& aa) {
+		std::cerr << aa.what() << "\n";
+		std::cerr << STACK_STR << "\n";
+		abort_func(0);
 	} catch (...) {
 		std::cerr << "INTERNAL ERROR !!! (solver_main)" << "\n";
 		std::cerr << STACK_STR << "\n";

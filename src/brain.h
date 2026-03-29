@@ -21,6 +21,19 @@ Declarations of classes and that implement the neural network.
 
 
 //=================================================================================================
+// includes
+
+#include <limits.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include "tools.h"
+#include "solver.h"
+#include "print_stm.h"
+
+
+//=================================================================================================
 // defines
 
 #define BRAIN_DBG(prm) 		DBG(prm)
@@ -88,55 +101,11 @@ class prop_signal;
 typedef	row<quanton*>		row_quanton_t;
 typedef	row<neuron*>		row_neuron_t;
 
-//=================================================================
-// printing declarations
-
-#define DECLARE_PRINT_FUNCS(obj_t) \
-std::ostream& operator << (std::ostream& os, obj_t& obj1); \
-std::ostream& operator << (std::ostream& os, obj_t* obj1); \
-\
-
-// end_of_define
-
-#define DEFINE_PRINT_FUNCS(obj_t) \
-inline \
-std::ostream& operator << (std::ostream& os, obj_t& obj1){ \
-	obj1.print_##obj_t(os); \
-	os.flush(); \
-	return os; \
-} \
-\
-inline \
-std::ostream& operator << (std::ostream& os, obj_t* obj1){ \
-	if(obj1 == NULL_PT){ \
-		os << "NULL_" << #obj_t; \
-	} else { \
-		obj1->print_##obj_t(os, true); \
-	} \
-	os.flush(); \
-	return os; \
-} \
-\
-
-// end_of_define
-
-
 DECLARE_PRINT_FUNCS(ticket)
 DECLARE_PRINT_FUNCS(quanton)
 DECLARE_PRINT_FUNCS(neuron)
 DECLARE_PRINT_FUNCS(reason)
 DECLARE_PRINT_FUNCS(prop_signal)
-
-//=================================================================================================
-// includes
-
-#include <limits.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "tools.h"
-#include "solver.h"
 
 //=================================================================
 // comparison declarations

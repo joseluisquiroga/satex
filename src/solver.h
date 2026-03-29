@@ -439,7 +439,7 @@ public:
 	bool			prt_version;
 	bool			prt_headers;
 	bool 			is_test;
-	std::string		test_id;
+	std::string		test_pm;
 
 	std::string		help_str;
 	std::string		version_str;
@@ -618,6 +618,7 @@ public:
 	void		test_cnf_shuffle();
 	void		test_tier_queue();
 	void		test_simplify_cnf();
+	void		test_expr();
 
 	void		call_solve_instance(debug_info& dbg_inf);
 	void		do_instance(debug_info& dbg_inf);

@@ -19,11 +19,17 @@ funcs that implement top level funcs.
 #include <execinfo.h>	// trace stack 
 #include <cxxabi.h>	// trace stack 
 #include <cstring>
+#include <iostream>
 
+#include "formu.h"
 
 #include "solver.h"
 #include "dimacs.h"
 #include "brain.h"
+
+
+#define ETEST(exprs) std::cout << (expr.eval(#exprs, vars).toNumber() == (exprs) ? "  OK" : "FAIL") << " : " << #exprs << std::endl;
+#define ETEST_EXPECT(exprs, expect) std::cout << (expr.eval(exprs, vars).toNumber() == (expect) ? "  OK" : "FAIL") << " : " << exprs << std::endl;
 
 //============================================================
 // code for solver
@@ -274,10 +280,30 @@ solver::do_instance(debug_info& dbg_inf)
 	call_solve_instance(dbg_inf);
 }
 
+void 
+solver::test_expr(){
+    formu ff;
+	
+	std::cout << "test_expr______________________________\n";
+    
+	row<long> dim;
+	
+	//ff.parse_cnf("false && !false", dim);
+	//ff.parse_cnf(" -2 && -34 ", dim);
+
+	if(test_pm != ""){
+		ff.parse_cnf(test_pm.c_str(), dim);
+	} else {
+		std::cout << "EMPTY_PARAMETER !!\n";
+	}
+	
+}
+
 void
 solver::do_test()
 {
 	//f4();
 	//test_psig();
+	test_expr();
 }
 
