@@ -72,7 +72,7 @@ void
 formu::toRPN(const char* expr){
     //val_fifo_t rpnQueue; 
 	//std::stack<std::string> operatorStack;
-	curr_id_var = 1;
+	curr_id_var = 0;
 	var_ids = long_map_t();
 	rpnQueue = val_fifo_t();
 	operatorStack = str_stack_t();
@@ -116,10 +116,23 @@ formu::toRPN(const char* expr){
             }
             
             std::string key = ss.str();
-			rpnQueue.push(key);
-			rpnQueue.back().id_var = get_id_var(key);
+			bin_tok bct = to_bin_const(key);
+			if(bct != BAD_BIN){
+				str_t ktok = "INVALID_CONSTANT";
+				if(bct == TRUE){
+					ktok = "true";
+				} else if(bct == FALSE){
+					ktok = "false";
+				} else {
+					throw std::domain_error("Unrecognized constant '" + key + "'");					
+				}
+				rpnQueue.push(val_t(ktok, TOKEN));
+			} else {
+				rpnQueue.push(key);
+				rpnQueue.back().id_var = get_id_var(key);
+			}
 
-            lastTokenWasOp = false;
+			lastTokenWasOp = false;
         }
         /*else if (*expr == '\'' || *expr == '"')
         {
@@ -181,8 +194,9 @@ formu::toRPN(const char* expr){
                     
                     if (lastTokenWasOp) {
                         // Convert unary operators to binary in the RPN.
+						std::cerr << "UNARY " << str << " detected\n";
                         if (!str.compare("-") || !str.compare("+") || !str.compare("!"))
-                            rpnQueue.push(0);
+                            rpnQueue.push(val_t("UNARY_FILL", TOKEN));
                         else
                             throw std::domain_error("Unrecognized unary operator: '" + str + "'");
                         
@@ -209,6 +223,7 @@ formu::toRPN(const char* expr){
     //return rpnQueue;
 }
 
+/*
 static bool widcardCompare(std::string str, std::string wc)
 {
     return !fnmatch(wc.c_str(), str.c_str(), FNM_NOESCAPE | FNM_PERIOD);
@@ -316,10 +331,11 @@ formu::eval(const char* expr) {
     }
     return evaluation.top();
 }
+*/
 
 std::ostream&
 formu::val_t::print_val_fn(std::ostream& os, bool from_pt){
-	os << "[" << toString() << "," << id_var << "]";
+	os << "[" << toString() << "," << id_var << "," << val_kind_nm() << "]";
 	return os;
 }
 
@@ -327,14 +343,151 @@ void
 formu::parse_cnf(const char* expr, row<long>& cnf){
     toRPN(expr);
 	val_fifo_t& rpn = rpnQueue;
+
+    val_stack_t stk;
+	
+	cnf.clear();
 	
 	while(! rpn.empty()){
-		val_t vv = rpn.front();
-		std::cout << vv << " ";
+		val_t tok = rpn.front();
+		//std::cout << tok << " ";
 		rpn.pop();
+
+        if(tok.isToken()){
+            std::string str = tok.string;
+			bin_tok bt = to_bin_tok(str);
+
+			bool is_op = (bt != FILL) && (bt != TRUE) && (bt != FALSE);
+			if(is_op){
+				val_t right = stk.top(); stk.pop();
+				val_t left  = stk.top(); stk.pop();
+
+				//std::cout << "(" << left << " " << str << " " << right << ")";				
+				
+				switch(bt){
+					case AND: add_and(tok, left, right, cnf); break;
+					case OR: add_or(tok, left, right, cnf); break;
+					case NOT: add_not(tok, left, right, cnf); break;
+					case THEN: add_then(tok, left, right, cnf); break;
+					case BAKTHEN: add_bakthen(tok, left, right, cnf); break;
+					case EQUAL: add_equal(tok, left, right, cnf); break;
+					case NOT_EQUAL: add_not_equal(tok, left, right, cnf); break;
+					case SAME: add_same(tok, left, right, cnf); break;
+					default:
+						throw std::domain_error("Invalid bin_tok '" + str+ "'.");
+				}
+			}
+		}
+
+		stk.push(tok);
 	}
 	
 	std::cout << "\n-------------------------------\n";
+}
+
+formu::bin_tok
+formu::to_bin_const(str_t tok){
+	bin_tok tt = BAD_BIN;
+	if(tok == "T"){ tt = TRUE;
+	} else if(tok == "F"){ tt = FALSE;
+	} else if(tok == "true"){ tt = TRUE;
+	} else if(tok == "false"){ tt = FALSE;
+	} else if(tok == "True"){ tt = TRUE;
+	} else if(tok == "False"){ tt = FALSE;
+	} else if(tok == "TRUE"){ tt = TRUE;
+	} else if(tok == "FALSE"){ tt = FALSE;
+	}
+	return tt;
+}
+
+formu::bin_tok
+formu::to_bin_tok(str_t tok){
+	bin_tok tt = BAD_BIN;
+	if(tok == "&&"){ tt = AND;
+	} else if(tok == "||"){ tt = OR;
+	} else if(tok == "&"){ tt = AND;
+	} else if(tok == "|"){ tt = OR;
+	} else if(tok == ">"){ tt = THEN;
+	} else if(tok == "<"){ tt = BAKTHEN;
+	} else if(tok == "=>"){ tt = THEN;
+	} else if(tok == "<="){ tt = BAKTHEN;
+	} else if(tok == "->"){ tt = THEN;
+	} else if(tok == "<-"){ tt = BAKTHEN;
+	} else if(tok == ">>"){ tt = THEN;
+	} else if(tok == "<<"){ tt = BAKTHEN;
+	} else if(tok == "=="){ tt = EQUAL;
+	} else if(tok == "="){ tt = EQUAL;
+	} else if(tok == "!="){ tt = NOT_EQUAL;
+	} else if(tok == "+"){ tt = SAME;
+	} else if(tok == "-"){ tt = NOT;
+	} else if(tok == "!"){ tt = NOT;
+	} else if(tok == "UNARY_FILL"){ tt = FILL;
+	} else {
+		tt = to_bin_const(tok);
+	}
+	return tt;
+}
+
+void
+formu::prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt){
+	os << "(";
+	if((lft.string == "false") || (lft.string == "true")){
+		os << lft.string;
+	} else if(lft.type == STRING){
+		os << "[" << lft.id_var << "." << lft.string << "]";
+	} else {
+		os << "[" << lft.id_var << "]";
+	}
+	
+	os << " [" << op.id_var << "." << to_nm(op.string) << "] ";
+	if((rgt.string == "false") || (rgt.string == "true")){
+		os << rgt.string;
+	} else if(rgt.type == STRING){
+		os << "[" << rgt.id_var << "." << rgt.string << "]";
+	} else {
+		os << "[" << rgt.id_var << "]";
+	}
+	os << ")";
+}
+
+void
+formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
+}
+
+void
+formu::add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+	prt_op(std::cout, op, lft, rgt);
 }
 
 
