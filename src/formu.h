@@ -153,6 +153,9 @@ public:
         bool is_false()const{ return (to_bin_const(vl_str) == FALSE); };
         bool is_true()const{ return (to_bin_const(vl_str) == TRUE); };
 		
+		long pos(){ return vl_id_var; }
+		long neg(){ return -vl_id_var; }
+		
 		str_t 
 		val_kind_nm(){
 			str_t nm = "INVALID_KIND";
@@ -160,6 +163,7 @@ public:
 				case BOPER: nm = "BOPER"; break;
 				case BVAR: nm = "BVAR"; break;
 				case BCONST: nm = "BCONST"; break;
+				case BUNDEFINED: nm = "BUNDEFINED"; break;
 				default: break;
 			}
 			return nm;
@@ -183,6 +187,14 @@ public:
     void parse_cnf(const char* expr, row<long>& cnf);
 	    
 private:
+    int_map_t 		op_preced;
+	
+	long			curr_id_var;
+	long_map_t		var_ids;
+	str_stack_t 	op_stack;
+    val_fifo_t 		rpn_queue;
+	val_stack_t		parse_stack;
+	
     void toRPN(const char* expr);
 	
 	void prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt);
@@ -207,13 +219,10 @@ private:
 	void add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	void add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	
-    int_map_t 		op_preced;
-	
-	long			curr_id_var;
-	long_map_t		var_ids;
-	str_stack_t 	op_stack;
-    val_fifo_t 		rpn_queue;
-	val_stack_t		parse_stack;
+	void add_false(row<long>& cnf);
+	void add1cla(row<long>& cnf, long v1);
+	void add2cla(row<long>& cnf, long v1, long v2);
+	void add3cla(row<long>& cnf, long v1, long v2, long v3);
 };
 
 DECLARE_PRINT_FUNCS(formu::val_t)

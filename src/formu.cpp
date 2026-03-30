@@ -226,6 +226,17 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
 			stk.push(tok);
 		}
 	}
+
+	if(! stk.empty()){
+		val_t lft = stk.top(); stk.pop();
+		val_t op; val_t rgt;
+		prt_op(std::cout, op, lft, rgt);
+		if(! lft.is_false() && ! lft.is_true()){
+			add1cla(cnf, lft.pos());
+		} else if(lft.is_false()){
+			add_false(cnf);
+		}
+	}
 	
 	std::cout << "\n-------------------------------\n";
 }
@@ -277,19 +288,55 @@ formu::prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt){
 		os << lft.vl_str;
 	} else if(lft.vl_kind == BVAR){
 		os << "[" << lft.vl_id_var << "." << lft.vl_str << "]";
-	} else {
+	} else if(lft.vl_kind != BUNDEFINED){
 		os << "[" << lft.vl_id_var << "]";
 	}
-	
-	os << " [" << op.vl_id_var << "." << to_nm(op.vl_str) << "] ";
+	if(op.vl_kind != BUNDEFINED){
+		os << " [" << op.vl_id_var << "." << to_nm(op.vl_str) << "] ";
+	}
 	if(rgt.is_false() || rgt.is_true()){
 		os << rgt.vl_str;
 	} else if(rgt.vl_kind == BVAR){
 		os << "[" << rgt.vl_id_var << "." << rgt.vl_str << "]";
-	} else {
+	} else if(rgt.vl_kind != BUNDEFINED){
 		os << "[" << rgt.vl_id_var << "]";
 	}
-	os << ")";
+	os << ")\n";
+}
+
+void 
+formu::add_false(row<long>& cnf){
+	cnf.push(1);
+	cnf.push(0);
+	cnf.push(-1);
+	cnf.push(0);
+}
+
+void 
+formu::add1cla(row<long>& cnf, long v1){
+	FORMU_CK(v1 != 0);
+	cnf.push(v1);
+	cnf.push(0);
+}
+
+void 
+formu::add2cla(row<long>& cnf, long v1, long v2){
+	FORMU_CK(v1 != 0);
+	FORMU_CK(v2 != 0);
+	cnf.push(v1);
+	cnf.push(v2);
+	cnf.push(0);
+}
+
+void 
+formu::add3cla(row<long>& cnf, long v1, long v2, long v3){
+	FORMU_CK(v1 != 0);
+	FORMU_CK(v2 != 0);
+	FORMU_CK(v3 != 0);
+	cnf.push(v1);
+	cnf.push(v2);
+	cnf.push(v3);
+	cnf.push(0);
 }
 
 void
@@ -310,6 +357,10 @@ formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+	
+	add3cla(cnf, lft.neg(), rgt.neg(), op.pos());
+	add2cla(cnf, lft.pos(), op.neg());
+	add2cla(cnf, rgt.pos(), op.neg());
 }
 
 void
@@ -330,6 +381,10 @@ formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+
+	add3cla(cnf, lft.pos(), rgt.pos(), op.neg());
+	add2cla(cnf, lft.neg(), op.pos());
+	add2cla(cnf, rgt.neg(), op.pos());
 }
 
 void
@@ -350,6 +405,11 @@ formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+
+	// -lft | rgt
+	add3cla(cnf, lft.neg(), rgt.pos(), op.neg());
+	add2cla(cnf, lft.pos(), op.pos());
+	add2cla(cnf, rgt.neg(), op.pos());
 }
 
 void
@@ -370,6 +430,11 @@ formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+
+	// lft | -rgt
+	add3cla(cnf, lft.pos(), rgt.neg(), op.neg());
+	add2cla(cnf, lft.neg(), op.pos());
+	add2cla(cnf, rgt.pos(), op.pos());
 }
 
 void
@@ -394,6 +459,12 @@ formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+
+	// XNOR <=> EQ
+	add3cla(cnf, lft.neg(), rgt.neg(), op.pos());
+	add3cla(cnf, lft.pos(), rgt.pos(), op.pos());
+	add3cla(cnf, lft.pos(), rgt.neg(), op.neg());
+	add3cla(cnf, lft.neg(), rgt.pos(), op.neg());
 }
 
 void
@@ -418,6 +489,12 @@ formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
+
+	// XOR <=> NOT_EQ
+	add3cla(cnf, lft.neg(), rgt.neg(), op.neg());
+	add3cla(cnf, lft.pos(), rgt.pos(), op.neg());
+	add3cla(cnf, lft.pos(), rgt.neg(), op.pos());
+	add3cla(cnf, lft.neg(), rgt.pos(), op.pos());
 }
 
 void
@@ -434,6 +511,9 @@ formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 	}
 	FORMU_CK(! rgt.is_bconst());
 	stk.push(neg_val(rgt));
+
+	add2cla(cnf, rgt.neg(), op.neg());
+	add2cla(cnf, rgt.pos(), op.pos());
 }
 
 void
