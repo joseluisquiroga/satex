@@ -19,9 +19,21 @@ typedef long num_t;
 #define str_to_num 	atol
 #define num_format 	"%ld"
 
-#define INVALID_ID_VAR -1
+#define INVALID_ID_VAR 0
+#define UNARY_FILL_NM "UNARY_FILL"
 
 typedef std::string str_t;
+
+//=================================================================================================
+// defines
+
+#define FORMU_DBG(prm) 		DBG(prm)
+
+#define FORMU_CK(prm) 		DBG_CK(prm)
+
+//=================================================================================================
+// enums
+
 
 enum val_kind{
 	BUNDEFINED = 0,
@@ -54,6 +66,19 @@ to_bin_const(str_t tok);
 	
 bin_op 
 to_bin_op(str_t tok);	
+
+inline
+bool
+is_unary(bin_op btk){
+	bool is_un = false;
+	switch(btk){
+		case NOT: 
+		case SAME:
+			is_un = true; break;
+		default: break;
+	}
+	return is_un;
+}
 
 inline
 str_t 
@@ -130,6 +155,7 @@ public:
         bool is_bconst()const{ return vl_kind == BCONST; };
         bool is_false()const{ return (to_bin_const(vl_str) == FALSE); };
         bool is_true()const{ return (to_bin_const(vl_str) == TRUE); };
+        bool is_fill()const{ return (is_bconst() && (vl_id_var == INVALID_ID_VAR) && (vl_str == UNARY_FILL_NM)); };
 		
 		str_t 
 		val_kind_nm(){
