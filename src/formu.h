@@ -20,7 +20,6 @@ typedef long num_t;
 #define num_format 	"%ld"
 
 #define INVALID_ID_VAR 0
-#define UNARY_FILL_NM "UNARY_FILL"
 
 typedef std::string str_t;
 
@@ -58,7 +57,6 @@ enum bin_co{
 	BAD_CO = 0,
 	TRUE,
 	FALSE,
-	FILL,
 };	
 
 bin_co 
@@ -105,7 +103,6 @@ bin_const_nm(bin_co btk){
 	switch(btk){
 		case TRUE: nm = "T"; break;
 		case FALSE: nm = "F"; break;
-		case FILL: nm = "?"; break;
 		default: break;
 	}
 	return nm;
@@ -155,7 +152,6 @@ public:
         bool is_bconst()const{ return vl_kind == BCONST; };
         bool is_false()const{ return (to_bin_const(vl_str) == FALSE); };
         bool is_true()const{ return (to_bin_const(vl_str) == TRUE); };
-        bool is_fill()const{ return (is_bconst() && (vl_id_var == INVALID_ID_VAR) && (vl_str == UNARY_FILL_NM)); };
 		
 		str_t 
 		val_kind_nm(){
@@ -193,6 +189,14 @@ private:
 
 	val_t false_val(){ return val_t(bin_const_nm(FALSE), BCONST); }
 	val_t true_val(){ return val_t(bin_const_nm(TRUE), BCONST); }
+	
+	val_t neg_val(val_t& vv){ 
+		val_t nn;
+		nn = vv; 
+		FORMU_CK(vv.vl_id_var != INVALID_ID_VAR);
+		nn.vl_id_var = -vv.vl_id_var; 
+		return nn;
+	}
 	
 	void add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	void add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);

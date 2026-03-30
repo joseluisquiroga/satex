@@ -241,7 +241,6 @@ to_bin_const(str_t tok){
 	} else if(tok == "False"){ tt = FALSE;
 	} else if(tok == "TRUE"){ tt = TRUE;
 	} else if(tok == "FALSE"){ tt = FALSE;
-	} else if(tok == UNARY_FILL_NM){ tt = FILL;
 	}
 	return tt;
 }
@@ -309,6 +308,7 @@ formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 		stk.push(lft);
 		return;
 	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
 }
 
@@ -328,6 +328,95 @@ formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 		stk.push(lft);
 		return;
 	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
+	stk.push(op);
+}
+
+void
+formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
+	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_true()){
+		stk.push(rgt);
+		return;
+	}
+	if(rgt.is_false()){
+		stk.push(neg_val(lft));
+		return;
+	}
+	if(lft.is_false() || rgt.is_true()){
+		stk.push(true_val());
+		return;
+	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
+	stk.push(op);
+}
+
+void
+formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
+	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_true() || rgt.is_false()){
+		stk.push(true_val());
+		return;
+	}
+	if(rgt.is_true()){
+		stk.push(lft);
+		return;
+	}
+	if(lft.is_false()){
+		stk.push(neg_val(rgt));
+		return;
+	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
+	stk.push(op);
+}
+
+void
+formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
+	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_true()){
+		stk.push(rgt);
+		return;
+	}
+	if(rgt.is_true()){
+		stk.push(lft);
+		return;
+	}
+	if(lft.is_false()){
+		stk.push(neg_val(rgt));
+		return;
+	}
+	if(rgt.is_false()){
+		stk.push(neg_val(lft));
+		return;
+	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
+	stk.push(op);
+}
+
+void
+formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
+	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_true()){
+		stk.push(neg_val(rgt));
+		return;
+	}
+	if(lft.is_false()){
+		stk.push(rgt);
+		return;
+	}
+	if(rgt.is_true()){
+		stk.push(neg_val(lft));
+		return;
+	}
+	if(rgt.is_false()){
+		stk.push(lft);
+		return;
+	}
+	FORMU_CK(! lft.is_bconst() && ! rgt.is_bconst());
 	stk.push(op);
 }
 
@@ -343,43 +432,15 @@ formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 		stk.push(false_val());
 		return;
 	}
-	rgt.vl_id_var = -rgt.vl_id_var;
-	stk.push(rgt);
-}
-
-void
-formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
-    val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
-	stk.push(op);
-}
-
-void
-formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
-    val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
-	stk.push(op);
-}
-
-void
-formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
-    val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
-	stk.push(op);
-}
-
-void
-formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
-    val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
-	stk.push(op);
+	FORMU_CK(! rgt.is_bconst());
+	stk.push(neg_val(rgt));
 }
 
 void
 formu::add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
-	stk.push(op);
+	stk.push(rgt);
 }
 
 
