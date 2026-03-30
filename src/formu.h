@@ -19,132 +19,141 @@ typedef long num_t;
 #define str_to_num 	atol
 #define num_format 	"%ld"
 
-/*
-typedef float num_t;
-#define str_to_num 	atof
-#define num_format 	"%f"
-*/
-
 #define INVALID_ID_VAR -1
 
 typedef std::string str_t;
+
+enum val_kind{
+	BUNDEFINED = 0,
+	BOPER,
+	BVAR,
+	BCONST,
+};
+
+enum bin_op{
+	BAD_OP = 0,
+	AND,
+	OR,
+	NOT,
+	THEN,
+	BAKTHEN,
+	EQUAL,
+	NOT_EQUAL,
+	SAME,
+};	
+
+enum bin_co{
+	BAD_CO = 0,
+	TRUE,
+	FALSE,
+	FILL,
+};	
+
+bin_co 
+to_bin_const(str_t tok);
+	
+bin_op 
+to_bin_op(str_t tok);	
+
+inline
+str_t 
+bin_op_nm(bin_op btk){
+	str_t nm = "INVALID_BIN_OP";
+	switch(btk){
+		case AND: nm = "&"; break;
+		case OR: nm = "|"; break;
+		case NOT: nm = "-"; break;
+		case THEN: nm = ">"; break;
+		case BAKTHEN: nm = "<"; break;
+		case EQUAL: nm = "="; break;
+		case NOT_EQUAL: nm = "!="; break;
+		case SAME: nm = "+"; break;
+		default: break;
+	}
+	return nm;
+}
+
+inline
+str_t 
+bin_const_nm(bin_co btk){
+	str_t nm = "INVALID_BIN_CO";
+	switch(btk){
+		case TRUE: nm = "T"; break;
+		case FALSE: nm = "F"; break;
+		case FILL: nm = "?"; break;
+		default: break;
+	}
+	return nm;
+}
+
+inline
+str_t 
+to_nm(str_t tok){
+	bin_op op = to_bin_op(tok);
+	if(op != BAD_OP){
+		return bin_op_nm(op);
+	}
+	bin_co kk = to_bin_const(tok);
+	return bin_const_nm(kk);
+}
 
 
 class formu
 {
 public:
-    enum val_kind
-    {
-        UNDEFINED = 0,
-        TOKEN =  1,
-        NUMBER = 2,
-        STRING = 4,
-        
-    };
-	
-    enum bin_tok
-    {
-        BAD_BIN = 0,
-        AND,
-        OR,
-        NOT,
-        THEN,
-        BAKTHEN,
-        EQUAL,
-        NOT_EQUAL,
-        TRUE,
-		FALSE,
-        FILL,
-		SAME,
-    };	
 
-	str_t bin_tok_nm(bin_tok btk){
-		str_t nm = "INVALID_BIN_TOK";
-		switch(btk){
-			case AND: nm = "&"; break;
-			case OR: nm = "|"; break;
-			case NOT: nm = "-"; break;
-			case THEN: nm = ">"; break;
-			case BAKTHEN: nm = "<"; break;
-			case EQUAL: nm = "="; break;
-			case NOT_EQUAL: nm = "!="; break;
-			case TRUE: nm = "T"; break;
-			case FALSE: nm = "F"; break;
-			case FILL: nm = "?"; break;
-			case SAME: nm = "+"; break;
-			default: break;
-		}
-		return nm;
-	}
-
-	str_t to_nm(str_t tok){
-		return bin_tok_nm(to_bin_tok(tok));
-	}
-	
-    bin_tok to_bin_const(str_t tok);
-    bin_tok to_bin_tok(str_t tok);
-	long	get_id_var(str_t vv);
+	long
+	get_id_var(str_t vv);
 	
     struct val_t
     {
-        //unsigned type = UNDEFINED;
-		val_kind type = UNDEFINED;
-        num_t number = 0;
-        std::string string = "";
-		long  id_var = INVALID_ID_VAR;
+		val_kind 			vl_kind = BUNDEFINED;
+        std::string 		vl_str = "";
+		long  				vl_id_var = INVALID_ID_VAR;
         
-        val_t():type(UNDEFINED){};
-        val_t(std::string str, val_kind t):type(t),string(str){};
-        val_t(std::string str):type(STRING),string(str){};
-        val_t(num_t n):type(NUMBER),number(n){};
-        //val_t(val_t& vv):type(vv.type),number(vv.number),string(vv.string),id_var(vv.id_var){};
+        val_t():vl_kind(BUNDEFINED){};
+        val_t(std::string str, val_kind t):vl_kind(t),vl_str(str){};
+        val_t(std::string str):vl_kind(BVAR),vl_str(str){};
         val_t& operator=(std::string str) {
-            type = STRING;
-            string = str;
-            return *this;
-        }
-        val_t& operator=(num_t n) {
-            type = NUMBER;
-            number = n;
-			id_var = INVALID_ID_VAR;
+            vl_kind = BVAR;
+            vl_str = str;
             return *this;
         }
         val_t& operator=(val_t vv) {
-            type = vv.type;
-            number = vv.number;
-            string = vv.string;
-            id_var = vv.id_var;
+            vl_kind = vv.vl_kind;
+            vl_str = vv.vl_str;
+            vl_id_var = vv.vl_id_var;
             return *this;
         }
         
-        bool isToken()const{ return type == TOKEN; };
-        bool isString()const{ return !isToken() && (type & STRING); };
-        bool isNumber()const{ return !isToken() && (type & NUMBER); };
-
-		str_t val_kind_nm(){
+        bool is_boper()const{ return vl_kind == BOPER; };
+        bool is_bconst()const{ return vl_kind == BCONST; };
+        bool is_false()const{ return (to_bin_const(vl_str) == FALSE); };
+        bool is_true()const{ return (to_bin_const(vl_str) == TRUE); };
+		
+		str_t 
+		val_kind_nm(){
 			str_t nm = "INVALID_KIND";
-			switch(type){
-				case TOKEN: nm = "TOK"; break;
-				case STRING: nm = "STR"; break;
-				case NUMBER: nm = "NUM"; break;
+			switch(vl_kind){
+				case BOPER: nm = "BOPER"; break;
+				case BVAR: nm = "BVAR"; break;
+				case BCONST: nm = "BCONST"; break;
 				default: break;
 			}
 			return nm;
 		}
 		
-        num_t toNumber();
         std::string toString();
 		
 		std::ostream&	print_val_fn(std::ostream& os, bool from_pt = false);		
 	};
 	
-    //typedef std::map<std::string, val_t*> val_map_t;
-	typedef std::stack<std::string> str_stack_t;
-    typedef std::queue<val_t> val_fifo_t;
-    typedef std::stack<val_t> val_stack_t;
-    typedef std::map<std::string, int> int_map_t;
+	typedef std::stack<std::string> 	str_stack_t;
+    typedef std::queue<val_t> 			val_fifo_t;
+    typedef std::stack<val_t> 			val_stack_t;
+    typedef std::map<std::string, int> 	int_map_t;
     typedef std::map<std::string, long> long_map_t;
-	typedef long_map_t::iterator long_map_it_t;
+	typedef long_map_t::iterator 		long_map_it_t;
 	    
 public:
     formu();	
@@ -156,6 +165,9 @@ private:
 	
 	void prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt);
 
+	val_t false_val(){ return val_t(bin_const_nm(FALSE), BCONST); }
+	val_t true_val(){ return val_t(bin_const_nm(TRUE), BCONST); }
+	
 	void add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	void add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	void add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
@@ -165,12 +177,13 @@ private:
 	void add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	void add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf);
 	
-    int_map_t opPrecedence;
+    int_map_t 		op_preced;
 	
-	long		curr_id_var;
-	long_map_t	var_ids;
-	str_stack_t operatorStack;
-    val_fifo_t rpnQueue;
+	long			curr_id_var;
+	long_map_t		var_ids;
+	str_stack_t 	op_stack;
+    val_fifo_t 		rpn_queue;
+	val_stack_t		parse_stack;
 };
 
 DECLARE_PRINT_FUNCS(formu::val_t)
@@ -178,3 +191,4 @@ DECLARE_PRINT_FUNCS(formu::val_t)
 DEFINE_PRINT_FUNCS_WITH(formu::val_t, print_val_fn)
 
 #endif // _FORMU_H
+

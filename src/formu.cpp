@@ -15,46 +15,49 @@
 
 #include "formu.h"
 
+/*
 num_t formu::val_t::toNumber()
 {
-    if (isToken()) return 0;
+    if (is_boper()) return 0;
     if (isNumber()) return number;
     
-    number = str_to_num(string.c_str());
-    //type |= NUMBER;
+    number = str_to_num(vl_str.c_str());
+    //vl_kind |= NUMBER;
     
     return number;
 }
+*/
 
 std::string formu::val_t::toString()
 {
-    if (isToken()) return string;
-    if (isString()) return string;
+	/*
+    if (is_boper()) return vl_str;
+    if (is_bvar()) return vl_str;
     
     char str[16];
     sprintf(str, num_format, number);
-    string = str;
-    //type |= STRING;
-    
-    return string;
+    vl_str = str;
+    //vl_kind |= BVAR;
+    */
+    return vl_str;
 }
 
-formu::formu()
-{
+formu::formu(){
     // 1. Create the operator precedence map.
-    opPrecedence["("] = -10;
-    opPrecedence["&&"]  = -2; opPrecedence["||"]  = -3; opPrecedence["&"]  = -2; opPrecedence["|"]  = -3;
-    opPrecedence[">"]  = -1; opPrecedence["<"]  = -1; 
-	opPrecedence["=>"]  = -1; opPrecedence["<="]  = -1; 
-	opPrecedence["->"]  = -1; opPrecedence["<-"]  = -1;    
-    opPrecedence[">>"] = 1; opPrecedence["<<"] = 1; 
-	opPrecedence[">="]  = -1; 
-    opPrecedence["=="]  = -1; opPrecedence["="]  = -1; 
-	opPrecedence["!="]  = -1; 
-    opPrecedence["+"]  = 2; opPrecedence["-"]  = 2;
-    opPrecedence["*"]  = 3; opPrecedence["/"]  = 3;
-    opPrecedence["^"] = 4;
-    opPrecedence["!"] = 5;
+	int_map_t& pr = op_preced;
+    pr["("] = -10;
+    pr["&&"]  = -2; pr["||"]  = -3; pr["&"]  = -2; pr["|"]  = -3;
+    pr[">"]  = -1; pr["<"]  = -1; 
+	pr["=>"]  = -1; pr["<="]  = -1; 
+	pr["->"]  = -1; pr["<-"]  = -1;    
+    pr[">>"] = 1; pr["<<"] = 1; 
+	pr[">="]  = -1; 
+    pr["=="]  = -1; pr["="]  = -1; 
+	pr["!="]  = -1; 
+    pr["+"]  = 2; pr["-"]  = 2;
+    pr["*"]  = 3; pr["/"]  = 3;
+    pr["^"] = 4;
+    pr["!"] = 5;
 }
 
 long
@@ -70,14 +73,14 @@ formu::get_id_var(str_t vv){
 #define isvariablechar(c) (isalpha(c) || c == '_')
 void 
 formu::toRPN(const char* expr){
-    //val_fifo_t rpnQueue; 
-	//std::stack<std::string> operatorStack;
 	curr_id_var = 0;
 	var_ids = long_map_t();
-	rpnQueue = val_fifo_t();
-	operatorStack = str_stack_t();
+	rpn_queue = val_fifo_t();
+	op_stack = str_stack_t();
     bool lastTokenWasOp = true;
     
+	str_stack_t& ostk = op_stack;
+	val_fifo_t& rpn = rpn_queue;
     // In one pass, ignore whitespace and parse the expression into RPN
     // using Dijkstra's Shunting-yard algorithm.
     while (*expr && isspace(*expr)) ++expr;
@@ -88,7 +91,7 @@ formu::toRPN(const char* expr){
 			char* nextChar = 0;
 			num_t digit = strtod(expr, &nextChar);
 
-			rpnQueue.push(digit);
+			rpn.push(digit);
             expr = nextChar;
 			*/
 			
@@ -101,8 +104,8 @@ formu::toRPN(const char* expr){
             }
             
             std::string key = ss.str();
-			rpnQueue.push(key);
-			rpnQueue.back().id_var = get_id_var(key);
+			rpn.push(key);
+			rpn.back().vl_id_var = get_id_var(key);
 			
             lastTokenWasOp = false;
         }
@@ -116,20 +119,15 @@ formu::toRPN(const char* expr){
             }
             
             std::string key = ss.str();
-			bin_tok bct = to_bin_const(key);
-			if(bct != BAD_BIN){
-				str_t ktok = "INVALID_CONSTANT";
-				if(bct == TRUE){
-					ktok = "true";
-				} else if(bct == FALSE){
-					ktok = "false";
-				} else {
+			bin_co bct = to_bin_const(key);
+			if(bct != BAD_CO){
+				if((bct != TRUE) && (bct != FALSE)){
 					throw std::domain_error("Unrecognized constant '" + key + "'");					
 				}
-				rpnQueue.push(val_t(ktok, TOKEN));
+				rpn.push(val_t(bin_const_nm(bct), BCONST));
 			} else {
-				rpnQueue.push(key);
-				rpnQueue.back().id_var = get_id_var(key);
+				rpn.push(key);
+				rpn.back().vl_id_var = get_id_var(key);
 			}
 
 			lastTokenWasOp = false;
@@ -149,7 +147,7 @@ formu::toRPN(const char* expr){
             }
             if (*expr) expr++;
             
-            rpnQueue.push(ss.str());
+            rpn.push(ss.str());
             lastTokenWasOp = false;
         }*/
         else
@@ -157,16 +155,16 @@ formu::toRPN(const char* expr){
             // Otherwise, the variable is an operator or paranthesis.
             switch (*expr) {
                 case '(':
-                    operatorStack.push("(");
+                    ostk.push("(");
                     ++expr;
                     break;
                 case ')':
-                    while (operatorStack.top().compare("(")) {
-                        rpnQueue.push(val_t(operatorStack.top(), TOKEN));
-						rpnQueue.back().id_var = ++curr_id_var;
-                        operatorStack.pop();
+                    while (ostk.top().compare("(")) {
+                        rpn.push(val_t(ostk.top(), BOPER));
+						rpn.back().vl_id_var = ++curr_id_var;
+                        ostk.pop();
                     }
-                    operatorStack.pop();
+                    ostk.pop();
                     ++expr;
                     break;
                 default:
@@ -194,33 +192,32 @@ formu::toRPN(const char* expr){
                     
                     if (lastTokenWasOp) {
                         // Convert unary operators to binary in the RPN.
-						std::cerr << "UNARY " << str << " detected\n";
+						//std::cerr << "UNARY " << str << " detected\n";
                         if (!str.compare("-") || !str.compare("+") || !str.compare("!"))
-                            rpnQueue.push(val_t("UNARY_FILL", TOKEN));
+                            rpn.push(val_t("UNARY_FILL", BCONST));
                         else
                             throw std::domain_error("Unrecognized unary operator: '" + str + "'");
                         
                     }
                     
-                    while (!operatorStack.empty() && opPrecedence[str] <= opPrecedence[operatorStack.top()])
+                    while (!ostk.empty() && op_preced[str] <= op_preced[ostk.top()])
                     {
-                        rpnQueue.push(val_t(operatorStack.top(), TOKEN));
-						rpnQueue.back().id_var = ++curr_id_var;
-                        operatorStack.pop();
+                        rpn.push(val_t(ostk.top(), BOPER));
+						rpn.back().vl_id_var = ++curr_id_var;
+                        ostk.pop();
                     }
-                    operatorStack.push(str);
+                    ostk.push(str);
                     lastTokenWasOp = true;
                 }
             }
         }
         while (*expr && isspace(*expr )) ++expr;
     }
-    while (!operatorStack.empty()) {
-        rpnQueue.push(val_t(operatorStack.top(), TOKEN));
-		rpnQueue.back().id_var = ++curr_id_var;
-        operatorStack.pop();
+    while (!ostk.empty()) {
+        rpn.push(val_t(ostk.top(), BOPER));
+		rpn.back().vl_id_var = ++curr_id_var;
+        ostk.pop();
     }
-    //return rpnQueue;
 }
 
 /*
@@ -234,7 +231,7 @@ formu::eval(const char* expr) {
     
     // Convert to RPN with Dijkstra's Shunting-yard algorithm.
     toRPN(expr);
-	val_fifo_t& rpn = rpnQueue;
+	val_fifo_t& rpn = rpn_queue;
     
     // Evaluate the expression in RPN form.
     val_stack_t evaluation;
@@ -243,9 +240,9 @@ formu::eval(const char* expr) {
         val_t tok = rpn.front();
         rpn.pop();
         
-        if(tok.isToken())
+        if(tok.is_boper())
         {
-            std::string str = tok.string;
+            std::string str = tok.vl_str;
             if (evaluation.size() < 2) {
                 throw std::domain_error("Invalid equation.");
             }
@@ -255,8 +252,8 @@ formu::eval(const char* expr) {
 				std::cout << "ADDITION\n";
                 evaluation.push(left.number + right.toNumber());
 			}
-            else if (!str.compare("+") && left.isString())
-                evaluation.push(left.string + right.toString());
+            else if (!str.compare("+") && left.is_bvar())
+                evaluation.push(left.vl_str + right.toString());
             else if (!str.compare("*"))
                 evaluation.push(left.toNumber() * right.toNumber());
             else if (!str.compare("-"))
@@ -291,10 +288,10 @@ formu::eval(const char* expr) {
             {
                 if (left.isNumber() && right.isNumber())
                     evaluation.push(left.number == right.number);
-                else if (left.isString() && right.isString())
-                    evaluation.push(left.string == right.string);
-                else if (left.isString())
-                    evaluation.push(left.string == right.toString());
+                else if (left.is_bvar() && right.is_bvar())
+                    evaluation.push(left.vl_str == right.vl_str);
+                else if (left.is_bvar())
+                    evaluation.push(left.vl_str == right.toString());
                 else
                     evaluation.push(left.toNumber() == right.toNumber());
             }
@@ -302,10 +299,10 @@ formu::eval(const char* expr) {
             {
                 if (left.isNumber() && right.isNumber())
                     evaluation.push(left.number != right.number);
-                else if (left.isString() && right.isString())
-                    evaluation.push(left.string != right.string);
-                else if (left.isString())
-                    evaluation.push(left.string != right.toString());
+                else if (left.is_bvar() && right.is_bvar())
+                    evaluation.push(left.vl_str != right.vl_str);
+                else if (left.is_bvar())
+                    evaluation.push(left.vl_str != right.toString());
                 else
                     evaluation.push(left.toNumber() != right.toNumber());
             }
@@ -318,7 +315,7 @@ formu::eval(const char* expr) {
             else
                 throw std::domain_error("Unknown operator: " + left.toString() + " " + str + " " + right.toString() + ".");
         }
-        else if (tok.isNumber() || tok.isString())
+        else if (tok.isNumber() || tok.is_bvar())
         {
             evaluation.push(tok);
         }
@@ -335,16 +332,17 @@ formu::eval(const char* expr) {
 
 std::ostream&
 formu::val_t::print_val_fn(std::ostream& os, bool from_pt){
-	os << "[" << toString() << "," << id_var << "," << val_kind_nm() << "]";
+	os << "[" << toString() << "," << vl_id_var << "," << val_kind_nm() << "]";
 	return os;
 }
 
 void
 formu::parse_cnf(const char* expr, row<long>& cnf){
     toRPN(expr);
-	val_fifo_t& rpn = rpnQueue;
+	val_fifo_t& rpn = rpn_queue;
 
-    val_stack_t stk;
+	parse_stack = val_stack_t();
+    val_stack_t& stk = parse_stack;
 	
 	cnf.clear();
 	
@@ -353,41 +351,38 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
 		//std::cout << tok << " ";
 		rpn.pop();
 
-        if(tok.isToken()){
-            std::string str = tok.string;
-			bin_tok bt = to_bin_tok(str);
+        if(tok.is_boper()){
+            std::string str = tok.vl_str;
+			bin_op bt = to_bin_op(str);
 
-			bool is_op = (bt != FILL) && (bt != TRUE) && (bt != FALSE);
-			if(is_op){
-				val_t right = stk.top(); stk.pop();
-				val_t left  = stk.top(); stk.pop();
+			val_t right = stk.top(); stk.pop();
+			val_t left  = stk.top(); stk.pop();
 
-				//std::cout << "(" << left << " " << str << " " << right << ")";				
-				
-				switch(bt){
-					case AND: add_and(tok, left, right, cnf); break;
-					case OR: add_or(tok, left, right, cnf); break;
-					case NOT: add_not(tok, left, right, cnf); break;
-					case THEN: add_then(tok, left, right, cnf); break;
-					case BAKTHEN: add_bakthen(tok, left, right, cnf); break;
-					case EQUAL: add_equal(tok, left, right, cnf); break;
-					case NOT_EQUAL: add_not_equal(tok, left, right, cnf); break;
-					case SAME: add_same(tok, left, right, cnf); break;
-					default:
-						throw std::domain_error("Invalid bin_tok '" + str+ "'.");
-				}
+			//std::cout << "(" << left << " " << str << " " << right << ")";				
+			
+			switch(bt){
+				case AND: add_and(tok, left, right, cnf); break;
+				case OR: add_or(tok, left, right, cnf); break;
+				case NOT: add_not(tok, left, right, cnf); break;
+				case THEN: add_then(tok, left, right, cnf); break;
+				case BAKTHEN: add_bakthen(tok, left, right, cnf); break;
+				case EQUAL: add_equal(tok, left, right, cnf); break;
+				case NOT_EQUAL: add_not_equal(tok, left, right, cnf); break;
+				case SAME: add_same(tok, left, right, cnf); break;
+				default:
+					throw std::domain_error("Invalid binary operator (bin_op). Operator " + str+ " not valid.");
 			}
+		} else {
+			stk.push(tok);
 		}
-
-		stk.push(tok);
 	}
 	
 	std::cout << "\n-------------------------------\n";
 }
 
-formu::bin_tok
-formu::to_bin_const(str_t tok){
-	bin_tok tt = BAD_BIN;
+bin_co
+to_bin_const(str_t tok){
+	bin_co tt = BAD_CO;
 	if(tok == "T"){ tt = TRUE;
 	} else if(tok == "F"){ tt = FALSE;
 	} else if(tok == "true"){ tt = TRUE;
@@ -396,13 +391,14 @@ formu::to_bin_const(str_t tok){
 	} else if(tok == "False"){ tt = FALSE;
 	} else if(tok == "TRUE"){ tt = TRUE;
 	} else if(tok == "FALSE"){ tt = FALSE;
+	} else if(tok == "UNARY_FILL"){ tt = FILL;
 	}
 	return tt;
 }
 
-formu::bin_tok
-formu::to_bin_tok(str_t tok){
-	bin_tok tt = BAD_BIN;
+bin_op
+to_bin_op(str_t tok){
+	bin_op tt = BAD_OP;
 	if(tok == "&&"){ tt = AND;
 	} else if(tok == "||"){ tt = OR;
 	} else if(tok == "&"){ tt = AND;
@@ -421,9 +417,6 @@ formu::to_bin_tok(str_t tok){
 	} else if(tok == "+"){ tt = SAME;
 	} else if(tok == "-"){ tt = NOT;
 	} else if(tok == "!"){ tt = NOT;
-	} else if(tok == "UNARY_FILL"){ tt = FILL;
-	} else {
-		tt = to_bin_const(tok);
 	}
 	return tt;
 }
@@ -431,63 +424,111 @@ formu::to_bin_tok(str_t tok){
 void
 formu::prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt){
 	os << "(";
-	if((lft.string == "false") || (lft.string == "true")){
-		os << lft.string;
-	} else if(lft.type == STRING){
-		os << "[" << lft.id_var << "." << lft.string << "]";
+	if(lft.is_false() || lft.is_true()){
+		os << lft.vl_str;
+	} else if(lft.vl_kind == BVAR){
+		os << "[" << lft.vl_id_var << "." << lft.vl_str << "]";
 	} else {
-		os << "[" << lft.id_var << "]";
+		os << "[" << lft.vl_id_var << "]";
 	}
 	
-	os << " [" << op.id_var << "." << to_nm(op.string) << "] ";
-	if((rgt.string == "false") || (rgt.string == "true")){
-		os << rgt.string;
-	} else if(rgt.type == STRING){
-		os << "[" << rgt.id_var << "." << rgt.string << "]";
+	os << " [" << op.vl_id_var << "." << to_nm(op.vl_str) << "] ";
+	if(rgt.is_false() || rgt.is_true()){
+		os << rgt.vl_str;
+	} else if(rgt.vl_kind == BVAR){
+		os << "[" << rgt.vl_id_var << "." << rgt.vl_str << "]";
 	} else {
-		os << "[" << rgt.id_var << "]";
+		os << "[" << rgt.vl_id_var << "]";
 	}
 	os << ")";
 }
 
 void
 formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_false() || rgt.is_false()){
+		stk.push(false_val());
+		return;
+	}
+	if(lft.is_true()){
+		stk.push(rgt);
+		return;
+	}
+	if(rgt.is_true()){
+		stk.push(lft);
+		return;
+	}
+	stk.push(op);
 }
 
 void
 formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	if(lft.is_true() || rgt.is_true()){
+		stk.push(true_val());
+		return;
+	}
+	if(lft.is_false()){
+		stk.push(rgt);
+		return;
+	}
+	if(rgt.is_false()){
+		stk.push(lft);
+		return;
+	}
+	stk.push(op);
 }
 
 void
 formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	if(rgt.is_false()){
+		stk.push(true_val());
+		return;
+	}
+	if(rgt.is_true()){
+		stk.push(false_val());
+		return;
+	}
+	stk.push(op);
 }
 
 void
 formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	stk.push(op);
 }
 
 void
 formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	stk.push(op);
 }
 
 void
 formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	stk.push(op);
 }
 
 void
 formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	stk.push(op);
 }
 
 void
 formu::add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
+    val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
+	stk.push(op);
 }
 
 
