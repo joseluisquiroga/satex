@@ -46,14 +46,26 @@ t_string dimacs_err_msg(long num_line, char ch_err, const char* msg){
 
 void
 dimacs_loader::skip_dimacs_whitespace(const char*& pt_in, long& line){
-	while(	(*pt_in != 0) && (! isalnum(*pt_in) || isspace(*pt_in)) && 
-			(*pt_in != '-') && (*pt_in != '+'))
-	{ 
+	while((*pt_in != 0) && isspace(*pt_in)){ 
 		if(*pt_in == '\n'){ 
 			line++; 
 		}
 		pt_in++; 
 	}
+}
+
+bool
+dimacs_loader::follows_int(const char*& pt_in){
+	char cc = *pt_in;
+	if(cc == 0){ return false; }
+	bool dd = isdigit(cc);
+	if(dd){ return true; }
+	if((cc != '+') && (cc != '-')){	return false; }
+	
+	char cc2 = *(pt_in + 1);
+	if(cc2 == 0){ return false; }
+	bool dd2 = isdigit(cc2);
+	return dd2;
 }
 
 void
@@ -77,139 +89,12 @@ dimacs_loader::load_file(t_string& f_nam){
 	DBG_PRT(11, os << "SHA_SZ 1=" << arr_to_sha_sz);
 	*/
 
-void 
-dimacs_loader::skip_cnf_decl(const char*& pt_in, long line){
-	if(*pt_in == 0){
-		throw dimacs_exception(dix_no_cnf_decl_1, 0, line, get_cursor_pos());
-	}
-
-	const char* cnf_str = "cnf";
-	const int cnf_str_sz = 3;
-	if(memcmp(pt_in, cnf_str, cnf_str_sz) != 0){
-		throw dimacs_exception(dix_no_cnf_decl_2, *pt_in, line, get_cursor_pos());
-	}
-	pt_in += cnf_str_sz;
-}
-
-void 
-dimacs_loader::read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line){
-	num_var = 0;
-	num_ccl = 0;
-
-	pt_in++;
-	skip_dimacs_whitespace(pt_in, line);
-	skip_cnf_decl(pt_in, line);
-	skip_dimacs_whitespace(pt_in, line);
-	num_var = parse_int(pt_in, line);
-	skip_dimacs_whitespace(pt_in, line);
-	num_ccl = parse_int(pt_in, line);
-	skip_line(pt_in, line);
-}
-
-bool
-dimacs_loader::fix_lits(row<long>& lits, bool& add_it)
-{
-	DIMACS_CK(ld_dots.nb_set_count == 0);
-	DIMACS_CK(! lits.is_empty());
-	bool fixed = false;
-	add_it = false;
-
-	row<long> tmp_dens(lits.size());
-	tmp_dens.clear();
-
-	bool satisfied = false;
-	for(long ii = 0; ii < lits.size(); ii++){
-		long nid = lits[ii];
-
-		if(! ld_dots.any_true(nid)){
-			ld_dots.set(nid);
-			tmp_dens.push(nid);
-			continue;
-		}
-
-		if(ld_dots.is_true(nid)){
-			DBG_PRT(7, os << "lit_already_in_clause." <<
-				" lits=" << lits <<
-				" nid=" << nid <<
-				" tmp_nids=" << tmp_dens << std::endl
-			);
-			ld_fixes[fx_lit_already_in_clause]++;
-			continue;
-		}
-
-		DIMACS_CK(ld_dots.is_true(-nid));
-
-		DBG_PRT(7, os << "clause_has_both_lit." <<
-			" lits=" << lits <<
-			" nid=" << nid <<
-			" tmp_nids=" << tmp_dens << std::endl
-		);
-		ld_fixes[fx_clause_has_both_lit]++;
-		satisfied = true;
-		continue;
-	}
-
-	lits.clear();
-
-	for(long kk = 0; kk < tmp_dens.size(); kk++){
-		long n_id = tmp_dens[kk];
-		ld_dots.reset(n_id);
-		lits.push(n_id);
-	}
-
-	if(tmp_dens.is_empty()){
-		DBG_PRT(7, os << "empty_clause." <<
-			" lits=" << lits <<
-			" tmp_nids=" << tmp_dens
-		);
-		ld_fixes[fx_empty_clause]++;
-	}
-
-	if((tmp_dens.size() == 1) && !satisfied){
-		DBG_PRT(7, os << "clause_has_one_lit." <<
-			" lits=" << lits <<
-			" tmp_lits=" << tmp_dens << std::endl
-		);
-		ld_fixes[fx_clause_has_one_lit]++;
-
-		fixed = true;
-		add_it = true;
-	}
-
-	if((tmp_dens.size() > 1) && !satisfied){
-		fixed = true;
-		add_it = true;
-	}
-
-	if(satisfied){
-		fixed = true;
-		add_it = false;
-	}
-
-	DIMACS_CK(ld_dots.nb_set_count == 0);
-	DIMACS_CK(fixed);	// BECAUSE WE ARE NOT DOING SOLIDS
-	return fixed;
-}
-
 bool
 dimacs_loader::fixappend_lits(row<long>& lits, row<long>& prepared){
-	bool add_it = false;
-	bool fixed = fix_lits(lits, add_it);
-
-	DIMACS_CK(fixed);
-	if(! fixed){
-		return false;
-	}
-	if(! add_it){
-		lits.clear();
-		return true;
-	}
-
 	if(lits.size() > ld_max_in_ccl_sz){
 		ld_max_in_ccl_sz = lits.size();
 	}
 
-	//lits.mix_sort(cmp_abs_long);
 	if(ld_as_3cnf){
 		three_lits(lits, prepared);
 	}
@@ -322,8 +207,9 @@ dimacs_loader::init_parse(){
 
 	ld_parsed_ccls = 0;
 	ld_parsed_lits = 0;
+	ld_parsed_vars = 0;
 
-	ld_dots.clear();
+	//ld_dots.clear();
 
 	ld_fixes.fill(0, k_last_fix);
 
@@ -342,6 +228,14 @@ dimacs_loader::init_parse(){
 	ld_num_ccls = INVALID_NATURAL;
 	ld_num_vars = INVALID_NATURAL;
 	ld_tot_lits = INVALID_NATURAL;
+	
+	ld_all_vars = long_set_t();
+
+	ld_num_line = 1;
+	if(! ld_content.is_empty()){
+		DIMACS_CK(ld_content.last() == END_OF_SEC);
+		ld_cursor = ld_content.get_c_array();
+	}
 }
 
 void
@@ -354,83 +248,6 @@ dimacs_loader::init_dimacs_loader(){
 	ld_as_3cnf = false;
 
 	init_parse();
-}
-
-void
-dimacs_loader::verif_num_ccls(std::string& f_nam, long num_decl_ccls, long num_read_ccls){
-	if(num_read_ccls != num_decl_ccls){
-		dimacs_exception ex1(dix_bad_num_cls, 0, -1, get_cursor_pos());
-		ex1.num_decl_cls = num_decl_ccls;
-		ex1.num_read_cls = num_read_ccls;
-		throw ex1;
-	}
-}
-
-
-void
-dimacs_loader::verif_tot_lits(std::string& f_nam, long tot_decl_lits, long tot_read_lits){
-	if((tot_decl_lits != INVALID_NATURAL) && (tot_read_lits != tot_decl_lits)){
-		dimacs_exception ex1(dix_bad_num_cls, 0, -1, get_cursor_pos());
-		ex1.num_decl_lits = tot_decl_lits;
-		ex1.num_read_lits = tot_read_lits;
-		throw ex1;
-	}
-}
-
-void
-dimacs_loader::parse_header(){
-	init_parse();
-
-	long& num_ccl = ld_decl_ccls;
-	long& num_var = ld_decl_vars;
-	long& tot_lits = ld_decl_lits;
-
-	//std::string& f_nam = ld_file_name;
-	std::string lits_decl = TOT_LITS_DECL; // "c tot_lits="
-
-	ld_num_line = 1;
-	const char*& pt_in = ld_cursor;
-	pt_in = ld_content.get_c_array();
-	if(pt_in == NULL_PT){
-		return;
-	}
-
-	for(;;){
-		skip_dimacs_whitespace(pt_in, ld_num_line);
-		if(*pt_in == 0){
-			throw dimacs_exception(dix_no_cnf_decl_3, 0, ld_num_line, get_cursor_pos());
-			break;
-		} else if(*pt_in == 'c'){
-			const char* pt_before = pt_in;
-			skip_line(pt_in, ld_num_line);
-			str_pos_t ln_sz = (pt_in - pt_before);
-			if(ln_sz >= lits_decl.size() && ln_sz < 200){
-				std::string the_line(pt_before, ln_sz);
-				std::string beg = the_line.substr(0, lits_decl.size());
-				if(beg == lits_decl){
-					long aux_val = 0;
-					const char* pt_t_lits =
-						the_line.c_str() + lits_decl.size();
-					tot_lits = parse_int(pt_t_lits, aux_val);
-					DBG_PRT(10, os << "TOT_LITS='" << tot_lits << "'");
-				}
-			}
-		} else if(*pt_in == 'p'){
-			read_problem_decl(pt_in, num_var, num_ccl, ld_num_line);
-			break;
-		} else {
-			throw dimacs_exception(dix_bad_format, *pt_in, ld_num_line, get_cursor_pos());
-			break;
-		}
-	}
-
-	if(num_var == 0){
-		throw dimacs_exception(dix_zero_vars, 0, ld_num_line, get_cursor_pos());
-	}
-
-	if(num_ccl == 0){
-		throw dimacs_exception(dix_zero_cls, 0, ld_num_line, get_cursor_pos());
-	}
 }
 
 bool
@@ -454,21 +271,17 @@ dimacs_loader::parse_clause(row<integer>& lits){
 	integer	parsed_lit;
 	while(*pt_in != END_OF_SEC){
 		skip_dimacs_whitespace(pt_in, ld_num_line);
+		bool isint = follows_int(pt_in);
+		if(! isint){
+			skip_line(pt_in, ld_num_line);
+			continue;
+		}
 		parsed_lit = parse_int(pt_in, ld_num_line);
 		if(parsed_lit == 0){ break; }
-		if(get_var(parsed_lit) > ld_decl_vars){
-			dimacs_exception ex1(dix_bad_lit, *pt_in, ld_num_line, get_cursor_pos());
-			ex1.num_decl_vars = ld_decl_vars;
-			ex1.bad_lit = parsed_lit;
-			throw ex1;
-		}
-
+		
+		ld_all_vars.insert(get_var(parsed_lit));
+		
 		lits.push(parsed_lit);
-		/*
-		if(lits.size() > MAX_CLAUSE_SZ){
-			throw dimacs_exception(dix_cls_too_long, *pt_in, ld_num_line, get_cursor_pos());
-		}
-		*/
 	}
 
 	if(lits.is_empty()){
@@ -483,7 +296,8 @@ dimacs_loader::parse_clause(row<integer>& lits){
 void
 dimacs_loader::parse_all_ccls(row<long>& inst_ccls)
 {
-	parse_header();
+	init_parse();
+	//parse_header();
 
 	DBG_PRT(11, os << "ld_cursor=" << ld_cursor);
 
@@ -491,7 +305,7 @@ dimacs_loader::parse_all_ccls(row<long>& inst_ccls)
 	DIMACS_CK(ld_nud_added_vars == 0);
 	DIMACS_CK(ld_nud_added_lits == 0);
 
-	ld_dots.init_nid_bits(ld_decl_vars + 1);
+	//ld_dots.init_nid_bits(ld_decl_vars + 1);
 
 	inst_ccls.clear();
 
@@ -514,6 +328,8 @@ dimacs_loader::parse_file(std::string& f_nam, row<long>& inst_ccls)
 	parse_all_ccls(inst_ccls);
 
 	finish_parse(inst_ccls);
+	
+	DBG_PRT(45, os << inst_ccls);
 }
 
 // shuffle lits
@@ -807,16 +623,19 @@ print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_va
 void
 dimacs_loader::finish_parse(row<long>& inst_ccls)
 {
-	verif_num_ccls(ld_file_name, ld_decl_ccls, ld_parsed_ccls);
-	//verif_tot_lits(ld_file_name, ld_decl_lits, ld_parsed_lits);
-
+	ld_parsed_vars = ld_all_vars.size();
+	
 	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
 	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_vars == 0));
 	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_lits == 0));
 
-	ld_num_ccls = ld_decl_ccls + ld_nud_added_ccls;
-	ld_num_vars = ld_decl_vars + ld_nud_added_vars;
-	ld_tot_lits = ld_decl_lits + ld_nud_added_lits;
+	ld_num_ccls = ld_parsed_ccls + ld_nud_added_ccls;
+	ld_num_vars = ld_parsed_vars + ld_nud_added_vars;
+	ld_tot_lits = ld_parsed_lits + ld_nud_added_lits;
+	
+	DBG_PRT(45, os << "ccls=" << ld_num_ccls);
+	DBG_PRT(45, os << "vars=" << ld_num_vars);
+	DBG_PRT(45, os << "lits=" << ld_tot_lits);	
 }
 
 long

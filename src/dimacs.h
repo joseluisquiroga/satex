@@ -32,6 +32,7 @@ Declaration of functions to read and parse dimacs files.
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <set>
 
 #include "config.h"
 //include "sha2.h"
@@ -112,125 +113,6 @@ get_var(long lit){
 
 
 //=================================================================
-// nid_bits
-
-class nid_bits {
-public:
-	long		nb_set_count;
-	bit_row		nb_pos;
-	bit_row		nb_neg;
-
-	nid_bits(long sz = 0){
-		init_nid_bits(sz);
-	}
-
-	~nid_bits(){
-	}
-
-	void	clear(){
-		nb_set_count = 0;
-		nb_pos.clear();
-		nb_neg.clear();
-	}
-
-	void	init_nid_bits(long sz = 0){
-		nb_set_count = 0;
-		nb_pos.fill(false, sz, false);
-		nb_neg.fill(false, sz, false);
-	}
-
-	void	append_nid_bits(long n_sz){
-		nb_pos.fill(false, n_sz, true);
-		nb_neg.fill(false, n_sz, true);
-	}
-
-	void	inc_nid_bits(){
-		DIMACS_H_CK(nb_set_count == 0);
-		DIMACS_H_CK(nb_pos.size() == nb_neg.size());
-
-		long n_sz = nb_pos.size() + 1;
-		nb_pos.fill(false, n_sz, true);
-		nb_neg.fill(false, n_sz, true);
-	}
-
-	long	size(){
-		DIMACS_H_CK(nb_pos.size() == nb_neg.size());
-		return nb_pos.size();
-	}
-
-	bool	is_true(long nid){
-		DIMACS_H_CK(nb_pos.is_valid_idx(abs_long(nid)));
-		DIMACS_H_CK(nb_neg.is_valid_idx(abs_long(nid)));
-
-		bool resp = false;
-		if(nid > 0){
-			resp = nb_pos[nid];
-		} else {
-			resp = nb_neg[-nid];
-		}
-		return resp;
-	}
-
-	void	reset(long nid){
-		DIMACS_H_CK(is_true(nid));
-		DIMACS_H_CK(! is_true(-nid));
-		if(nid > 0){
-			nb_pos[nid] = false;
-		} else {
-			nb_neg[-nid] = false;
-		}
-		nb_set_count--;
-	}
-
-	void	set(long nid){
-		DIMACS_H_CK(! is_true(nid));
-		DIMACS_H_CK(! is_true(-nid));
-		if(nid > 0){
-			nb_pos[nid] = true;
-		} else {
-			nb_neg[-nid] = true;
-		}
-		nb_set_count++;
-	}
-
-	bool	any_true(long nid){
-		return (is_true(nid) || is_true(-nid));
-	}
-};
-
-inline
-void
-reset_all(nid_bits& bts, row<long>& rr_all, long first_ii = 0, long last_ii = -1){
-	long the_sz = rr_all.size();
-	if((last_ii < 0) || (last_ii > the_sz)){
-		last_ii = the_sz;
-	}
-	if((first_ii < 0) || (first_ii > last_ii)){
-		first_ii = 0;
-	}
-	for(long aa = first_ii; aa < last_ii; aa++){
-		long nid = rr_all[aa];
-		bts.reset(nid);
-	}
-}
-
-inline
-void
-set_all(nid_bits& bts, row<long>& rr_all, long first_ii = 0, long last_ii = -1){
-	long the_sz = rr_all.size();
-	if((last_ii < 0) || (last_ii > the_sz)){
-		last_ii = the_sz;
-	}
-	if((first_ii < 0) || (first_ii > last_ii)){
-		first_ii = 0;
-	}
-	for(long aa = first_ii; aa < last_ii; aa++){
-		long nid = rr_all[aa];
-		bts.set(nid);
-	}
-}
-
-//=================================================================
 // dimacs_loader
 
 enum added_var_t {
@@ -252,6 +134,8 @@ enum fix_kind {
 
 #define EMPTY_CNF_COMMENT	"c the cnf is empty\n"
 #define TOT_LITS_DECL	"c tot_lits="
+
+typedef std::set<long>	long_set_t;
 
 class dimacs_loader {
 public:
@@ -277,10 +161,13 @@ public:
 
 	long			ld_parsed_ccls;
 	long			ld_parsed_lits;
+	long			ld_parsed_vars;
+	
+	long_set_t		ld_all_vars;
 
 	// ---------------------------------------
 
-	nid_bits		ld_dots;
+	//nid_bits		ld_dots;
 
 	row<integer>		ld_fixes;
 
@@ -316,6 +203,7 @@ public:
 	void	init_dimacs_loader();
 
 	void 	skip_dimacs_whitespace(const char*& pt_in, long& line);
+	bool 	follows_int(const char*& pt_in);
 	
 	void 	read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line);
 	void 	skip_cnf_decl(const char*& pt_in, long line);
