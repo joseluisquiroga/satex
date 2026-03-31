@@ -45,6 +45,18 @@ t_string dimacs_err_msg(long num_line, char ch_err, const char* msg){
 }
 
 void
+dimacs_loader::skip_dimacs_whitespace(const char*& pt_in, long& line){
+	while(	(*pt_in != 0) && (! isalnum(*pt_in) || isspace(*pt_in)) && 
+			(*pt_in != '-') && (*pt_in != '+'))
+	{ 
+		if(*pt_in == '\n'){ 
+			line++; 
+		}
+		pt_in++; 
+	}
+}
+
+void
 dimacs_loader::load_file(t_string& f_nam){
 	ld_file_name = f_nam;
 	// loads the full file into ld_content
@@ -85,11 +97,11 @@ dimacs_loader::read_problem_decl(const char*& pt_in, long& num_var, long& num_cc
 	num_ccl = 0;
 
 	pt_in++;
-	skip_whitespace(pt_in, line);
+	skip_dimacs_whitespace(pt_in, line);
 	skip_cnf_decl(pt_in, line);
-	skip_whitespace(pt_in, line);
+	skip_dimacs_whitespace(pt_in, line);
 	num_var = parse_int(pt_in, line);
-	skip_whitespace(pt_in, line);
+	skip_dimacs_whitespace(pt_in, line);
 	num_ccl = parse_int(pt_in, line);
 	skip_line(pt_in, line);
 }
@@ -384,7 +396,7 @@ dimacs_loader::parse_header(){
 	}
 
 	for(;;){
-		skip_whitespace(pt_in, ld_num_line);
+		skip_dimacs_whitespace(pt_in, ld_num_line);
 		if(*pt_in == 0){
 			throw dimacs_exception(dix_no_cnf_decl_3, 0, ld_num_line, get_cursor_pos());
 			break;
@@ -435,13 +447,13 @@ dimacs_loader::parse_clause(row<integer>& lits){
 		return false;
 	}
 
-	skip_whitespace(pt_in, ld_num_line);
+	skip_dimacs_whitespace(pt_in, ld_num_line);
 
 	DIMACS_DBG(row<integer> not_mapped);
 
 	integer	parsed_lit;
 	while(*pt_in != END_OF_SEC){
-		skip_whitespace(pt_in, ld_num_line);
+		skip_dimacs_whitespace(pt_in, ld_num_line);
 		parsed_lit = parse_int(pt_in, ld_num_line);
 		if(parsed_lit == 0){ break; }
 		if(get_var(parsed_lit) > ld_decl_vars){

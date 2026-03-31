@@ -315,6 +315,8 @@ public:
 	void	init_parse();
 	void	init_dimacs_loader();
 
+	void 	skip_dimacs_whitespace(const char*& pt_in, long& line);
+	
 	void 	read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line);
 	void 	skip_cnf_decl(const char*& pt_in, long line);
 	

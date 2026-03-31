@@ -40,43 +40,16 @@ t_string get_parse_err_msg(const char* hd_msg, long num_line, char ch_err, const
 	return err_msg.str();
 }
 
-void skip_whitespace(const char*& pt_in, long& line){
-	while(	(! isalnum(*pt_in) || isspace(*pt_in)) && 
-			(*pt_in != '-') && (*pt_in != '+') && (*pt_in != 0))
+void
+config_reader::skip_conf_whitespace(const char*& pt_in, long& line){
+	while(	(*pt_in != 0) && (! isalnum(*pt_in) || isspace(*pt_in)) && 
+			(*pt_in != '-') && (*pt_in != '+'))
 	{ 
 		if(*pt_in == '\n'){ 
 			line++; 
 		}
 		pt_in++; 
 	}
-}
-
-void skip_line(const char*& pt_in, long& line){
-	while(*pt_in != 0){
-		if(*pt_in == '\n'){ 
-			line++; 
-			pt_in++; 
-			return; 
-		}
-		pt_in++; 
-	}
-}
-
-integer parse_int(const char*& pt_in, long line) {
-	integer	val = 0;
-	bool	neg = false;
-
-	if(*pt_in == '-'){ neg = true; pt_in++; }
-	else if(*pt_in == '+'){ pt_in++; }
-
-	if( ! isdigit(*pt_in)){
-		throw parse_exception(pax_bad_int, (char)(*pt_in), line);
-	}
-	while(isdigit(*pt_in)){
-		val = val*10 + (*pt_in - '0');
-		pt_in++;
-	}
-	return (neg)?(-val):(val);
 }
 
 void
@@ -88,10 +61,10 @@ config_reader::parse_debug_line(row<long>& dbg_line, std::string& str_ln){
 	long num_ln = 0;
 
 	if(isalnum(*pt_in)){
-		skip_whitespace(pt_in, num_ln);
+		skip_conf_whitespace(pt_in, num_ln);
 		while(isdigit(*pt_in)){
 			long val = parse_int(pt_in, num_ln); 
-			skip_whitespace(pt_in, num_ln);
+			skip_conf_whitespace(pt_in, num_ln);
 	
 			dbg_line.push(val);
 		}

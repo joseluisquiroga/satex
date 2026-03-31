@@ -56,6 +56,50 @@ void	glb_set_memout(){
 	throw memory_exception(mex_memout);
 }
 
+//=================================================================
+// parser funcs
+
+void
+skip_line(const char*& pt_in, long& line){
+	while(*pt_in != 0){
+		if(*pt_in == '\n'){ 
+			line++; 
+			pt_in++; 
+			return; 
+		}
+		pt_in++; 
+	}
+}
+
+integer parse_int(const char*& pt_in, long line) {
+	integer	val = 0;
+	bool	neg = false;
+
+	if(*pt_in == '-'){ neg = true; pt_in++; }
+	else if(*pt_in == '+'){ pt_in++; }
+
+	if( ! isdigit(*pt_in)){
+		throw parse_exception(pax_bad_int, (char)(*pt_in), line);
+	}
+	while(isdigit(*pt_in)){
+		val = val*10 + (*pt_in - '0');
+		pt_in++;
+	}
+	return (neg)?(-val):(val);
+}
+
+void
+solver::skip_solver_whitespace(const char*& pt_in, long& line){
+	while(	(*pt_in != 0) && (! isalnum(*pt_in) || isspace(*pt_in)) && 
+			(*pt_in != '-') && (*pt_in != '+'))
+	{ 
+		if(*pt_in == '\n'){ 
+			line++; 
+		}
+		pt_in++; 
+	}
+}
+
 void
 read_file(t_string f_nam, row<char>& f_data){
 	const char* ff_nn = f_nam.c_str();
@@ -216,18 +260,18 @@ solver::read_log_file(t_string fnam, row<instance_info>& names){
 }
 
 void 
-parse_assig(t_string& assig, row_long_t& lits){
+solver::parse_assig(t_string& assig, row_long_t& lits){
 	const char* pt_in = assig.c_str();
 	
 	long num_ln = 0;
 
 	if(*pt_in != '\n'){
-		skip_whitespace(pt_in, num_ln);
+		skip_solver_whitespace(pt_in, num_ln);
 		while(*pt_in != '\n'){
 			long val = parse_int(pt_in, num_ln); 
 			if(val == 0){ break; }
 			
-			skip_whitespace(pt_in, num_ln);	
+			skip_solver_whitespace(pt_in, num_ln);	
 			lits.push(val);
 		}
 	} else {

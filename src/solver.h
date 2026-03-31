@@ -60,6 +60,15 @@ Declaration of solver class and classes that assist the system.
 
 extern bool	dbg_bad_cycle1;
 
+
+//=================================================================
+// parser funcs
+
+t_string get_parse_err_msg(const char* hd_msg, long num_line, char ch_err, const char* msg);
+
+void 	skip_line(const char*& pt_in, long& line);
+integer parse_int(const char*& pt_in, long line);
+
 //=================================================================
 // debug defs
 
@@ -603,9 +612,12 @@ public:
 	void	print_final_assig();
 	void	count_instance(instance_info& inst_info);
 
+	void 	skip_solver_whitespace(const char*& pt_in, long& line);
+	
 	void	log_message(const std::ostringstream& msg_log);
 	void	log_batch_info();
 	void 	read_log_file(t_string fnam, row<instance_info>& names);
+	void	parse_assig(t_string& assig, row_long_t& lits);
 	void	read_batch_file(t_string& fnam, row<instance_info>& names);
 	void	do_all_instances(debug_info& dbg_inf);
 
