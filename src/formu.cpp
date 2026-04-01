@@ -14,6 +14,7 @@
 #include <stdio.h> // sprintf
 
 #include "formu.h"
+#include "solver.h"
 
 std::string formu::val_t::toString(){
     return vl_str;
@@ -183,6 +184,7 @@ formu::val_t::print_val_fn(std::ostream& os, bool from_pt){
 
 void
 formu::parse_cnf(const char* expr, row<long>& cnf){
+	
     toRPN(expr);
 	val_fifo_t& rpn = rpn_queue;
 
@@ -190,6 +192,9 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
     val_stack_t& stk = parse_stack;
 	
 	cnf.clear();
+
+	num_ccls = 0;
+	num_vars = 0;
 	
 	while(! rpn.empty()){
 		val_t tok = rpn.front();
@@ -237,6 +242,8 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
 			add_false(cnf);
 		}
 	}
+
+	num_vars = curr_id_var;
 	
 	std::cout << "\n-------------------------------\n";
 }
@@ -310,6 +317,7 @@ formu::add_false(row<long>& cnf){
 	cnf.push(0);
 	cnf.push(-1);
 	cnf.push(0);
+	num_ccls += 2;
 }
 
 void 
@@ -317,6 +325,7 @@ formu::add1cla(row<long>& cnf, long v1){
 	FORMU_CK(v1 != 0);
 	cnf.push(v1);
 	cnf.push(0);
+	num_ccls++;
 }
 
 void 
@@ -326,6 +335,7 @@ formu::add2cla(row<long>& cnf, long v1, long v2){
 	cnf.push(v1);
 	cnf.push(v2);
 	cnf.push(0);
+	num_ccls++;
 }
 
 void 
@@ -337,6 +347,7 @@ formu::add3cla(row<long>& cnf, long v1, long v2, long v3){
 	cnf.push(v2);
 	cnf.push(v3);
 	cnf.push(0);
+	num_ccls++;
 }
 
 void
@@ -521,6 +532,19 @@ formu::add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
 	prt_op(std::cout, op, lft, rgt);
 	stk.push(rgt);
+}
+
+void
+formu::parse_file(std::string& f_nam, row<long>& inst_ccls)
+{
+	read_file(f_nam, frm_content);
+	file_sha = sha_txt_of_arr((uchar_t*)frm_content.get_data(), frm_content.get_data_sz());
+	
+	frm_content.push(END_OF_FRM); // it already has room for it
+
+	frm_cursor = frm_content.get_c_array();
+	
+	parse_cnf(frm_cursor, inst_ccls);
 }
 
 

@@ -22,6 +22,7 @@ Classes and that implement the neural network.
 
 #include "solver.h"
 #include "brain.h"
+#include "formu.h"
 
 //============================================================
 // random generator
@@ -1188,7 +1189,7 @@ brain::set_random_choices(){
 }
 
 void
-brain::load_it(){
+brain::load_cnf(){
 	instance_info& inst_info = get_my_inst();
 
 	br_start_load_tm = run_time();
@@ -1209,6 +1210,32 @@ brain::load_it(){
 	long num_var = the_loader.ld_num_vars;
 	
 	inst_info.ist_file_sha = the_loader.ld_file_sha;
+
+	load_instance(num_neu, num_var, inst_ccls);
+}
+
+void
+brain::load_frm(){
+	instance_info& inst_info = get_my_inst();
+
+	br_start_load_tm = run_time();
+
+	std::string f_nam = inst_info.get_f_nam();
+
+	// dimacs loading
+
+	formu	the_loader;
+	//the_loader.ld_dbg_info = br_dbg_info;
+	
+	row<long> inst_ccls;
+	the_loader.parse_file(f_nam, inst_ccls);
+
+	// brain loading
+
+	long num_neu = the_loader.num_ccls;
+	long num_var = the_loader.num_vars;
+	
+	inst_info.ist_file_sha = the_loader.file_sha;
 
 	load_instance(num_neu, num_var, inst_ccls);
 }

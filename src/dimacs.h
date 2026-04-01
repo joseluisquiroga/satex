@@ -52,54 +52,6 @@ typedef std::set<std::string> string_set_t;
 extern std::string	k_dimacs_header_str;
 
 //=================================================================
-// dimacs_exception
-
-typedef enum {
-	dix_bad_eq_op,
-	dix_bad_creat,
-	dix_no_cnf_decl_1,
-	dix_no_cnf_decl_2,
-	dix_no_cnf_decl_3,
-	dix_bad_num_cls,
-	dix_bad_format,
-	dix_zero_vars,
-	dix_zero_cls,
-	dix_bad_lit,
-	dix_cls_too_long
-} di_ex_cod_t;
-
-class dimacs_exception : public top_exception{
-public:
-	char val;
-	long line;
-	long pt_pos;
-	
-	long num_decl_cls;
-	long num_decl_vars;
-	long num_decl_lits;
-	long num_read_cls;
-	long num_read_lits;
-	long bad_lit;
-	
-	dimacs_exception(long the_id, char vv = 0, long ll = -1, long pp = -1) : 
-			top_exception(the_id)
-	{
-		val = vv;
-		line = ll;
-		pt_pos = pp;
-
-		num_decl_cls = 0;
-		num_decl_lits = 0;
-		num_decl_vars = 0;
-		num_read_cls = 0;
-		num_read_lits = 0;
-		bad_lit = 0;
-	}
-
-	virtual t_string name(){ t_string nm = "dimacs_exception"; return nm; }
-};
-
-//=================================================================
 // funtion declarations
 
 //void read_problem_decl(const char*& pt_in, long& num_var, long& num_ccl, long& line);

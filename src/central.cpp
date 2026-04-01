@@ -249,35 +249,24 @@ solver::test_cnf_shuffle(){
 }
 
 void
-solver::call_solve_instance(debug_info& dbg_inf){
-	solver& slv = *this;
+solver::do_instance(debug_info& dbg_inf){
+	solver& slv = *this;	
+	instance_info& inst_info = slv.get_curr_inst();
+
+	std::string f_nam = inst_info.get_f_nam();
+	SUPPORT_CK_0(f_nam.size() > 0);
 
 	brain the_brn;
 	the_brn.br_dbg_info = &dbg_inf;
 	the_brn.br_slv = this;
 	dbg_inf.dbg_brn = &the_brn;
 
-	instance_info& inst_info = slv.get_curr_inst();
 	the_brn.br_pt_inst = &inst_info;
 
-	the_brn.load_it();
+	the_brn.load_cnf();
 	the_brn.solve_it();
 
 	slv.count_instance(inst_info);
-}
-
-void
-solver::do_instance(debug_info& dbg_inf)
-{
-	solver& slv = *this;
-	
-	instance_info& the_ans = slv.get_curr_inst();
-	MARK_USED(the_ans);
-
-	std::string f_nam = the_ans.get_f_nam();
-	SUPPORT_CK_0(f_nam.size() > 0);
-
-	call_solve_instance(dbg_inf);
 }
 
 void 

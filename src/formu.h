@@ -30,6 +30,8 @@ typedef std::string str_t;
 
 #define FORMU_CK(prm) 		DBG_CK(prm)
 
+#define END_OF_FRM 0
+
 //=================================================================================================
 // enums
 
@@ -180,12 +182,18 @@ public:
     typedef std::map<std::string, int> 	int_map_t;
     typedef std::map<std::string, long> long_map_t;
 	typedef long_map_t::iterator 		long_map_it_t;
+	typedef std::istream::char_type 	char_t;
 	    
 public:
     formu();	
     val_t eval(const char* expr);
     void parse_cnf(const char* expr, row<long>& cnf);
-	    
+	void parse_file(std::string& f_nam, row<long>& inst_ccls);
+
+	std::string		file_sha;
+	long			num_ccls;
+	long			num_vars;
+	
 private:
     int_map_t 		op_preced;
 	
@@ -194,6 +202,9 @@ private:
 	str_stack_t 	op_stack;
     val_fifo_t 		rpn_queue;
 	val_stack_t		parse_stack;
+	
+	const char* 	frm_cursor;
+	row<char_t>		frm_content;
 	
     void toRPN(const char* expr);
 	

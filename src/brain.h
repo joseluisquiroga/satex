@@ -942,7 +942,8 @@ class brain {
 	void		add_neuron_from_lits(row_long_t& all_lits, long first, long last);
 	void		load_instance(long num_neu, long num_var, row_long_t& load_ccls);
 
-	void		load_it();
+	void		load_cnf();
+	void		load_frm();
 	void		solve_it();
 	void 		dpg_post_solve();
 
