@@ -442,6 +442,8 @@ class solver {
 public:
 	debug_info*		sl_dbg_info;
 	
+	str_t			prog_name;
+	
 	bool			silent;
 
 	bool			using_mem_ctrl;

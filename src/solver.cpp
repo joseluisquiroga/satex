@@ -1048,6 +1048,8 @@ solver::get_args(int argc, char** argv)
 {
 	std::ostream& os = std::cout;
 	MARK_USED(os);
+	
+	prog_name = argv[0];
 
 	for(long ii = 1; ii < argc; ii++){
 		std::string the_arg = argv[ii];
@@ -1112,11 +1114,11 @@ solver::get_args(int argc, char** argv)
 	}
 
 	if(prt_help){
-		os << argv[0] << " " << help_str << std::endl;
+		os << prog_name << " " << help_str << std::endl;
 		return false;
 	}
 	if(prt_version){
-		os << argv[0] << " " << version_str << std::endl;
+		os << prog_name << " " << version_str << std::endl;
 		return false;
 	}
 	if(prt_headers){
@@ -1130,8 +1132,8 @@ solver::get_args(int argc, char** argv)
 		return false;
 	}
 	if(input_file_nm.size() == 0){
-		os << argv[0] << " " << help_str << std::endl;
-		os << argv[0] << " " << version_str << std::endl;
+		os << prog_name << " " << help_str << std::endl;
+		os << prog_name << " " << version_str << std::endl;
 		return false;
 	}
 
@@ -1150,6 +1152,8 @@ int	solver_main(int argc, char** argv){
 	MARK_USED(dbg_inf);
 	debug_info* pt_dbg_inf = &dbg_inf;
 	MARK_USED(pt_dbg_inf);
+	
+	dbg_inf.dbg_prog_name = argv[0];
 	
 	slv.sl_dbg_info = &dbg_inf;
 	dbg_inf.dbg_slv = &slv;

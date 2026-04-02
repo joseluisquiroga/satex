@@ -94,6 +94,8 @@ typedef std::ostringstream 	t_ostr_stream;
 typedef std::istringstream 	t_istr_stream;
 typedef std::ofstream 	t_ofstream;
 
+typedef std::string		str_t;
+
 #define t_dbg_os std::cerr
 
 #define MAX_UTYPE(type)		((type)(-1))

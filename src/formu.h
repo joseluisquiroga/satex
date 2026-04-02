@@ -23,8 +23,6 @@ typedef long num_t;
 
 #define INVALID_ID_VAR 0
 
-typedef std::string str_t;
-
 //=================================================================================================
 // defines
 

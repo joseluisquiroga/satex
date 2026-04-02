@@ -191,11 +191,18 @@ debug_info::dbg_update_config_entries(){
 	} 
 }
 
+str_t
+debug_info::get_config_file_name(){
+	str_t nm = dbg_prog_name;
+	return nm + "_debug.conf";
+}
+
 void	
 debug_info::init_dbg_conf(){
 	debug_info& dbg_inf = *this;
 	config_reader conf_rdr;
-	conf_rdr.read_config(dbg_inf, "debug.conf");
+	str_t cf_nm = get_config_file_name();
+	conf_rdr.read_config(dbg_inf, cf_nm.c_str());
 
 	dbg_current_start_entry = 0;
 	dbg_current_stop_entry = 0;

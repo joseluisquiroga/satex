@@ -73,16 +73,18 @@ class solver;
 class debug_info {
 	public:
 	
-	solver*	dbg_slv;
-	brain*			dbg_brn;
+	solver*		dbg_slv;
+	brain*		dbg_brn;
 	
-	bool			dbg_skip_print_info;	
+	str_t		dbg_prog_name;
+	
+	bool		dbg_skip_print_info;	
 		
 	row<debug_entry>	dbg_start_dbg_entries;
 	row<debug_entry>	dbg_stop_dbg_entries;
-	long			dbg_current_start_entry;
-	long			dbg_current_stop_entry;
-	row<bool>		dbg_lev;
+	long		dbg_current_start_entry;
+	long		dbg_current_stop_entry;
+	row<bool>	dbg_lev;
 	bool 		dbg_bad_cycle1;
 
 	bool		dbg_ic_active;
@@ -142,6 +144,8 @@ class debug_info {
 		os << " num_lvs=" << dbg_lev.size();
 		return os;
 	}
+	
+	str_t	get_config_file_name();
 
 	void dbg_update_config_entries();
 };
@@ -164,6 +168,7 @@ class config_reader {
 	void 	parse_debug_line(row<long>& dbg_line, std::string& str_ln);
 	void	add_config_line(debug_info& dbg_inf, std::string& str_ln);
 	void	read_config(debug_info& dbg_inf, const char* f_name);
+	
 };
 
 bool dbg_lev_ok(debug_info* dbg_info, long lev);
