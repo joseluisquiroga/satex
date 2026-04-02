@@ -263,7 +263,11 @@ solver::do_instance(debug_info& dbg_inf){
 
 	the_brn.br_pt_inst = &inst_info;
 
-	the_brn.load_cnf();
+	if(! slv.is_formula){
+		the_brn.load_cnf();
+	} else {
+		the_brn.load_frm();
+	}
 	the_brn.solve_it();
 
 	slv.count_instance(inst_info);

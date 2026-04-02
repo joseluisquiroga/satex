@@ -67,6 +67,7 @@ extern bool	dbg_bad_cycle1;
 t_string get_parse_err_msg(const char* hd_msg, long num_line, char ch_err, const char* msg);
 
 void 	skip_line(const char*& pt_in, long& line);
+void 	skip_c_comment(const char*& pt_in, long& line);
 integer parse_int(const char*& pt_in, long line);
 
 //=================================================================
@@ -447,6 +448,9 @@ public:
 	bool			prt_help;
 	bool			prt_version;
 	bool			prt_headers;
+
+	bool 			is_formula;
+	
 	bool 			is_test;
 	std::string		test_pm;
 

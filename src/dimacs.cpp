@@ -273,13 +273,21 @@ dimacs_loader::parse_clause(row<integer>& lits){
 		skip_dimacs_whitespace(pt_in, ld_num_line);
 		bool isint = follows_int(pt_in);
 		if(! isint){
-			skip_line(pt_in, ld_num_line);
+			if((*pt_in != 0) && (*pt_in == '/') && (*(pt_in + 1) != 0) && (*(pt_in + 1) == '*')){ 
+				skip_c_comment(pt_in, ld_num_line);
+			} else {
+				skip_line(pt_in, ld_num_line);
+			}
 			continue;
 		}
 		parsed_lit = parse_int(pt_in, ld_num_line);
 		if(parsed_lit == 0){ break; }
 		
-		ld_all_vars.insert(get_var(parsed_lit));
+		long vv = get_var(parsed_lit);
+		if(vv > ld_parsed_vars){
+			ld_parsed_vars = vv;
+		}
+		//ld_all_vars.insert(get_var(parsed_lit));
 		
 		lits.push(parsed_lit);
 	}
@@ -623,7 +631,7 @@ print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_va
 void
 dimacs_loader::finish_parse(row<long>& inst_ccls)
 {
-	ld_parsed_vars = ld_all_vars.size();
+	//ld_parsed_vars = ld_all_vars.size();
 	
 	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_ccls == 0));
 	SUPPORT_CK(ld_as_3cnf || (ld_nud_added_vars == 0));

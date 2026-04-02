@@ -71,6 +71,18 @@ skip_line(const char*& pt_in, long& line){
 	}
 }
 
+void
+skip_c_comment(const char*& pt_in, long& line){
+	while(*pt_in != 0){
+		if(*pt_in == '\n'){ line++; }
+		if((*pt_in == '*') && (*(pt_in + 1) != 0) && (*(pt_in + 1) == '/')){ 
+			pt_in += 2; 
+			return; 
+		}
+		pt_in++; 
+	}
+}
+
 integer parse_int(const char*& pt_in, long line) {
 	integer	val = 0;
 	bool	neg = false;
@@ -293,6 +305,9 @@ solver::init_solver(){
 	prt_help = false;
 	prt_version = false;
 	prt_headers = false;
+	
+	is_formula = false;
+	
 	is_test = false;
 	
 	test_pm = "";
@@ -304,6 +319,12 @@ solver::init_solver(){
 		"-v : print version.\n"
 		"-p : set the root path to <root_path>.\n"
 		"-m : set max number of RAM Kbytes to use while running.\n"
+		"-j : just read.\n"
+		"-ck : check satisf.\n"
+		"-f : read as formula.\n"
+		"-o <ofile> : set output file.\n"
+		"-shuffle_cnf :  shuffle the cnf.\n"
+		"-as_3cnf :  convert to 3cnf before solving.\n"
 		"\n"
 		;
 
@@ -1040,6 +1061,8 @@ solver::get_args(int argc, char** argv)
 			silent = true;
 		} else if(the_arg == "-j"){
 			just_read = true;
+		} else if(the_arg == "-f"){
+			is_formula = true;
 		} else if(the_arg == "-ck"){
 			op_ck_satisf = true;
 		} else if((the_arg == "-o") && ((ii + 1) < argc)){ 

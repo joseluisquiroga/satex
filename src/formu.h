@@ -15,6 +15,8 @@
 #include "print_stm.h"
 #include "tools.h"
 
+class debug_info;
+
 typedef long num_t;
 #define str_to_num 	atol
 #define num_format 	"%ld"
@@ -129,6 +131,12 @@ public:
 	long
 	get_id_var(str_t vv);
 	
+	debug_info*	 fm_dbg_info = NULL_PT;
+	
+	debug_info*	get_dbg_info(){
+		return fm_dbg_info;
+	}	
+	
     struct val_t
     {
 		val_kind 			vl_kind = BUNDEFINED;
@@ -207,6 +215,7 @@ private:
 	row<char_t>		frm_content;
 	
     void toRPN(const char* expr);
+	void print_rpn(std::ostream& os);
 	
 	void prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt);
 

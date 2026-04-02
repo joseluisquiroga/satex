@@ -47,6 +47,16 @@ formu::get_id_var(str_t vv){
 	return var_ids[vv];
 }
 
+void
+formu::print_rpn(std::ostream& os){
+	val_fifo_t q2 = rpn_queue;
+	while(! q2.empty()){
+		os << q2.front() << ",";
+		q2.pop();
+	}
+	os << "\n";
+}
+
 #define isvariablechar(c) (isalpha(c) || c == '_')
 void 
 formu::toRPN(const char* expr){
@@ -155,7 +165,13 @@ formu::toRPN(const char* expr){
 						is_un = is_unary(opk1);
 						++expr;
 					} else {
-						throw std::domain_error("Unrecognized operator: " + op2);
+						long nln = 0;
+						if(op2 != "/*"){
+							skip_line(expr, nln);
+						} else {
+							skip_c_comment(expr, nln);
+						}
+						break;
 					}
 					
                     while (!is_un && !ostk.empty() && op_preced[str] <= op_preced[ostk.top()]){
@@ -188,6 +204,8 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
     toRPN(expr);
 	val_fifo_t& rpn = rpn_queue;
 
+	DBG_PRT(50, print_rpn(os));
+	
 	parse_stack = val_stack_t();
     val_stack_t& stk = parse_stack;
 	
@@ -545,6 +563,8 @@ formu::parse_file(std::string& f_nam, row<long>& inst_ccls)
 	frm_cursor = frm_content.get_c_array();
 	
 	parse_cnf(frm_cursor, inst_ccls);
+
+	DBG_PRT(45, os << inst_ccls);
 }
 
 

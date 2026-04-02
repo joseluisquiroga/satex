@@ -1225,6 +1225,7 @@ brain::load_frm(){
 	// dimacs loading
 
 	formu	the_loader;
+	the_loader.fm_dbg_info = br_dbg_info;
 	//the_loader.ld_dbg_info = br_dbg_info;
 	
 	row<long> inst_ccls;
@@ -1508,8 +1509,8 @@ brain::receive_tsignal(){
 	BRAIN_CK(sg_tier != INVALID_TIER);
 	
 	if(qua.has_charge()){
-		BRAIN_CK(neu != NULL_PT);
 		if(qua.is_neg()){
+			BRAIN_CK(neu != NULL_PT);
 			if(!(neu->ne_is_conflict)){
 				brn->br_conflicts.push(neu);
 				neu->ne_is_conflict = true;
