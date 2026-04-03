@@ -72,7 +72,7 @@ formu::toRPN(const char* expr){
     while (*expr && isspace(*expr)) ++expr;
     while (*expr)
     {
-        if(isdigit(*expr )){
+        if(isdigit(*expr)){
 			/*
 			char* nextChar = 0;
 			num_t digit = strtod(expr, &nextChar);
@@ -97,7 +97,7 @@ formu::toRPN(const char* expr){
             std::stringstream ss;
             ss << *expr;
             ++expr;
-            while(isvariablechar(*expr)){
+            while(isvariablechar(*expr) || isdigit(*expr)){
                 ss << *expr;
                 ++expr;
             }
