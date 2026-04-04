@@ -253,7 +253,7 @@ formu::parse_cnf(const char* expr, row<long>& cnf){
 	if(! stk.empty()){
 		val_t lft = stk.top(); stk.pop();
 		val_t op; val_t rgt;
-		prt_op(std::cout, op, lft, rgt);
+		//prt_op(std::cout, op, lft, rgt);
 		if(! lft.is_false() && ! lft.is_true()){
 			add1cla(cnf, lft.pos());
 		} else if(lft.is_false()){
@@ -371,7 +371,7 @@ formu::add3cla(row<long>& cnf, long v1, long v2, long v3){
 void
 formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_false() || rgt.is_false()){
 		stk.push(false_val());
 		return;
@@ -395,7 +395,7 @@ formu::add_and(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_true() || rgt.is_true()){
 		stk.push(true_val());
 		return;
@@ -419,7 +419,7 @@ formu::add_or(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_true()){
 		stk.push(rgt);
 		return;
@@ -444,7 +444,7 @@ formu::add_then(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_true() || rgt.is_false()){
 		stk.push(true_val());
 		return;
@@ -469,7 +469,7 @@ formu::add_bakthen(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_true()){
 		stk.push(rgt);
 		return;
@@ -499,7 +499,7 @@ formu::add_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(lft.is_true()){
 		stk.push(neg_val(rgt));
 		return;
@@ -529,7 +529,7 @@ formu::add_not_equal(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	if(rgt.is_false()){
 		stk.push(true_val());
 		return;
@@ -548,7 +548,7 @@ formu::add_not(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
 void
 formu::add_same(val_t& op, val_t& lft, val_t& rgt, row<long>& cnf){
     val_stack_t& stk = parse_stack;
-	prt_op(std::cout, op, lft, rgt);
+	//prt_op(std::cout, op, lft, rgt);
 	stk.push(rgt);
 }
 
