@@ -120,6 +120,7 @@ class brain;
 
 bool 		cmp_ticket_eq(ticket& x, ticket& y);
 comparison	cmp_long_id(quanton* const & qua1, quanton* const & qua2);
+comparison	cmp_long_abs_id(quanton* const & qua1, quanton* const & qua2);
 comparison	cmp_choice_idx_lt(quanton* const & qua1, quanton* const & qua2);
 //comparison	cmp_choice_idx_gt(quanton* const & qua1, quanton* const & qua2);
 comparison	cmp_qlevel(quanton* const & qua1, quanton* const & qua2);
@@ -1045,6 +1046,10 @@ comparison	cmp_long_id(quanton* const & qua1, quanton* const & qua2){
 	return cmp_long(qua1->qu_id, qua2->qu_id);
 }
 
+inline
+comparison	cmp_long_abs_id(quanton* const & qua1, quanton* const & qua2){
+	return cmp_long(qua1->abs_id(), qua2->abs_id());
+}
 
 inline
 comparison	cmp_choice_idx_lt(quanton* const & qua1, quanton* const & qua2){

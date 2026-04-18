@@ -22,6 +22,7 @@ solver class and classes that assist the system.
 #include "solver.h"
 #include "config.h"
 #include "sha2.h"
+#include "brain.h"
 
 std::string	satisf_val_nams[k_last_satisf_val];
 
@@ -601,9 +602,14 @@ solver::count_instance(instance_info& inst_info){
 	}
 
 	DBG_PRT(4, os << "FINAL_CHOSEN=" << final_chosen_ids << std::endl
-		<< "FINAL_ASSIG=" << final_assig << std::endl 
-		<< std::endl);
+		<< "FINAL_ASSIG=" << final_assig << "\n");
+	
+	row_quanton_t sor_assg;
+	final_assig.copy_to(sor_assg);
+	sor_assg.mix_sort(cmp_long_abs_id);
 
+	DBG_PRT(4, os << "SORTED_FINAL_ASSIG=" << sor_assg << "\n");
+	
 	if(out_os != NULL_PT){
 		PRT_OUT(1, print_stats(*out_os));
 	}

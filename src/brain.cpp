@@ -211,9 +211,12 @@ bool
 brain::brn_compute_binary(){
 	long ii;
 	for(ii = 0; ii < br_neurons.size(); ii++){
-		if(!(br_neurons[ii].neu_compute_binary())){
+		neuron& neu = br_neurons[ii];
+		if(!(neu.neu_compute_binary())){
+			DBG_PRT(46, os << neu.ne_fibres << "---------NO_SAT");
 			return false;
 		}
+		DBG_PRT(46, os << neu.ne_fibres);
 	}
 	return true;
 }
@@ -269,7 +272,7 @@ quanton::print_quanton(std::ostream& os, bool from_pt){
 		os << qu_id; 
 		if(is_neg){ os << '/'; }
 		if(is_pos){ os << '\\'; }
-		if(get_source() == NULL_PT){ os << "." << qlevel(); }
+		//if(get_source() == NULL_PT){ os << "." << qlevel(); }
 		os.flush();
 		return os;
 	}
@@ -1384,6 +1387,8 @@ brain::check_sat_assig(){
 	br_tmp_final_assig.push(0);
 	inst_info.ist_final_assig = row_long_to_str(br_tmp_final_assig);
 	br_tmp_final_assig.clear(true, true);
+	
+	DBG_PRT(46, os << "FINAL_ASSIG_CHECKED\n");
 }
 
 t_string

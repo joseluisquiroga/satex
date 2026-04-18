@@ -194,7 +194,8 @@ formu::toRPN(const char* expr){
 
 std::ostream&
 formu::val_t::print_val_fn(std::ostream& os, bool from_pt){
-	os << "[" << toString() << "," << vl_id_var << "," << val_kind_nm() << "]";
+	//os << "[" << toString() << "," << vl_id_var << "," << val_kind_nm() << "]";
+	os << "[" << toString() << "," << vl_id_var << "]";
 	return os;
 }
 
@@ -331,11 +332,13 @@ formu::prt_op(std::ostream& os, val_t& op, val_t& lft, val_t& rgt){
 
 void 
 formu::add_false(row<long>& cnf){
-	cnf.push(1);
+	//cnf.push(1);
+	//cnf.push(0);
+	//cnf.push(-1);
 	cnf.push(0);
-	cnf.push(-1);
-	cnf.push(0);
-	num_ccls += 2;
+	num_ccls += 1;
+
+	DBG_PRT(47, os << "ADDED FALSE= 0");
 }
 
 void 
@@ -344,6 +347,8 @@ formu::add1cla(row<long>& cnf, long v1){
 	cnf.push(v1);
 	cnf.push(0);
 	num_ccls++;
+
+	DBG_PRT(47, os << "ADDED 1CLA= " << v1 << " 0");
 }
 
 void 
@@ -354,6 +359,8 @@ formu::add2cla(row<long>& cnf, long v1, long v2){
 	cnf.push(v2);
 	cnf.push(0);
 	num_ccls++;
+
+	DBG_PRT(47, os << "ADDED 2CLA= " << v1 << " " << v2 << " 0");
 }
 
 void 
@@ -366,6 +373,8 @@ formu::add3cla(row<long>& cnf, long v1, long v2, long v3){
 	cnf.push(v3);
 	cnf.push(0);
 	num_ccls++;
+	
+	DBG_PRT(47, os << "ADDED 3CLA= " << v1 << " " << v2 << " " << v3 << " 0");
 }
 
 void
