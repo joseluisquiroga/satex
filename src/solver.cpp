@@ -569,6 +569,7 @@ solver::count_instance(instance_info& inst_info){
 	double full_tm = end_time - inst_info.ist_solve_time;
 
 	batch_stat_laps.add_val(inst_info.ist_num_laps);
+	batch_stat_choices.add_val(inst_info.ist_num_choices);
 	batch_stat_solve_tm.add_val(full_tm);
 
 	/*

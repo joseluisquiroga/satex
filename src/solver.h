@@ -380,6 +380,7 @@ public:
 	long			ist_num_ccls;
 	long			ist_num_lits;
 	consecutive_t	ist_num_laps;
+	long			ist_num_choices;
 	std::string		ist_final_assig;
 	satisf_val		ist_ck_result;
 	std::string		ist_ck_sha;
@@ -394,6 +395,7 @@ public:
 		ist_num_ccls = 0;
 		ist_num_lits = 0;
 		ist_num_laps = 0;
+		ist_num_choices = 0;
 		ist_ck_result = k_unknown_satisf;
 		ist_ck_sha = "";
 		ist_final_assig = "Invalid_final_assig";

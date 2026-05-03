@@ -731,6 +731,9 @@ brain::choose_quanton(){
 		qua = qua->qu_inverse;
 	}
 
+	instance_info& inst_info = get_my_inst();
+	inst_info.ist_num_choices++;
+	DBG_PRT(6, os << "CHOSE qu=" << qua);
 	return qua;
 }
 
