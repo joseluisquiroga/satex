@@ -95,7 +95,6 @@ brain::ck_trail(){
 	std::ostream& os = t_dbg_os;
 
 	//ticket last;
-	long num_null_src = 0;
 	BRAIN_CK_0(br_trail.size() >= 0);
 	for(long ii = 0; ii < br_trail.size(); ii++){
 		quanton* qua = br_trail[ii];
@@ -111,10 +110,6 @@ brain::ck_trail(){
 			print_trail();
 			abort_func(-1, br_file_name.c_str());
 		}
-
-		if((qua->qu_source == NULL) && (qua->qlevel() != 0)){
-			num_null_src++;
-		}
 		if(qua->get_charge() == cg_neutral){
 			os << "ck_trail CASE 2" << std::endl;
 			print_trail();
@@ -129,12 +124,6 @@ brain::ck_trail(){
 		// TK_LE
 		
 	}
-	/*if(num_null_src != level()){
-		os << "ck_trail CASE 6" << std::endl;
-		os << "level()=" << level() << std::endl;
-		print_trail();
-		abort_func(-1, br_file_name.c_str());
-	}*/
 	return true;
 }
 
@@ -1490,9 +1479,9 @@ prop_signal::print_prop_signal(std::ostream& os, bool from_pt){
 action_t
 brain::send_tsignal(quanton* qua, neuron* src, long max_tier){
 	BRAIN_CK((max_tier > 0) || (level() == ROOT_LEVEL));
-	prop_signal snw;
-	snw.init_prop_signal(qua, src, max_tier);
-	br_tsignals.push(snw);
+	prop_signal snsg;
+	snsg.init_prop_signal(qua, src, max_tier);
+	br_tsignals.push(snsg);
 	return ac_go_on;
 }
 

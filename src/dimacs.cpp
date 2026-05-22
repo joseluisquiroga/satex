@@ -606,19 +606,13 @@ print_dimacs_of(std::ostream& os, row<long>& all_lits, long num_cla, long num_va
 	os << "p cnf " << num_var << " " << num_cla << " " << std::endl;
 
 	long first = 0;
-	long neus_cou = 0;
-	long dens_cou = 0;
 
 	for(long ii = 0; ii < all_lits.size(); ii++){
 		long nio_id = all_lits[ii];
 		os << nio_id << " ";
 		if(nio_id == 0){
 			os << std::endl;
-
-			neus_cou++;
-			long num_dens = ii - first;
-			DIMACS_CK_0(num_dens > 0);
-			dens_cou += num_dens;
+			DIMACS_CK_0((ii - first) > 0);
 
 			first = ii + 1;
 		}
