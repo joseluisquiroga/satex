@@ -1107,6 +1107,9 @@ public:
 			if(from != 0){
 				dealloc = false;
 			}
+			if constexpr (! std::is_fundamental_v<obj_t>){
+				destroy = true;
+			}
 			if(destroy){ 
 				for(row_index ii = from; ii < SZ_ATTRIB; ii++){ 
 					pos(ii).~obj_t();

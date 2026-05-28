@@ -1253,16 +1253,32 @@ brain::set_result(satisf_val re){
 }
 
 void
-brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas){
+brain::get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas, bool& is_sat){
 	neu_quas.clear();
 
+	is_sat = false;
 	for(long ii = first; ii < last; ii++){
 		BRAIN_CK(all_lits.is_valid_idx(ii));
 		long nio_id = all_lits[ii];
 
 		quanton* qua = get_quanton(nio_id);
 		BRAIN_CK_0(qua != NULL_PT);
+		if(qua->has_flag(qf_in_neu)){
+			continue;
+		}
+		qua->set_flag(qf_in_neu);
+		if(qua->opp().has_flag(qf_in_neu)){
+			is_sat = true;
+			break;
+		}
+
 		neu_quas.push(qua);
+	}
+
+	set_all_flag(neu_quas, qf_in_neu, false);
+
+	if(is_sat){
+		neu_quas.clear();
 	}
 }
 
@@ -1271,7 +1287,15 @@ brain::add_neuron_from_lits(row_long_t& all_lits, long first, long last){
 	row_quanton_t& quas = br_tmp_fixing_quantons;
 
 	quas.clear();
-	get_quantons_from_lits(all_lits, first, last, quas);
+	bool is_sat = false;
+	get_quantons_from_lits(all_lits, first, last, quas, is_sat);
+	if(is_sat){
+		return;
+	}
+	if(all_lits.is_empty()){
+		set_result(k_no_satisf);
+		return;
+	}
 
 	DBG_PRT(29, os << "ADDING NEU=" << quas);
 

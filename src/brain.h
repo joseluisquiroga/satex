@@ -215,7 +215,7 @@ cmp_ticket_eq(ticket& x, ticket& y){
 // quanton
 
 enum qu_flag_t {
-	qf_flag1, 
+	qf_in_neu,
 	qf_flag2, 
 	qf_last_flag, 
 };
@@ -226,7 +226,6 @@ class quanton {
 	BRAIN_DBG(debug_info*		qu_dbg_info;)
 
 	bit_row			qu_flags;
-
 	
 	// id attributes
 	long			qu_id;		// my long number id
@@ -290,6 +289,8 @@ class quanton {
 	void	init_quanton(debug_info* dbg_inf, charge_t spn, long ii, quanton* inv){
 		BRAIN_DBG(qu_dbg_info = dbg_inf);
 
+		qu_flags.fill(false, qf_last_flag);
+
 		qu_id = (spn == cg_positive)?(ii + 1):(-(ii + 1));
 		qu_index = ii;
 		qu_spin = spn;
@@ -337,10 +338,10 @@ class quanton {
 		qu_inverse->qu_dot = cg_neutral;
 	}
 
-	/*quanton&	opposite(){
+	quanton&	opp(){
 		BRAIN_CK(qu_inverse != NULL_PT);
 		return (*qu_inverse);
-	}*/
+	}
 
 	long		qrecoil(){ return qu_charge_tk.tk_recoil; }
 	long		qlevel(){ return qu_charge_tk.tk_level; }
@@ -379,13 +380,16 @@ class quanton {
 		return (get_source() != NULL_PT);
 	}
 	
-	bool	get_flag(qu_flag_t num_flag){
+	bool	has_flag(qu_flag_t num_flag){
 		return qu_flags[num_flag];
 	}
-	
+
+	void	set_flag(qu_flag_t num_flag, bool val = true){
+		qu_flags[num_flag] = val;
+	}
+
 	friend
 	void	set_all_flag(row_quanton_t& all_with_flag, qu_flag_t num_flag, bool flag_val);
-
 
 	std::ostream&		print_quanton(std::ostream& os, bool from_pt = false);
 
@@ -939,7 +943,7 @@ class brain {
 	bool	brn_compute_dots(bool only_orig);
 	bool	brn_compute_dots_of(row_quanton_t& assig, bool only_orig = false);
 
-	void		get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas);
+	void		get_quantons_from_lits(row_long_t& all_lits, long first, long last, row_quanton_t& neu_quas, bool& is_sat);
 	void		add_neuron_from_lits(row_long_t& all_lits, long first, long last);
 	void		load_instance(long num_neu, long num_var, row_long_t& load_ccls);
 
@@ -1039,6 +1043,17 @@ quanton::set_source(brain* brn, neuron* neu){
 	DBG(
 		qu_source->ck_all_neg(brn, 1);
 	);
+}
+
+inline
+void
+set_all_flag(row_quanton_t& quas, qu_flag_t num_flag, bool val){
+	long ii = 0;
+	for(ii = 0; ii < quas.size(); ii++){
+		quanton* qua = quas[ii];
+		DBG_CK(qua != NULL_PT);
+		qua->set_flag(num_flag, val);
+	}
 }
 
 inline
